@@ -1,0 +1,36 @@
+<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+# AGENTS.md — {{PROJECT_NAME}}
+
+Tool-agnostic instructions for any AI coding agent (Claude Code, Codex, Cursor,
+Copilot, Windsurf). Claude Code reads these via `@AGENTS.md` in `CLAUDE.md`;
+other tools read this file directly.
+
+## Project
+{{DESCRIPTION}}{{FORK_LINE}}
+Stack: {{LANGUAGES}}.
+
+## Rules every agent must follow
+1. {{FORK_RULE}}
+2. **No layout churn.** Don't reorganize directories; existing contributors depend on
+   the structure.
+3. **Test before done.** Run the suite matching your change; never declare success
+   untested. Build: `{{BUILD_CMD}}` · Test: `{{TEST_CMD}}`
+4. **Match license headers** on every new source file, copying from neighboring files.
+5. **Locate, then read.** Use `ai/guide/MODULE_MAP.md` to find code; grep before
+   reading whole files.
+6. **Surgical diffs.** Change only what the task needs.
+7. **Provenance.** Anything you write into `ai/` is `[inferred]` until a human flips
+   it to `[verified]`. Never flip that tag yourself.
+
+## Knowledge map
+**Navigation (fast path):** `ai/guide/MODULE_MAP.md` (where code lives),
+`ai/guide/ARCHITECTURE.md` (system shape), `ai/guide/FEATURE_MAP.md` (feature → files
++ gotchas), `ai/guide/CONVENTIONS.md` (how to write code here).
+
+**Generated analysis (on demand):** `ai/analysis/` — feature catalog, audit reports,
+diagrams. **Development intelligence:** `ai/lab/` — specs, ADRs, evaluations.
+
+**Machine-readable facts:** `ai/repo-profile.json` (produced deterministically by the
+kit's `orient` step — trust it for stack facts, verify before relying on commands).
+
+<!-- Installed by ai-fication-kit {{KIT_VERSION}} on {{DATE}}. -->

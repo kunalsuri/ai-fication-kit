@@ -1,0 +1,15 @@
+{
+  "name": "legacy-calculator",
+  "version": "1.0.0",
+  "description": "A legacy calculator application with zero runtime dependencies",
+  "scripts": {
+    "build": "node -e \"console.log('Build complete (no-op)')\"",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "calculator",
+    "legacy"
+  ],
+  "author": "Kunal Suri",
+  "license": "Apache-2.0"
+}

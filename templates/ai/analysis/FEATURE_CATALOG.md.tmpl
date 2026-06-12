@@ -1,0 +1,94 @@
+# Feature Catalog — {{PROJECT_NAME}} Master Index
+
+---
+
+> ## Provenance & scope
+>
+> **Cold-start snapshot — {{DATE}}** (commit `<commit-hash>`).
+> Represents **all features present in the repository as of this date**.
+>
+> **Confidence key used throughout (same scheme as `ai/INDEX.md`):**
+> - `[inferred]` — written by an agent or tool; a guess until a human checks it
+> - `[verified]` — a human confirmed it, with the date. Agents never set this tag.
+> - `?` in Status column — requires a human decision/audit
+>
+> **What this file does NOT contain:** planned but unimplemented features ➔ see `ai/lab/specs/`
+
+---
+
+## How to use the catalog (Split provision for complex codebases)
+
+Depending on the complexity of {{PROJECT_NAME}}, the catalog can live in a single file or be split to reduce token context overhead:
+
+### Option A: Single-file Catalog
+For small to medium codebases, keep all feature indices, API surfaces, and touch lists in this file.
+
+### Option B: Split Catalog (Recommended for complex codebases)
+If the project is complex, split details into dedicated backend and frontend catalog files. Use this master index file as the navigation layer:
+
+| File | Contains | Load when |
+|---|---|---|
+| **This file** (`FEATURE_CATALOG.md`) | Feature index, API surface summary, cross-stack touch lists, decision tree | Always — it is the navigation layer |
+| [`FEATURE_CATALOG_BACKEND.md`](FEATURE_CATALOG_BACKEND.md) | Detailed backend modules, classes, and architectural roles | Working on backend/services/metamodels |
+| [`FEATURE_CATALOG_FRONTEND.md`](FEATURE_CATALOG_FRONTEND.md) | Detailed frontend components, hooks, routes, and custom styles | Working on frontend/UI/styles |
+
+---
+
+## §1 Feature Index
+
+> The two rows below are **placeholder examples** — `/create-feature-catalog` replaces
+> them with real features. If you still see them, the catalog has not been generated.
+
+| ID | Feature | What it does | Backend Entry Point | Frontend Entry Point | Status |
+|---|---|---|---|---|---|
+| F1 | **Example Feature** | Brief description of capability | `ExampleService.java` `[inferred]` | `ExampleComponent.tsx` `[inferred]` | `?` |
+| F2 | **Another Feature** | Brief description of capability | `AnotherService.java` `[inferred]` | `AnotherPage.tsx` `[inferred]` | `?` |
+
+---
+
+## §2 API / GraphQL Surface (If applicable)
+
+Detail the queries, mutations, or REST endpoints exposed by this project.
+
+### Key Operations
+
+| Operation / Endpoint | Handler/Controller | Purpose |
+|---|---|---|
+| `/api/v1/example` | `ExampleController` | Description of purpose |
+
+---
+
+## §3 Full-Stack Touch Lists
+
+For each feature, list the exact files to touch across layers.
+
+### F1 — Example Feature
+| What to change | File / Component | Confidence |
+|---|---|---|
+| UI Component | `frontend/src/ExampleComponent.tsx` | `[inferred]` |
+| API service | `backend/src/ExampleService.java` | `[inferred]` |
+
+---
+
+## §4 Where New Code Lives — decision tree
+
+```
+What kind of change?
+├── New business logic?   ➔ target `src/` or backend module
+├── New UI component?      ➔ target `frontend/src/components/`
+└── New schema/mutation?  ➔ target API schemas
+```
+
+---
+
+## §5 Specification-Driven Development — new features
+
+New features follow a spec-first workflow:
+
+```
+1. Create specification: ai/lab/specs/SPEC_<feature-name>.md
+2. AI fills in: Full-stack design based on this catalog
+3. Human approves spec
+4. AI implements using the /add-feature skill
+5. AI updates: FEATURE_CATALOG.md
+```

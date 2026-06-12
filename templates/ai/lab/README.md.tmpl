@@ -1,0 +1,21 @@
+# ai/lab/ — development intelligence for {{PROJECT_NAME}}
+
+The strategic layer: *how* we build and *what we learned* — not code, not navigation.
+Loaded when planning or reviewing, not on every agent session.
+
+| Folder | Contains | Who writes it |
+|---|---|---|
+| `specs/` | One spec per planned/in-progress feature | Human + AI draft |
+| `decisions/` | Architecture Decision Records (ADRs) | Human |
+| `evaluations/` | Post-implementation retrospectives | Human |
+| `experiments/` | AI-agent approach trials: prompts, configs, outcomes | Human + AI |
+
+## Lifecycle of a feature
+```
+1. Plan      →  specs/SPEC_<name>.md          (copy SPEC_TEMPLATE.md)
+2. Decide    →  decisions/ADR_<n>-<title>.md  (any non-obvious design choice)
+3. Implement →  /add-feature — the agent reads the spec
+4. Evaluate  →  evaluations/EVAL_<name>.md    (after the feature ships)
+5. Learn     →  experiments/EXP_<n>-<desc>.md (if the AI approach was novel or failed)
+6. Archive   →  mark spec implemented; entry lands in ai/analysis/FEATURE_CATALOG.md
+```

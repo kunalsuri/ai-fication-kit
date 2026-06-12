@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" role="img" aria-label="ai-fication-kit — legacy to AI-native, with a human in the loop">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10151f"/>
+      <stop offset="1" stop-color="#1b2a3a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8a33d"/>
+      <stop offset="1" stop-color="#f2c14e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <!-- cartography motif: a faint module map being charted -->
+  <g stroke="#2e4257" stroke-width="1" fill="none" opacity="0.55">
+    <path d="M70 250 C 180 200, 240 270, 360 230 S 560 180, 660 220"/>
+    <path d="M60 200 C 170 160, 300 210, 420 180 S 600 130, 700 170"/>
+    <path d="M90 150 C 200 120, 320 160, 440 130 S 580 90, 680 120"/>
+  </g>
+  <g fill="#3b5670" opacity="0.9">
+    <circle cx="170" cy="196" r="4"/><circle cx="365" cy="172" r="4"/>
+    <circle cx="520" cy="150" r="4"/><circle cx="430" cy="232" r="4"/>
+  </g>
+  <g stroke="#3b5670" stroke-width="1.2" opacity="0.7">
+    <line x1="170" y1="196" x2="365" y2="172"/>
+    <line x1="365" y1="172" x2="520" y2="150"/>
+    <line x1="365" y1="172" x2="430" y2="232"/>
+  </g>
+  <!-- verified stamp on one node: the human signature -->
+  <g transform="translate(520,150)">
+    <circle r="11" fill="none" stroke="#f2c14e" stroke-width="2"/>
+    <path d="M-4 0 L-1 3.5 L5 -4" fill="none" stroke="#f2c14e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="760" y="252" font-family="ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace" font-size="13" fill="#5d7a96">[inferred] → [verified]</text>
+  <!-- title -->
+  <text x="70" y="92" font-family="ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace" font-size="58" font-weight="700" fill="#eef3f8">ai-fication-kit</text>
+  <rect x="74" y="112" width="270" height="5" fill="url(#accent)"/>
+  <text x="70" y="152" font-family="ui-monospace, 'Cascadia Code', 'Fira Code', Consolas, monospace" font-size="21" fill="#9fb4c8">legacy repo → AI-native, with a human in the loop</text>
+  <!-- terminal chip -->
+  <g transform="translate(760,60)">
+    <rect width="450" height="118" rx="10" fill="#0c1117" stroke="#2e4257"/>
+    <circle cx="22" cy="22" r="5" fill="#e0604f"/><circle cx="40" cy="22" r="5" fill="#e8a33d"/><circle cx="58" cy="22" r="5" fill="#5fae6e"/>
+    <text x="22" y="62" font-family="ui-monospace, Consolas, monospace" font-size="17" fill="#cfe3d4">$ node install.mjs shazam ./my-repo</text>
+    <text x="22" y="92" font-family="ui-monospace, Consolas, monospace" font-size="15" fill="#5d7a96">⚡ orient → install → your audit</text>
+  </g>
+</svg>

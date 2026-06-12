@@ -1,0 +1,35 @@
+<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+# ai/ — repository intelligence for {{PROJECT_NAME}}
+
+This folder is the knowledge layer that makes the repo legible to AI coding agents —
+**with a human in the loop**. Everything an agent writes here is tagged `[inferred]`
+until a human audits it to `[verified]`.
+
+## Role → path manifest
+
+Commands and prompts reference *roles*; this table maps roles to paths. If paths ever
+change, update this one file.
+
+| Role | Path | Authored by | Load pattern |
+|---|---|---|---|
+| Machine-readable repo facts | `ai/repo-profile.json` | `orient` (deterministic) | any time |
+| Navigation guide | `ai/guide/` | agent drafts, human verifies | every agent session |
+| Module map (start here) | `ai/guide/MODULE_MAP.md` | agent drafts, human verifies | every agent session |
+| Generated analysis | `ai/analysis/` | agent/tools | on demand per task |
+| Feature catalog | `ai/analysis/FEATURE_CATALOG.md` | `/create-feature-catalog` | on demand |
+| Diagrams (Mermaid) | `ai/analysis/diagrams/` | `/cold-start`, regenerate don't hand-edit | on demand |
+| Development intelligence | `ai/lab/` | human (+ AI drafts) | when planning/reviewing |
+| Decisions (ADRs) | `ai/lab/decisions/` | human | when planning |
+| Feature specs | `ai/lab/specs/` | human + AI draft | per feature |
+| Evaluations | `ai/lab/evaluations/` | human | post-ship |
+| Experiments | `ai/lab/experiments/` | human + AI | when trying new agent approaches |
+| Install manifest | `ai/install-manifest.json` | installer | uninstall only |
+
+## The provenance rule (read this twice)
+
+- `[inferred]` — written by an agent or tool; a guess until checked.
+- `[verified]` — a human confirmed it, with the date.
+- Agents must NEVER flip `[inferred]` to `[verified]`. That flip is the human's
+  signature, and it is what makes this layer trustworthy.
+
+Installed by ai-fication-kit {{KIT_VERSION}} on {{DATE}}.

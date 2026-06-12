@@ -1,0 +1,4 @@
+# Force LF line endings for installer executables to ensure they run correctly on Unix/Linux via npx
+install.mjs text eol=lf
+install.py text eol=lf
+make-checksums.sh text eol=lf
