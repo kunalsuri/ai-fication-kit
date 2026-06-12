@@ -29,7 +29,7 @@ VERIFY_NON_FILES = {"node.js", "vue.js", "react.js", "next.js", "express.js",
 
 _CLAIM_RE = re.compile(r"`([^`\n]+)`")
 _BAD_CHARS_RE = re.compile(r"[\s{}<>*$()|&;\"']")
-_FILENAME_RE = re.compile(r"^[\w.\-]+\.[A-Za-z][A-Za-z0-9_]{0,11}$")
+_FILENAME_RE = re.compile(r"^[\w.\-]+\.[A-Za-z][A-Za-z0-9_]{0,11}$", re.ASCII)
 
 
 def extract_claims(text, source_file):
@@ -79,7 +79,7 @@ def build_file_index(root):
             rel = f"{rel_dir}/{e.name}" if rel_dir else e.name
             by_path[rel.lower()] = rel
             if e.is_dir():
-                if e.name not in VERIFY_IGNORED_DIRS:
+                if e.name.lower() not in VERIFY_IGNORED_DIRS:
                     walk(rel)
             elif e.is_file():
                 by_name.setdefault(e.name.lower(), []).append(rel)
