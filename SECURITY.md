@@ -12,8 +12,10 @@ The installers in this kit are deliberately boring:
 - **Clean removal.** `uninstall` deletes exactly the files recorded in
   `ai/install-manifest.json`.
 
-You are encouraged to read both installers in full before running them
-(each is a few hundred lines of commented code).
+You are encouraged to read both installers in full before running them.
+Each is a thin CLI (`install.mjs`, `install.py`) over four small single-purpose
+modules in `lib/` (`util`, `orient`, `installer`, `verify`) — every file is
+commented and short enough to audit in one sitting.
 
 To report a vulnerability, open a private security advisory on GitHub:
 **Security tab → "Report a vulnerability"**, or go directly to

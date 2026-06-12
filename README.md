@@ -144,7 +144,7 @@ flowchart TD
 | **2️⃣ `install`**           | Script (Seconds)   | **Scaffolding.** Stamps the templates into your repository. Records every written file in an install manifest so `uninstall` can perform a clean removal.                                                        |
 | **3️⃣ `/cold-start`**       | Agent (~5 Mins)    | **Model inference.** Drafts `MODULE_MAP.md`, diagrams, and candidate features. Every claim is tagged `[inferred]` with a checklist at the end.                                                                   |
 | **4️⃣ Your Audit**          | **You** (~30 Mins) | **The trust verification.** Review the map, set module stability (`frozen` / `stable` / `ours` / `?`), and flip confirmed rows to `[verified]`.                                                                        |
-| **5️⃣ Verify** *(Optional)* | Agent              | **Stability checks.** Runs `/post-cold-start-verification` (gap report), `/verify-ai-readiness` (maturity rating), or `/perform-feature-add-simulation` (simulated friction check).                              |
+| **5️⃣ Verify** *(Optional)* | Script + Agent     | **Stability checks.** `verify` (script, no LLM) mechanically cross-checks every file-path claim in the docs against the real tree → `VERIFICATION_MANIFEST.json` + report. Then `/post-cold-start-verification` (semantic gap report), `/verify-ai-readiness` (maturity rating), or `/perform-feature-add-simulation` (simulated friction check). |
 | **6️⃣ `/add-feature`**      | Agent              | **Safeguarded development.** The agent builds specs, navigates using the maps, runs tests, and updates the knowledge layer without touching frozen code.                                                         |
 
 > [!NOTE]
@@ -211,6 +211,14 @@ Open `ai/guide/MODULE_MAP.md` to review the generated draft:
 
 1. Define each module's **Stability** (`frozen` / `stable` / `ours` / `?`).
 2. Mark verified entries as `[verified]`.
+3. Keep the docs mechanically honest — at any time, cross-check every file-path
+   claim in the maps against the real tree (deterministic, no LLM):
+
+```bash
+node install.mjs verify /path/to/your/repo        # or: python install.py verify ...
+# writes ai/analysis/audit-reports/VERIFICATION_MANIFEST.json + a readable report
+# add --strict to fail (exit 1) on stale claims, e.g. in CI
+```
 
 Need to adjust options? Override them: `--name`, `--build`, `--test`, `--upstream`. 
 Changed your mind? Cleanly remove everything:
@@ -316,7 +324,7 @@ While other tools scaffold files or evaluate repositories, this kit focuses on *
 | **Deterministic Scan vs. Model Inference** | A strict separation between deterministic environment checks (`orient`) and model generation (`/cold-start`).                 |
 | **Provenance Tracking**                    | The strict `[inferred]` ➔ `[verified]` progression ensures you always know what has been human-checked.                       |
 | **Fork-Aware Stability**                   | Classified stability markers (`frozen` / `stable` / `ours` / `?`) prevent the agent from touching upstream or legacy modules. |
-| **Active Verification**                    | Continuous verification workflows that run check scripts to ensure the documentation matches reality over time.               |
+| **Active Verification**                    | The `verify` command deterministically cross-checks every file-path claim in the knowledge docs against the source tree (manifest + report, no LLM); agent workflows then cover the semantic checks a script cannot judge. |
 
 ---
 

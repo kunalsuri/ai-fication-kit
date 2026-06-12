@@ -10,6 +10,6 @@ else
 fi
 {
   echo "# SHA-256 checksums for ai-fication-kit — regenerate with ./make-checksums.sh"
-  find install.mjs install.py templates -type f | LC_ALL=C sort | xargs "${SHA[@]}"
+  find install.mjs install.py lib templates -type f -not -name "*.pyc" -not -path "*/__pycache__/*" | LC_ALL=C sort | xargs "${SHA[@]}"
 } > CHECKSUMS.txt
 echo "✓ CHECKSUMS.txt written ($(grep -c '^[0-9a-f]' CHECKSUMS.txt) files)"

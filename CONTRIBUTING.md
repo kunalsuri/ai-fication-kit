@@ -14,4 +14,6 @@ project is maintained by a single author, so the most useful contributions are:
 Ground rules:
 - Installers stay zero-dependency. PRs adding packages will be declined.
 - Both installers (`install.mjs`, `install.py`) must keep identical behavior; change both.
+  The implementation lives in `lib/` as language-mirrored pairs (`lib/orient.mjs` ↔
+  `lib/orient.py`, etc.) — keep each pair in sync, side by side.
 - `node test/run-tests.mjs` must pass on your platform before you open a PR.

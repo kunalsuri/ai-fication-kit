@@ -177,6 +177,50 @@ async function testInstaller(label, exec, script) {
 
   await fs.rm(lockrepo, { recursive: true, force: true });
 
+  // ---------- verify: mechanical claim checking ----------
+  const vrepo = await makeFixture(`${label}-verify`, { fork: false });
+  await fs.mkdir(path.join(vrepo, "ai", "guide"), { recursive: true });
+  await fs.writeFile(path.join(vrepo, "ai", "guide", "MODULE_MAP.md"),
+    "# map\n" +
+    "Entry point `app.ts`, tests in `tests/`.\n" +
+    "Stale path `src/app.ts` (file exists, dir is wrong).\n" +
+    "Gone entirely: `missing/ghost.ts`.\n" +
+    "Not claims: `npm install && npm run build`, `/cold-start`, `Node.js`, " +
+    "`[inferred]`, `{{BUILD_CMD}}`, `frozen`, `module.exports`.\n");
+
+  // dry-run writes nothing
+  r = run(exec, [script, "verify", vrepo, "--dry-run"]);
+  ok(r.code === 0, `verify --dry-run exits 0`);
+  const vManifestPath = path.join(vrepo, "ai", "analysis", "audit-reports",
+    "VERIFICATION_MANIFEST.json");
+  ok(!(await exists(vManifestPath)), `verify --dry-run writes nothing`);
+
+  // real run: manifest + report, correct statuses
+  r = run(exec, [script, "verify", vrepo]);
+  ok(r.code === 0, `verify exits 0`);
+  ok(await exists(vManifestPath), `verify writes VERIFICATION_MANIFEST.json`);
+  const vManifest = JSON.parse(await fs.readFile(vManifestPath, "utf8"));
+  const byClaim = Object.fromEntries(vManifest.claims.map(c => [c.claim, c]));
+  ok(byClaim["app.ts"]?.status === "confirmed", `filename claim app.ts confirmed`);
+  ok(byClaim["tests/"]?.status === "confirmed", `directory claim tests/ confirmed`);
+  ok(byClaim["src/app.ts"]?.status === "moved" && byClaim["src/app.ts"].foundAt === "app.ts",
+    `stale path detected as moved with foundAt`);
+  ok(byClaim["missing/ghost.ts"]?.status === "missing", `dead path detected as missing`);
+  ok(!vManifest.claims.some(c => /npm|cold-start|Node\.js|inferred|BUILD_CMD|^frozen$|module\.exports/.test(c.claim)),
+    `commands, slash commands, product names, code idioms, and tags are not claims`);
+  ok(vManifest.summary.confirmed === 2 && vManifest.summary.moved === 1 &&
+     vManifest.summary.missing === 1,
+    `summary counts correct: ${JSON.stringify(vManifest.summary)}`);
+  const vReport = await fs.readFile(path.join(vrepo, "ai", "analysis", "audit-reports",
+    "VERIFICATION_REPORT.md"), "utf8");
+  ok(vReport.includes("missing/ghost.ts"), `report lists the missing claim`);
+
+  // --strict fails when claims are missing
+  r = run(exec, [script, "verify", vrepo, "--strict"]);
+  ok(r.code !== 0, `verify --strict exits non-zero on unconfirmed claims`);
+
+  await fs.rm(vrepo, { recursive: true, force: true });
+
   // ---------- error handling ----------
   r = run(exec, [script, "install", path.join(here, "definitely-not-here-xyz")]);
   ok(r.code !== 0, `missing target → non-zero exit`);
