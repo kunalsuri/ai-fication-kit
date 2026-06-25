@@ -5,6 +5,7 @@
 <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/banner.svg" alt="ai-fication-kit — legacy → AI-native, with a human in the loop" width="100%">
 
 <br><br>
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
@@ -21,7 +22,7 @@
 
 **A Toolkit to Give AI Coding Agents a Trusted Map of Any Existing/Legacy Repo**
 
-* Drafted by AI Agents, **verified by Humans**, and kept mechanically honest. 
+* Drafted by AI Agents, **verified by Humans**, and kept mechanically honest.
 
 * One command scaffolds it, and depending on the complexity of the codebase, it can be made trustworthy in **30 minutes to a few hours**.
 
@@ -33,9 +34,9 @@
 
 Transforming a legacy repository into a trusted AI-native environment rests on three mechanisms:
 
-*   🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/`.
-*   🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
-*   🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree, so the maps cannot silently fall out of sync.
+* 🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/`.
+* 🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
+* 🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree, so the maps cannot silently fall out of sync.
 
 > [!TIP]
 > **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first.
@@ -43,20 +44,20 @@ Transforming a legacy repository into a trusted AI-native environment rests on t
 <details>
 <summary>📑 Table of Contents</summary>
 
-- [Getting Started (new users)](docs/GETTING-STARTED.md) · [Glossary](docs/GLOSSARY.md)
-- [The Three Pillars](#-the-three-pillars)
-- [Quick Start](#-quick-start)
-- [How It Works](#-how-it-works)
-- [What You Get](#-what-you-get)
-- [The Bridge to AI-Native Onboarding](#-the-bridge-to-ai-native-onboarding)
-- [The Problem & The Solution](#-the-problem--the-solution)
-- [New to AI Coding Agents? Start Here](#-new-to-ai-coding-agents-start-here)
-- [Security & Trust Guarantees](#-security--trust-guarantees)
-- [How This Toolkit Differs](#-how-this-toolkit-differs)
-- [Contributing](#-contributing)
-- [Citation](#-citation)
-- [License](#-license)
-- [Acknowledgments](#-acknowledgments)
+* [Getting Started (new users)](docs/GETTING-STARTED.md) · [Glossary](docs/GLOSSARY.md)
+* [The Three Pillars](#-the-three-pillars)
+* [Quick Start](#-quick-start)
+* [How It Works](#-how-it-works)
+* [What You Get](#-what-you-get)
+* [The Bridge to AI-Native Onboarding](#-the-bridge-to-ai-native-onboarding)
+* [The Problem & The Solution](#-the-problem--the-solution)
+* [New to AI Coding Agents? Start Here](#-new-to-ai-coding-agents-start-here)
+* [Security & Trust Guarantees](#-security--trust-guarantees)
+* [How This Toolkit Differs](#-how-this-toolkit-differs)
+* [Contributing](#-contributing)
+* [Citation](#-citation)
+* [License](#-license)
+* [Acknowledgments](#-acknowledgments)
 
 </details>
 
@@ -153,7 +154,7 @@ node install.mjs drift /path/to/your/repo         # or: python install.py drift 
 # add --strict to fail (exit 1) on any drift, e.g. in CI
 ```
 
-Need to adjust options? Override them: `--name`, `--build`, `--test`, `--upstream`. 
+Need to adjust options? Override them: `--name`, `--build`, `--test`, `--upstream`.
 Changed your mind? Cleanly remove everything:
 
 ```bash
@@ -184,7 +185,7 @@ Before any files are written, `shazam` runs a **read-only maturity check** that 
 
 | | **Process 1 — Legacy** | **Process 2 — Modern** |
 |:--|:--|:--|
-| **Trigger** | No existing `CLAUDE.md` / `AGENTS.md`, _or_ only kit-generated ones | User-authored `CLAUDE.md` and/or `AGENTS.md` detected (no kit footer) |
+| **Trigger** | No existing `CLAUDE.md` / `AGENTS.md`, *or* only kit-generated ones | User-authored `CLAUDE.md` and/or `AGENTS.md` detected (no kit footer) |
 | **What happens** | Everything created from scratch | Existing files backed up with timestamp, then templates installed |
 | **Backup files** | None | `CLAUDE_bkp_20260617_221847.md`, `AGENTS_bkp_20260617_221847.md` |
 | **`/cold-start`** | Standard — drafts `ai/guide/` from code | **Step 0.5** first — extracts knowledge from backups, then drafts |
@@ -298,7 +299,7 @@ For repos that already have a hand-written `CLAUDE.md` or `AGENTS.md`:
 6. **`/cold-start`** continues normally → drafts remaining docs from code
 
 > [!IMPORTANT]
-> **Nothing is lost.** Backup files are preserved through uninstall. The prior config becomes _seed knowledge_ for the new `ai/` layer — the best of both worlds.
+> **Nothing is lost.** Backup files are preserved through uninstall. The prior config becomes *seed knowledge* for the new `ai/` layer — the best of both worlds.
 
 ### The 7-Step Workflow
 
@@ -359,7 +360,7 @@ your-repo/
   <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/onboarding_bridge.png" alt="Diagram showing a bridge connecting legacy codebase complexity on the left to AI-native developer workflow on the right, with the ai/ knowledge layer as the bridge span" width="75%">
 </p>
 
-For engineers onboarding onto a complex codebase, the learning curve is historically steep. AI coding agents can accelerate this transition, but they get lost without a reliable map. 
+For engineers onboarding onto a complex codebase, the learning curve is historically steep. AI coding agents can accelerate this transition, but they get lost without a reliable map.
 
 This kit acts as a **bridge**: combining a **minimal knowledge store** (the `ai/` folder) with **automated tooling** to help developers and AI agents collaborate safely. It is designed to help engineers adapt and become AI-native very fast.
 
@@ -428,12 +429,12 @@ The active working memory of an AI agent. Because large codebases easily overwhe
 
 🏷️ **Provenance Tagging**
 The trust boundaries of the repository:
+
 * **`[inferred]`**: Scaffolding and drafts generated automatically by the AI agent.
 * **`[verified]`**: Human-checked, finalized files. AI agents are structurally restricted from modifying verified code.
 
 👥 **Subagents**
 Helper assistant processes (`repo-explorer`, `feature-builder`, `test-runner`) spawned by the main agent to perform specific, isolated tasks.
-
 
 ### Using Cursor, Copilot, or Codex instead of Claude Code?
 
@@ -486,6 +487,7 @@ If you use this kit in academic or research work, please cite it:
   title     = {ai-fication-kit: a methodology for making legacy codebases AI-native and trustworthy through scaffolded, human-verified context},
   year      = {2026},
   url       = {https://github.com/kunalsuri/ai-fication-kit},
+  doi       = {10.5281/zenodo.20860637},
   version   = {0.1.0},
   license   = {Apache-2.0}
 }
