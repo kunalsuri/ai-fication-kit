@@ -5,14 +5,14 @@
 <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/banner.svg" alt="ai-fication-kit — legacy → AI-native, with a human in the loop" width="100%">
 
 <br><br>
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
-
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue?style=for-the-badge&logo=python&logoColor=white)](#-quick-start)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![Works with](https://img.shields.io/badge/also%20works%20with-Cursor%20%7C%20Copilot%20%7C%20Codex-lightgrey?style=for-the-badge)](docs/FAQ.md#cursor-copilot-codex)
 [![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
 <h2>Make any repository AI-native — with a human in the loop.</h2>
 
