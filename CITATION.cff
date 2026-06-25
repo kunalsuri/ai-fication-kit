@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software or the method it implements, please cite it as below."
 type: software
-title: "ai-fication-kit: a human-auditable method and kit for making legacy repositories AI-native"
+title: "ai-fication-kit: a methodology for making legacy codebases AI-native and trustworthy through scaffolded, human-verified context"
 abstract: >-
   ai-fication-kit scaffolds a provenance-tracked repository-intelligence layer
   (maps, feature catalogs, conventions, decision records) into any legacy

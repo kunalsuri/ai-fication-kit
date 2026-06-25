@@ -27,6 +27,16 @@
 
 * Two outcomes from one workflow: it makes your codebase **AI-native**, *and* it produces **AI-Powered Repo Intelligence** — a human-approved knowledge-base (`ai/`) that lets a new teammate onboard instantly.
 
+---
+
+### 🔑 The Three Pillars
+
+Transforming a legacy repository into a trusted AI-native environment rests on three mechanisms:
+
+*   🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/`.
+*   🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
+*   🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree, so the maps cannot silently fall out of sync.
+
 > [!TIP]
 > **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first.
 
@@ -34,6 +44,7 @@
 <summary>📑 Table of Contents</summary>
 
 - [Getting Started (new users)](docs/GETTING-STARTED.md) · [Glossary](docs/GLOSSARY.md)
+- [The Three Pillars](#-the-three-pillars)
 - [Quick Start](#-quick-start)
 - [How It Works](#-how-it-works)
 - [What You Get](#-what-you-get)
@@ -478,7 +489,7 @@ If you use this kit in academic or research work, please cite it:
 ```bibtex
 @software{suri2026aificationkit,
   author    = {Suri, Kunal},
-  title     = {ai-fication-kit: a human-auditable method and kit for making legacy repositories AI-native},
+  title     = {ai-fication-kit: a methodology for making legacy codebases AI-native and trustworthy through scaffolded, human-verified context},
   year      = {2026},
   url       = {https://github.com/kunalsuri/ai-fication-kit},
   version   = {0.1.0},
