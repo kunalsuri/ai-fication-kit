@@ -206,32 +206,26 @@ The diagram below shows both installation paths from initial scan through to saf
 flowchart TD
     %% ─── Entry ───
     Repo[("Your Repository")] --> Maturity["0. check-repo-maturity<br/>(11 deterministic checks)"]
-    Maturity --> Decision{"User-authored<br/>CLAUDE.md / AGENTS.md?"}
+    Maturity --> Orient["1. orient<br/>(detect stack)"]
+    Orient --> Profile[["ai/repo-profile.json"]]
+    Profile --> Decision{"Process 1 or 2?"}
 
     %% ─── Process 1: Legacy ───
-    Decision -- "No / Kit-generated<br/>→ Process 1" --> Orient1["1. orient<br/>(detect stack)"]
-    Orient1 --> Profile1[["ai/repo-profile.json<br/>(process: 1)"]]
-    Profile1 --> Install1["2. install<br/>(stamp templates)"]
+    Decision -- "Process 1 (Legacy)<br/>→ No prior config" --> Install1["2. install<br/>(stamp templates)"]
     Install1 --> Scaffolded1[["CLAUDE.md + AGENTS.md<br/>+ ai/ knowledge layer"]]
 
     subgraph P1["Process 1 — Legacy Repo (from scratch)"]
-        Orient1
-        Profile1
         Install1
         Scaffolded1
     end
 
     %% ─── Process 2: Modern ───
-    Decision -- "Yes, user-authored<br/>→ Process 2" --> Backup["1a. Backup existing files<br/>CLAUDE_bkp_YYYYMMDD_HHmmss.md"]
-    Backup --> Orient2["1b. orient<br/>(detect stack)"]
-    Orient2 --> Profile2[["ai/repo-profile.json<br/>(process: 2)"]]
-    Profile2 --> Install2["2. install<br/>(overwrite after backup)"]
+    Decision -- "Process 2 (Modern)<br/>→ User-authored config" --> Backup["2a. Backup existing files<br/>CLAUDE_bkp_YYYYMMDD_HHmmss.md"]
+    Backup --> Install2["2b. install<br/>(overwrite after backup)"]
     Install2 --> Scaffolded2[["CLAUDE.md + AGENTS.md<br/>+ ai/ + timestamped backups"]]
 
     subgraph P2["Process 2 — Modern Repo (backup + upgrade)"]
         Backup
-        Orient2
-        Profile2
         Install2
         Scaffolded2
     end
@@ -264,8 +258,8 @@ flowchart TD
     %% ─── Styling ───
     class Repo repo;
     class Maturity,Decision gate;
-    class Orient1,Install1,Backup,Orient2,Install2 setup;
-    class Profile1,Scaffolded1,Profile2,Scaffolded2,InferredMap,VerifiedMap files;
+    class Orient,Install1,Backup,Install2 setup;
+    class Profile,Scaffolded1,Scaffolded2,InferredMap,VerifiedMap files;
     class ColdStart,Step05,Extract,Verify,AddFeature agent;
     class Audit human;
 
