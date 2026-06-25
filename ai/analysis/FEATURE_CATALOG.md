@@ -1,0 +1,105 @@
+<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+# Feature Catalog — ai-fication-kit Master Index
+
+---
+
+> ## Provenance & scope
+>
+> **Status until generated: PLACEHOLDER.** This catalog is populated on demand by
+> `/create-feature-catalog`, not by `/cold-start`. The example rows below use
+> `<angle-bracket>` placeholders on purpose — they are illustrative only, and the
+> deterministic `verify` command ignores them, so a freshly installed repo stays
+> mechanically honest until you generate real, backtick-quoted entries.
+>
+> **Cold-start snapshot — 2026-06-17** (commit `<commit-hash>`), once generated.
+>
+> **Confidence key used throughout (same scheme as `ai/INDEX.md`):**
+> - `[inferred]` — written by an agent or tool; a guess until a human checks it
+> - `[verified]` — a human confirmed it, with the date. Agents never set this tag.
+> - `?` in Status column — requires a human decision/audit
+>
+> **What this file does NOT contain:** planned but unimplemented features ➔ see `ai/lab/specs/`
+
+---
+
+## How to use the catalog (Split provision for complex codebases)
+
+Depending on the complexity of ai-fication-kit, the catalog can live in a single file or be split to reduce token context overhead:
+
+### Option A: Single-file Catalog
+For small to medium codebases, keep all feature indices, API surfaces, and touch lists in this file.
+
+### Option B: Split Catalog (only if there is a real split to make)
+The split below assumes a backend + frontend project. **Many projects are not** — a
+CLI, a library, a single-language service, a data pipeline. If that is you, keep
+everything in this file and leave the split files empty (or delete them). Use this
+master file as the navigation layer when you do split:
+
+| File | Contains | Load when |
+|---|---|---|
+| **This file** (`FEATURE_CATALOG.md`) | Feature index, API surface summary, cross-stack touch lists, decision tree | Always — it is the navigation layer |
+| [`FEATURE_CATALOG_BACKEND.md`](FEATURE_CATALOG_BACKEND.md) | Detailed backend modules, classes, and architectural roles | Working on backend/services |
+| [`FEATURE_CATALOG_FRONTEND.md`](FEATURE_CATALOG_FRONTEND.md) | Detailed frontend components, hooks, routes, and styles | Working on frontend/UI |
+
+---
+
+## §1 Feature Index
+
+> The two rows below are **placeholder examples** — `/create-feature-catalog` replaces
+> them with real features (in backticks). If you still see angle brackets, the catalog
+> has not been generated.
+
+| ID | Feature | What it does | Entry point(s) | Status |
+|---|---|---|---|---|
+| F1 | **Example Feature** | Brief description of capability | `<src/example_service.ext>` `[inferred]` | `?` |
+| F2 | **Another Feature** | Brief description of capability | `<src/another_module.ext>` `[inferred]` | `?` |
+
+---
+
+## §2 API / Interface Surface (if applicable)
+
+Detail the public surface this project exposes — REST/GraphQL endpoints, CLI commands,
+exported library functions, or message handlers. Skip if not applicable.
+
+| Operation / Entry | Handler | Purpose |
+|---|---|---|
+| `<operation-name>` | `<handler-symbol>` | Description of purpose |
+
+---
+
+## §3 Full-Stack Touch Lists
+
+For each feature, list the exact files to touch across layers (omit layers you don't have).
+
+### F1 — Example Feature
+| What to change | File / Component | Confidence |
+|---|---|---|
+| Core logic | `<src/example_service.ext>` | `[inferred]` |
+| Entry / interface | `<src/example_entry.ext>` | `[inferred]` |
+
+---
+
+## §4 Where New Code Lives — decision tree
+
+```
+What kind of change?
+├── New core logic?    ➔ target the relevant module under your source root
+├── New interface?     ➔ target the API / CLI / UI layer that exposes it
+└── New data/schema?   ➔ target the schema or model layer
+```
+
+> Replace the generic targets above with the real directories from your `MODULE_MAP.md`.
+
+---
+
+## §5 Specification-Driven Development — new features
+
+New features follow a spec-first workflow:
+
+```
+1. Create specification: ai/lab/specs/SPEC_<feature-name>.md
+2. AI fills in: Full-stack design based on this catalog
+3. Human approves spec
+4. AI implements using the /add-feature skill
+5. AI updates: FEATURE_CATALOG.md
+```

@@ -1,0 +1,7 @@
+{
+  "name": "sample-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small multi-module service used to demonstrate the ai/ map's value.",
+  "scripts": { "test": "node test/billing.test.js" }
+}

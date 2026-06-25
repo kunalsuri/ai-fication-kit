@@ -1,0 +1,22 @@
+{
+  "title": "ai-fication-kit: a human-auditable method and kit for making legacy repositories AI-native",
+  "description": "<p>ai-fication-kit scaffolds a provenance-tracked repository-intelligence layer (maps, feature catalogs, conventions, decision records) into any legacy codebase, then guides an AI coding agent through a bootstrapping pass whose every claim is tagged [inferred] until a human audits it to [verified]. Deterministic observation (the <em>orient</em> step) is strictly separated from model inference (the <em>cold-start</em> step), and a verification workflow keeps the generated knowledge mechanically honest against the code. Method v2 reference implementation.</p>",
+  "creators": [
+    {
+      "name": "Suri, Kunal",
+      "orcid": "0000-0002-2341-5343",
+      "affiliation": "CEA LIST"
+    }
+  ],
+  "license": "Apache-2.0",
+  "upload_type": "software",
+  "access_right": "open",
+  "keywords": [
+    "AI coding agents",
+    "repository intelligence",
+    "legacy code",
+    "human-in-the-loop",
+    "agentic software engineering",
+    "Claude Code"
+  ]
+}

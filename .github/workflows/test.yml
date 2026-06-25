@@ -1,0 +1,35 @@
+name: CI — Linux · macOS · Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11"]
+        include:
+          - os: ubuntu-latest
+            python-version: "3.8"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify JavaScript syntax correctness
+        run: node --check install.mjs lib/drift.mjs lib/installer.mjs lib/intake.mjs lib/maturity.mjs lib/orient.mjs lib/util.mjs lib/verify.mjs test/run-tests.mjs
+      - name: Verify Python syntax correctness
+        run: python -m py_compile install.py lib/__init__.py lib/drift.py lib/installer.py lib/intake.py lib/maturity.py lib/orient.py lib/util.py lib/verify.py
+      - name: Run smoke tests (both installers)
+        run: node test/run-tests.mjs

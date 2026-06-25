@@ -1,0 +1,12 @@
+# Exclude development, test, and documentation files from the npm package registry
+.github/
+.claude/
+test/
+examples/
+docs/
+make-checksums.sh
+__pycache__/
+*.pyc
+banner.svg
+.zenodo.json
+.gitattributes

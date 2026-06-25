@@ -1,0 +1,24 @@
+<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+# Architecture — {{PROJECT_NAME}}
+
+> [!NOTE]
+> **This is a scaffolded template.** Run the `/cold-start` slash command in Claude Code (or see [docs/FAQ.md#cursor-copilot-codex](../../docs/FAQ.md#cursor-copilot-codex) for other tools) to have the agent explore your repository and automatically populate this file.
+
+> Status: skeleton from the kit ({{DATE}}). The /cold-start pass fills it; a human
+> audits it. Tag every claim `[inferred]` or `[verified] (date)`.
+
+## The big pieces  `[inferred]`
+<3–7 bullets max: the major runtime components and one line each. Names must match
+real directories from MODULE_MAP.md.>
+
+## How they connect  `[inferred]`
+<The main seams: frontend↔backend protocol, service↔database, events, queues. State
+the PROTOCOL only if verified in code; otherwise write "UNSURE — needs human".>
+
+## Diagrams
+Text-based (Mermaid) diagrams live in `ai/analysis/diagrams/`. Regenerate them via
+/cold-start; do not hand-maintain.
+
+## Invariants an agent must not break  `[verified] required`
+<Only humans add rows here. Examples: "generated code in X is never hand-edited",
+"public API schemas are backwards compatible".>

@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software or the method it implements, please cite it as below."
+type: software
+title: "ai-fication-kit: a human-auditable method and kit for making legacy repositories AI-native"
+abstract: >-
+  ai-fication-kit scaffolds a provenance-tracked repository-intelligence layer
+  (maps, feature catalogs, conventions, decision records) into any legacy
+  codebase, then guides an AI coding agent through a bootstrapping pass whose
+  every claim is tagged [inferred] until a human audits it to [verified].
+  Deterministic observation (the orient step) is strictly separated from model
+  inference (the cold-start step), and a verification workflow keeps the
+  generated knowledge mechanically honest against the code.
+authors:
+  - family-names: "Suri"
+    given-names: "Kunal"
+    orcid: "https://orcid.org/0000-0002-2341-5343"
+    affiliation: "CEA LIST"
+license: Apache-2.0
+repository-code: "https://github.com/kunalsuri/ai-fication-kit"
+version: 0.1.0
+date-released: 2026-06-25
+keywords:
+  - AI coding agents
+  - repository intelligence
+  - legacy code
+  - human-in-the-loop
+  - Claude Code
+  - software engineering
+# After the first Zenodo release, uncomment and set the concept DOI (bare form, no URL):
+# doi: "10.5281/zenodo.XXXXXXX"
