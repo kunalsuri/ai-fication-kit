@@ -1,4 +1,4 @@
-# Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 """install / uninstall — template stamping and manifest-based removal.
 
 install only copies and stamps text files inside the target directory and

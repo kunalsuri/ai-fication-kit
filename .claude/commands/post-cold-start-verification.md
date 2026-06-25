@@ -1,7 +1,7 @@
 ---
 description: Audit every ai/ file for gaps, stale placeholders, and inconsistencies after cold-start. Produces a prioritized findings report.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Audit the AI knowledge layer. Read-only with one exception: you may write ONE report.
 

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Contributing
 
 Thanks for your interest. Until v1.0, the method and kit are evolving quickly and the
@@ -17,3 +17,5 @@ Ground rules:
   The implementation lives in `lib/` as language-mirrored pairs (`lib/orient.mjs` ↔
   `lib/orient.py`, etc.) — keep each pair in sync, side by side.
 - `node test/run-tests.mjs` must pass on your platform before you open a PR.
+
+By participating, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # The 30-minute audit — a field guide
 
 The kit's whole promise rests on one human act: you reading the agent's draft and

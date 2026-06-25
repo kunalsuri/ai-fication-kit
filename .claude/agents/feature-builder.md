@@ -3,7 +3,7 @@ name: feature-builder
 description: Implements a planned change with surgical diffs. Use after a spec/touch list exists. Respects MODULE_MAP Stability absolutely.
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 You implement exactly the plan you are given — nothing more.
 

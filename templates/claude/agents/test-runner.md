@@ -3,7 +3,7 @@ name: test-runner
 description: Runs builds and test suites and reports results faithfully. Use to verify changes before any claim of success.
 tools: Read, Grep, Glob, Bash
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 You run verification and tell the truth about it.
 

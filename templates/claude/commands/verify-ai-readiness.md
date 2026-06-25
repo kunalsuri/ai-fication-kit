@@ -1,7 +1,7 @@
 ---
 description: Holistic assessment of the AI knowledge layer on a 5-level maturity scale; flags agent-blocking gaps.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Assess how ready this repository is for agentic work. Read-only; output one report.
 

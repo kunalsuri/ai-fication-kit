@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // Orders: cart math and validation.
 function validateCart(cart) {
   if (!Array.isArray(cart) || cart.length === 0) throw new Error("empty cart");

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // ai-fication-kit installer (Node ≥ 18, zero dependencies).
 //
 // WHAT THIS DOES, IN FULL:

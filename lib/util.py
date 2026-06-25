@@ -1,4 +1,4 @@
-# Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 """Shared helpers and constants for the ai-fication-kit installer.
 
 Everything here is a thin wrapper over the filesystem and the console —

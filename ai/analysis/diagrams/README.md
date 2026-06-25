@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # diagrams/ — text-based architecture diagrams
 
 Mermaid (`.mmd`) only — diffable, regenerable, no binary images.

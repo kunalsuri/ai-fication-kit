@@ -2,7 +2,7 @@
 name: add-feature
 description: Add a feature to this repository the safe way — spec, locate via maps, respect Stability, surgical implementation, verification, knowledge update. Use whenever the user asks to add, build, or implement functionality.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 # Add a feature
 

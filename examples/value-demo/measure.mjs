@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 //
 // measure.mjs — a deterministic, zero-dependency "what is the map worth?" demo.
 //

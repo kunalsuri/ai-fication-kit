@@ -1,4 +1,4 @@
-# Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 """intake — the friendly first-run wizard for `shazam`.
 
 This is the ONE interactive part of the kit, and it exists to keep users safe:

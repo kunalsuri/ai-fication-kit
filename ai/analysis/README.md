@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # ai/analysis/ — generated artifacts for ai-fication-kit
 
 Detailed, AI-generated knowledge. Loaded **on demand per task**, never pre-loaded.

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # sample-app
 
 A small, multi-module demo service (auth, billing, catalog, orders, notify) used by

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Security
 
 The installers in this kit are deliberately boring:
@@ -13,9 +13,9 @@ The installers in this kit are deliberately boring:
   `ai/install-manifest.json`.
 
 You are encouraged to read both installers in full before running them.
-Each is a thin CLI (`install.mjs`, `install.py`) over four small single-purpose
-modules in `lib/` (`util`, `orient`, `installer`, `verify`) — every file is
-commented and short enough to audit in one sitting.
+Each is a thin CLI (`install.mjs`, `install.py`) over seven small single-purpose
+modules in `lib/` (`util`, `orient`, `installer`, `intake`, `verify`, `drift`,
+`maturity`) — every file is commented and short enough to audit in one sitting.
 
 To report a vulnerability, open a private security advisory on GitHub:
 **Security tab → "Report a vulnerability"**, or go directly to

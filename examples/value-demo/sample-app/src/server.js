@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // HTTP wiring for the demo orders service. Parses a request line, runs the
 // matching handler through a small middleware chain, and shapes the response.
 const { login, logout } = require("./auth/login");

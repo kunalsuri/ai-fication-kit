@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # templates/ — the installable kit
 
 Everything in this folder is stamped into a target repo by `install.mjs` / `install.py`.

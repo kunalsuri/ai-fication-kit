@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 """ai-fication-kit installer (Python >= 3.8, stdlib only).
 
 Identical behavior to install.mjs — pick whichever runtime you have.

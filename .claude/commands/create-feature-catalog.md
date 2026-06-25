@@ -1,7 +1,7 @@
 ---
 description: Deep-mine the source code to discover implemented features; writes ai/analysis/FEATURE_CATALOG.md.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Build the feature catalog — the highest-value artifact for agents. Budget significant
 exploration; use `repo-explorer` for the heavy reading.

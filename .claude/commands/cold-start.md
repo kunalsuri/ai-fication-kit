@@ -1,7 +1,7 @@
 ---
 description: Bootstrap the ai/guide maps and diagrams (the cold-start pass). Drafts everything as [inferred] for a human to audit.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Run the **cold-start bootstrap**. This is a one-time, read-and-write-docs-only pass.
 You will draft the AI metadata; a human will audit it afterward. Do NOT touch source code.

@@ -3,7 +3,7 @@ name: repo-explorer
 description: Read-only codebase exploration. Use to locate code, trace dependencies, or summarize modules without polluting the main context window. MUST be used for heavy reading during /cold-start and /create-feature-catalog.
 tools: Read, Grep, Glob, Bash
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 You are a read-only repository scout. You explore so the main agent doesn't have to.
 

@@ -1,8 +1,8 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 <div align="center">
 
-<img src="banner.svg" alt="ai-fication-kit — legacy → AI-native, with a human in the loop" width="100%">
+<img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/banner.svg" alt="ai-fication-kit — legacy → AI-native, with a human in the loop" width="100%">
 
 <br><br>
 
@@ -175,7 +175,7 @@ node install.mjs check-repo-maturity /path/to/your/repo
 ## 🔄 How It Works
 
 <p align="center">
-  <img src="docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
 </p>
 
 ### The Maturity Gate: One Command, Two Paths
@@ -356,7 +356,7 @@ your-repo/
 ## 🌉 The Bridge to AI-Native Onboarding
 
 <p align="center">
-  <img src="docs/images/onboarding_bridge.png" alt="Diagram showing a bridge connecting legacy codebase complexity on the left to AI-native developer workflow on the right, with the ai/ knowledge layer as the bridge span" width="75%">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/onboarding_bridge.png" alt="Diagram showing a bridge connecting legacy codebase complexity on the left to AI-native developer workflow on the right, with the ai/ knowledge layer as the bridge span" width="75%">
 </p>
 
 For engineers onboarding onto a complex codebase, the learning curve is historically steep. AI coding agents can accelerate this transition, but they get lost without a reliable map. 
@@ -388,7 +388,7 @@ The same human-verified map that keeps AI agents honest becomes the fastest onbo
 ## 🛡️ The Problem & The Solution
 
 <p align="center">
-  <img src="docs/images/problem_solution.png" alt="Side-by-side comparison: left panel shows a chaotic legacy repo with scattered files and no context, right panel shows the same repo with structured ai/ knowledge maps providing clear navigation" width="85%">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/problem_solution.png" alt="Side-by-side comparison: left panel shows a chaotic legacy repo with scattered files and no context, right panel shows the same repo with structured ai/ knowledge maps providing clear navigation" width="85%">
 </p>
 
 ### 🛑 The Problem: The Agent Context Tax
@@ -412,7 +412,7 @@ The answer isn't to rewrite your code. It's to give the agent a **provenance-tra
 ## 🤖 New to AI Coding Agents? Start Here
 
 <p align="center">
-  <img src="docs/images/agent_concepts.png" alt="Illustrated glossary of AI coding concepts: agent, context window, slash commands, provenance tags, and subagents, each with a short definition and icon" width="85%">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/agent_concepts.png" alt="Illustrated glossary of AI coding concepts: agent, context window, slash commands, provenance tags, and subagents, each with a short definition and icon" width="85%">
 </p>
 
 If slash commands and "context windows" are new to you, here is a quick terminology orientation:

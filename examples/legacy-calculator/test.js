@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+ * Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
  * Lightweight dependency-free test runner for Legacy Calculator.
  */
 

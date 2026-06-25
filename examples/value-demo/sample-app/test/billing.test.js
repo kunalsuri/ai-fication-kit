@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // Tests for billing — the verifying suite for the discount-code task.
 const assert = require("assert");
 const { makeInvoice } = require("../src/billing/invoice");

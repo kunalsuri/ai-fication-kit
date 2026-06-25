@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Codebase Functionality & API Guide
 
 This document provides a concise reference to the internal modules and functions of the **ai-fication-kit**. It is designed for developers who want to understand the codebase structure or extend its capabilities.

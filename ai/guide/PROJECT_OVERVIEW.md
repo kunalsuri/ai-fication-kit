@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Project overview — ai-fication-kit
 
 > Status: drafted by an `[inferred]` cold-start pass on 2026-06-14 (the kit dogfooding

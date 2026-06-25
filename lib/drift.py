@@ -1,4 +1,4 @@
-# Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 """drift -- deterministic drift detection: where has the repository moved away
 from the knowledge layer since it was last mapped/verified?
 

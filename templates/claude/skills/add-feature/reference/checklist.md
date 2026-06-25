@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Pre-completion checklist
 - [ ] Spec exists and user approved it
 - [ ] No `frozen`/`?` files modified (or explicit approval recorded in the spec)

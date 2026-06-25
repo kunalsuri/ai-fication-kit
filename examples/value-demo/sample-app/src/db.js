@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // In-memory store standing in for a real database in this demo. Supports insert,
 // lookup by id, simple filtering, and a naive secondary index per table.
 const tables = { users: [], orders: [], products: [], sessions: [] };

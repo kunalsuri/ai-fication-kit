@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // Notifications: a fake outbox the demo "sends" to, with simple retry bookkeeping.
 const { render } = require("./templates");
 

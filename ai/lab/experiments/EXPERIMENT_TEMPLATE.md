@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # EXP <number>: <short description>
 > **Date:** <YYYY-MM-DD> · **Status:** running | concluded
 

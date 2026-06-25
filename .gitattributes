@@ -2,3 +2,8 @@
 install.mjs text eol=lf
 install.py text eol=lf
 make-checksums.sh text eol=lf
+
+# Force LF on every file covered by CHECKSUMS.txt so the integrity check verifies
+# byte-for-byte on all platforms (a CRLF checkout would otherwise change the hashes).
+lib/** text eol=lf
+templates/** text eol=lf

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # EVAL: context budget — does the map cut what an agent must read?
 > **Date:** 2026-06-15 · **Subject:** `examples/value-demo/sample-app` · **Task:** add a discount-code field to invoices (`sample-app/TASK.md`)
 

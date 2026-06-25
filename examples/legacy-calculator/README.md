@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # legacy-calculator — a worked before/after walkthrough
 
 A tiny, zero-dependency calculator that stands in for a "legacy" codebase: just

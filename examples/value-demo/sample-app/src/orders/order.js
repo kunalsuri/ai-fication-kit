@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // Orders: place an order from a cart, persist it, and list a user's orders.
 const { insert, where, find } = require("../db");
 const { totalFor, validateCart } = require("./cart");

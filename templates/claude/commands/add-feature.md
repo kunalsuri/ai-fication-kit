@@ -1,7 +1,7 @@
 ---
 description: Implement a feature using the knowledge layer — spec first, surgical diffs, tests before done, knowledge updated after.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Implement the requested feature using the `add-feature` skill. Summary of the contract:
 

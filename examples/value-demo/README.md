@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # value-demo — what is the `ai/` map actually worth?
 
 The kit's claim is simple: **a verified map lets an agent read a fraction of the

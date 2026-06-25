@@ -1,4 +1,4 @@
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 // Session tokens for the demo: creation, lookup, expiry, teardown.
 const { insert, where, remove } = require("../db");
 

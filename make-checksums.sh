@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 # Regenerate CHECKSUMS.txt so users can verify the kit was not tampered with.
 # Usage: ./make-checksums.sh   (run from the repo root)
 set -euo pipefail

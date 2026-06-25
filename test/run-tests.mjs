@@ -9,7 +9,7 @@
 //   5. uninstall --yes  → asserts every manifest file is gone and user files remain
 //   6. --dry-run     → asserts nothing is written
 
-// Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved.
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 import { promises as fs } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";

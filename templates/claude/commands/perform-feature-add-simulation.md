@@ -1,7 +1,7 @@
 ---
 description: Dry-run the add-feature workflow for a proposed feature — friction report and per-phase readiness score, without writing code.
 ---
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Simulate adding the feature the user names — WITHOUT writing a single line of code.
 This is a pre-flight check of both the plan and the knowledge layer.

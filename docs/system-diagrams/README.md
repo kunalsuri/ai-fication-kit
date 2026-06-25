@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2026 CEA LIST / Kunal Suri. All rights reserved. -->
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # System Engineering Diagrams
 
 This document contains Mermaid-based system engineering diagrams to help developers quickly understand the operations, components, interactions, and lifecycles in the **ai-fication-kit**.
