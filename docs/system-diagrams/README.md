@@ -3,6 +3,12 @@
 
 This document contains Mermaid-based system engineering diagrams to help developers quickly understand the operations, components, interactions, and lifecycles in the **ai-fication-kit**.
 
+### Directory of Diagrams
+* [1. Use Case Diagram](#1-use-case-diagram)
+* [2. Class / Module Diagram](#2-class--module-diagram)
+* [3. Sequence Diagram (shazam workflow)](#3-sequence-diagram-shazam-workflow)
+* [4. End-to-End User Lifecycle & Developer Workflow](user-workflow.md) (Complete flow from setup to daily usage)
+
 ---
 
 ## 1. Use Case Diagram
@@ -151,3 +157,8 @@ sequenceDiagram
     CLI->>Dev: Print Next Steps
 ```
 ---
+
+## 4. End-to-End User Lifecycle & Developer Workflow
+
+For a detailed, multi-stage view of how developers and AI agents interact over time—from onboarding to daily feature development and CI/CD validation—see the dedicated [End-to-End User Lifecycle & Developer Workflow Sequence Diagram](user-workflow.md).
+
