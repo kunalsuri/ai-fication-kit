@@ -14,7 +14,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
-<h2>Goal: Make any codebase / repo AI-native with a human-in-the-loop.</h2>
+<h2> A Simple & Elegant Way to Make any codebase / Repo AI-native while keeping it Trustworthy.</h2>
 
 </div>
 
