@@ -96,6 +96,10 @@ The full field guide, with worked examples and common mistakes, is
 `[verified] (YYYY-MM-DD)`; the top of the file has a "Last verified" date. Your
 `ai/` folder is now a human-approved knowledge-base.
 
+> [!TIP]
+> **Check your config and knowledge layer health.** Once you are done auditing and before proceeding, you can run `/review-agent-config` in Claude Code to perform a quick diagnostic check on the structure and cross-file consistency of `CLAUDE.md` and `AGENTS.md`. You can also run `/post-cold-start-verification` to perform a semantic check of the drafted `ai/` documents.
+
+
 ---
 
 ## Step 4 — Keep it mechanically honest (`verify` / `drift`)

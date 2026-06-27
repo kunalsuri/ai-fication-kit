@@ -91,3 +91,8 @@ When the drafts are written, STOP and print an "AUDIT TODO" table:
 Cover: all rows still `?`, all `frozen` guesses needing confirmation, and any protocol
 or command assumptions still `[inferred]`. The human sets Stability and flips
 `[inferred]` → `[verified]`. Do not proceed to building features.
+
+Tell the user that after they complete their audit, they can run the following commands to check the configuration and knowledge layer:
+- `/review-agent-config` — to perform a quick diagnostic check of `CLAUDE.md` and `AGENTS.md` structural completeness and consistency.
+- `/post-cold-start-verification` — to perform a deep semantic audit of all drafted `ai/` files.
+
