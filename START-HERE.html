@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). Apache-2.0. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start Here — ai-fication-kit</title>
+<meta name="description" content="Start here: copy-paste commands to run ai-fication-kit and give your AI coding agent a trusted map of any existing or legacy repo. Copies plain-text files only — no code execution, no network.">
+<style>
+  :root{
+    --bg:#0d1117;--panel:#141b25;--ink:#e8edf2;--muted:#8b97a6;
+    --line:#26313f;--accent:#ff6b4a;--teal:#5fc9c2;--gold:#f0b429;
+    --mono:ui-monospace,'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+  body{padding:0 0 64px}
+  a{color:var(--teal)}
+  header{padding:clamp(28px,6vw,52px) 20px 8px;text-align:center}
+  .banner-wrap{display:inline-block;width:100%;max-width:860px;border-radius:14px;overflow:hidden;line-height:0;
+    border:1px solid var(--line);box-shadow:0 22px 52px -26px rgba(0,0,0,.7)}
+  .banner{display:block;width:100%;height:auto}
+  main{max-width:780px;margin:0 auto;padding:0 20px}
+  h1{font-size:clamp(22px,4vw,28px);margin:26px 0 6px;text-align:center;letter-spacing:-.01em}
+  .tagline{color:var(--muted);text-align:center;max-width:60ch;margin:0 auto;font-size:15px}
+  .badges{margin:16px auto 0;display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+  .badge{font-size:11px;letter-spacing:.03em;color:var(--muted);border:1px solid var(--line);
+    border-radius:999px;padding:4px 11px}
+  .badge b{color:var(--ink)}
+  .safe{display:flex;gap:10px;align-items:flex-start;background:rgba(95,201,194,.07);
+    border:1px solid rgba(95,201,194,.4);border-radius:11px;padding:13px 15px;margin:26px 0 8px;font-size:13.5px;color:#cfe3e0}
+  .safe b{color:var(--teal)}
+  .step{margin-top:30px}
+  .step h2{font-size:17px;margin:0 0 4px;display:flex;align-items:baseline;gap:9px}
+  .num{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border-radius:50%;
+    background:var(--accent);color:#1a0d08;font-weight:700;font-size:13px;font-family:var(--mono)}
+  .step p{color:var(--muted);font-size:13.5px;margin:4px 0 10px;padding-left:35px}
+  .cmd{position:relative;background:#070b10;border:1px solid var(--line);border-radius:9px;margin:8px 0}
+  .cmd pre{margin:0;padding:14px 86px 14px 15px;overflow-x:auto;font-family:var(--mono);font-size:13px;
+    line-height:1.7;color:#cfe3e0;white-space:pre}
+  .cmd .hl{color:var(--teal)} .cmd .cm{color:var(--muted)}
+  .copy{position:absolute;top:9px;right:9px;cursor:pointer;border:1px solid var(--line);background:#141b25;
+    color:var(--ink);font-family:var(--mono);font-size:12px;font-weight:600;padding:6px 11px;border-radius:7px}
+  .copy:hover{border-color:var(--teal);color:var(--teal)}
+  .copy.ok{border-color:var(--teal);color:var(--teal)}
+  .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0;padding-left:35px}
+  .hint code,p code{background:#070b10;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:12px;color:var(--gold)}
+  footer{max-width:780px;margin:38px auto 0;padding:0 20px;color:var(--muted);font-size:12px;text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+<header>
+  <a class="banner-wrap" href="https://github.com/kunalsuri/ai-fication-kit" aria-label="ai-fication-kit on GitHub">
+    <img class="banner" src="banner.svg" alt="ai-fication-kit — legacy repo to AI-native, with a human in the loop" width="1280" height="320">
+  </a>
+</header>
+
+<main>
+  <h1>Start here — run ai-fication-kit</h1>
+  <p class="tagline">Give your AI coding agent a <b>trusted map</b> of any existing or legacy repo. Copy a command below into your terminal. Replace <code>/path/to/your/repo</code> with the folder you want to make AI-native.</p>
+
+  <div class="badges">
+    <span class="badge"><b>Apache&nbsp;2.0</b></span>
+    <span class="badge">Node <b>18+</b></span>
+    <span class="badge">Python <b>3.8+</b></span>
+    <span class="badge"><b>Zero</b> dependencies</span>
+  </div>
+
+  <div class="safe">
+    <span>🛡️</span>
+    <span><b>Safe:</b> the installer only copies plain-text files into the folder you choose — it runs no commands and makes no network calls. Add <code>--dry-run</code> to any install command to preview without writing.</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="step">
+    <h2><span class="num">1</span> Scaffold the kit into your repo</h2>
+    <p>Pick one. The <b>npx</b> way needs nothing cloned; the clone way runs the pure Node or Python installer.</p>
+
+    <div class="cmd">
+      <button class="copy">Copy</button>
+      <pre><span class="cm"># A · Quickest — straight from GitHub, nothing to clone (needs Node 18+)</span>
+<span class="cm"># Preview first (writes nothing):</span>
+npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo --dry-run
+<span class="cm"># Then install for real:</span>
+npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo</pre>
+    </div>
+
+    <div class="cmd">
+      <button class="copy">Copy</button>
+      <pre><span class="cm"># B · From a local clone — pure Node or Python stdlib (no npm/pip install)</span>
+git clone https://github.com/kunalsuri/ai-fication-kit.git
+cd ai-fication-kit
+node install.mjs shazam /path/to/your/repo      <span class="cm"># Node 18+</span>
+python install.py shazam /path/to/your/repo     <span class="cm"># …or Python 3.8+</span></pre>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step">
+    <h2><span class="num">2</span> Draft the maps</h2>
+    <p>Open your repo in <b>Claude Code</b> (or your agent of choice) and run the cold-start command. It scans the code and drafts the map (~5 min), all tagged <code>[inferred]</code>.</p>
+    <div class="cmd">
+      <button class="copy">Copy</button>
+      <pre><span class="hl">/cold-start</span></pre>
+    </div>
+    <p class="hint">Using Cursor / Copilot / Codex? They read <code>AGENTS.md</code> — paste <code>.claude/commands/cold-start.md</code> as a prompt to run the same pass.</p>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step">
+    <h2><span class="num">3</span> Audit, then keep it honest</h2>
+    <p>Open <code>ai/guide/MODULE_MAP.md</code>, set each module's Stability, and flip confirmed rows from <code>[inferred]</code> to <code>[verified]</code>. Then cross-check every file-path claim against the real tree (deterministic, no LLM):</p>
+    <div class="cmd">
+      <button class="copy">Copy</button>
+      <pre>node install.mjs verify /path/to/your/repo       <span class="cm"># or: python install.py verify ...</span>
+<span class="cm"># add --strict to fail (exit 1) on stale claims, e.g. in CI</span></pre>
+    </div>
+    <p class="hint">Build features safely with <span class="hl">/add-feature</span>. Full walkthrough: the repo's <code>README.md</code> and <code>docs/GETTING-STARTED.md</code>.</p>
+  </section>
+
+  <footer>
+    This page is documentation only — it runs no code and sends nothing anywhere.<br>
+    ai-fication-kit · Apache-2.0 © 2026 Kunal Suri (CEA LIST) · <a href="https://github.com/kunalsuri/ai-fication-kit">github.com/kunalsuri/ai-fication-kit</a>
+  </footer>
+</main>
+
+<script>
+"use strict";
+document.querySelectorAll(".copy").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var text = btn.parentElement.querySelector("pre").innerText;
+    function done(){ btn.textContent="Copied ✓"; btn.classList.add("ok"); setTimeout(function(){ btn.textContent="Copy"; btn.classList.remove("ok"); },1500); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else { fallback(); }
+    function fallback(){
+      var r=document.createRange(); r.selectNode(btn.parentElement.querySelector("pre"));
+      var s=getSelection(); s.removeAllRanges(); s.addRange(r);
+      try{ document.execCommand("copy"); }catch(e){}
+      s.removeAllRanges(); done();
+    }
+  });
+});
+</script>
+</body>
+</html>
