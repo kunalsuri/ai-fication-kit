@@ -4,6 +4,28 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](https://semver.org/).
 
+## [0.1.1] — 2026-06-30
+
+Post-release consolidation: documentation, citation metadata, audit-report hygiene, and one read-only diagnostic command finished after the initial `0.1.0` deposit. Not deposited on Zenodo — the `0.1.0` DOI remains the citable version.
+
+> **Why `0.1.1`, not `0.2.0`:** everything here is additive polish (docs, citation wiring, audit hygiene, one read-only diagnostic) — nothing breaks or redefines the kit, which under SemVer is a PATCH. The MINOR bump to `0.2.0` is deliberately reserved for the next round of genuinely new capabilities ("more ideas"), and keeping this as a local tag leaves `0.1.0` as the single Zenodo-citable PoC.
+
+### Added
+- **`review-agent-config` diagnostic command** — read-only gate that checks `CLAUDE.md`/`AGENTS.md` for completeness, consistency, and stale artifacts before `/add-feature`.
+
+### Changed
+- **Entry point simplified** — `START-HERE.html` replaces the earlier `index.html`.
+- **Setup scripts renamed** in `package.json` (`setup`/`remove` for install/uninstall).
+
+### Docs
+- Zenodo DOI badge and `CITATION.cff` citation metadata wired into the README (the post-release citation step the release checklist anticipated for `0.1.1`).
+- Technical report draft and audit-report templates under `docs/`.
+- System workflow diagrams and a problem/solution statement.
+
+### Fixed
+- Stopped tracking regenerated audit manifests so they no longer churn in git.
+- Assorted release-audit fixes.
+
 ## [0.1.0] — 2026-06-25
 
 First public release of the `ai-fication-kit` — a tool to create a knowledge layer that gives AI coding agents a trusted map of any existing or legacy codebase.
@@ -32,4 +54,5 @@ First public release of the `ai-fication-kit` — a tool to create a knowledge l
 - **Uninstall Command**: Removes exactly what the installer wrote using the manifest record without touching any other files.
 - **Smoke Test Suite**: Cross-runtime test suite (`test/run-tests.mjs`) to verify Node and Python installers, stack detection, and verify operations.
 
+[0.1.1]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.0
