@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+//
 // Smoke tests for ai-fication-kit. Zero dependencies. Run: node test/run-tests.mjs
 //
 // For EACH installer (Node, Python — if present on PATH) this:
@@ -9,7 +11,6 @@
 //   5. uninstall --yes  → asserts every manifest file is gone and user files remain
 //   6. --dry-run     → asserts nothing is written
 
-// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
 import { promises as fs } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -123,7 +124,7 @@ async function testInstaller(label, exec, script) {
   const indexMd = await fs.readFile(path.join(repo, "ai", "INDEX.md"), "utf8");
   ok(!indexMd.includes("{{"), `no unresolved placeholders in ai/INDEX.md`);
   ok(!(await exists(path.join(repo, "ai", "README.md"))) &&
-     !(await exists(path.join(repo, "README.md.tmpl"))),
+    !(await exists(path.join(repo, "README.md.tmpl"))),
     `templates/README.md not installed; no .tmpl suffixes leaked`);
 
   // the first-run wizard must NOT touch the automation path: under --yes (and the
@@ -237,7 +238,7 @@ async function testInstaller(label, exec, script) {
   ok(!vManifest.claims.some(c => /npm|cold-start|Node\.js|inferred|BUILD_CMD|^frozen$|module\.exports/.test(c.claim)),
     `commands, slash commands, product names, code idioms, and tags are not claims`);
   ok(vManifest.summary.confirmed === 2 && vManifest.summary.moved === 1 &&
-     vManifest.summary.missing === 1,
+    vManifest.summary.missing === 1,
     `summary counts correct: ${JSON.stringify(vManifest.summary)}`);
   const vReport = await fs.readFile(path.join(vrepo, "ai", "analysis", "audit-reports",
     "VERIFICATION_REPORT.md"), "utf8");
@@ -276,12 +277,12 @@ async function testInstaller(label, exec, script) {
   ok(await exists(dManifestPath), `drift writes DRIFT_MANIFEST.json`);
   const dManifest = JSON.parse(await fs.readFile(dManifestPath, "utf8"));
   ok(dManifest.summary.unmapped === 1 && dManifest.summary.vanished === 2 &&
-     dManifest.summary.stale === 0,
+    dManifest.summary.stale === 0,
     `drift summary correct: ${JSON.stringify(dManifest.summary)}`);
   ok(dManifest.unmapped.some(u => u.path === "widgets/"),
     `widgets/ (source dir, no row) reported unmapped`);
   ok(dManifest.vanished.some(v => v.claim === "gone/") &&
-     dManifest.vanished.some(v => v.claim === "gone/old.ts"),
+    dManifest.vanished.some(v => v.claim === "gone/old.ts"),
     `gone/ dir and gone/old.ts entry reported vanished`);
   ok(/opt-in/.test(dManifest.git.note),
     `stale check is opt-in without --git: ${dManifest.git.note}`);
@@ -343,7 +344,7 @@ console.log("\n— check-repo-maturity —");
     path.join(mrepo2, "ai", "analysis", "audit-reports", "MATURITY_REPORT.json"), "utf8"));
   ok(mReport2.process === 2, `modern repo (user-authored CLAUDE.md) is Process 2`);
   ok(mReport2.existingAIConfig.claudeMd.exists === true &&
-     mReport2.existingAIConfig.claudeMd.hasKitFooter === false,
+    mReport2.existingAIConfig.claudeMd.hasKitFooter === false,
     `CLAUDE.md detected as user-authored (no kit footer)`);
   await fs.rm(mrepo2, { recursive: true, force: true });
 

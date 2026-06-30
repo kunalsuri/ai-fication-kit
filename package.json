@@ -22,7 +22,8 @@
     "orient": "node install.mjs orient",
     "setup": "node install.mjs install",
     "remove": "node install.mjs uninstall",
-    "test": "node test/run-tests.mjs"
+    "test": "node test/run-tests.mjs",
+    "deep-test": "node test/run-deep-test.mjs"
   },
   "repository": {
     "type": "git",
