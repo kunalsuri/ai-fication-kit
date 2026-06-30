@@ -5,21 +5,24 @@
 <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/banner.svg" alt="ai-fication-kit — legacy → AI-native, with a human in the loop" width="100%">
 
 <br><br>
-[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
-[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue?style=for-the-badge&logo=python&logoColor=white)](#-quick-start)
+[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
+
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.ai/code)
-
 [![Works with](https://img.shields.io/badge/also%20works%20with-Cursor%20%7C%20Copilot%20%7C%20Codex-lightgrey?style=for-the-badge)](docs/FAQ.md#cursor-copilot-codex)
-[![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
+[![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
 
 <h2> A Simple & Elegant Way to Make any Codebase / Repo AI-native while keeping it Trustworthy.</h2>
 
 </div>
+
+---
 
 **A Toolkit to Give AI Coding Agents a Trusted Map of Any Existing/Legacy Repo**
 
@@ -67,6 +70,8 @@ Transforming a legacy repository into a trusted AI-native environment rests on t
 > [!TIP]
 > **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first.
 
+<br>
+
 ---
 
 ## ⚡ Quick Start
@@ -77,9 +82,9 @@ Get up and running in under five minutes.
 
 <br>
 
----
-
 ### 🔄 How It Works [Overview]
+
+<br>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
@@ -128,8 +133,6 @@ python install.py shazam /path/to/your/repo
 
 <br>
 
----
-
 ### 2️⃣ Initialize Agent Loop / Mapping [Calude Code specific Command]
 
 Open your target repository in **Claude Code** (or your agent of choice) and run:
@@ -142,7 +145,6 @@ Open your target repository in **Claude Code** (or your agent of choice) and run
 
 <br>
 
----
 
 ### 3️⃣ Conduct Your Human Audit
 
@@ -203,7 +205,7 @@ your-repo/
 
 <br>
 
-## Detailed Overview of the Process
+## Detailed Overview of the Methodology
 
 ### Process Flow Diagram
 
@@ -288,7 +290,7 @@ flowchart TD
 <br>
 
 <details>
-<summary><b>🤖 Click to Expand: Process Flow Diagram Explained </b></summary>
+<summary><b> Click to Expand: Process Flow Explained </b></summary>
 
 ### Process 1 — Legacy Repo (No Existing AI Config)
 
@@ -335,9 +337,12 @@ For repos that already have a hand-written `CLAUDE.md` or `AGENTS.md`:
   <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/onboarding_bridge.png" alt="Diagram showing a bridge connecting legacy codebase complexity on the left to AI-native developer workflow on the right, with the ai/ knowledge layer as the bridge span" width="75%">
 </p>
 
-For engineers onboarding onto a complex codebase, the learning curve is historically steep. AI coding agents can accelerate this transition, but they get lost without a reliable map.
+<br>
 
-This kit acts as a **bridge**: combining a **minimal knowledge store** (the `ai/` folder) with **automated tooling** to help developers and AI agents collaborate safely. It is designed to help engineers adapt and become AI-native very fast.
+> [!TIP]
+> For engineers onboarding onto a complex codebase, the learning curve is historically steep. AI coding agents can accelerate this transition, but they get lost without a reliable map. This kit acts as a **bridge**: combining a **minimal knowledge store** (the `ai/` folder) with **automated tooling** to help developers and AI agents collaborate safely. It is designed to help engineers adapt and become AI-native very fast.
+
+<br>
 
 Running this kit delivers **two outcomes at once**:
 
