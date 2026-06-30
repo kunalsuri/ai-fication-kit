@@ -8,11 +8,16 @@ exactly the files listed there, never following a path outside the target.
 
 import json
 import re
+import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 
 from .util import (KIT_VERSION, MANIFEST_REL, PROFILE_REL, TEMPLATES_ROOT,
                    backup_name, confirm, die)
+
+# Retry budget for transient filesystem locks (Windows AV, etc.).
+_UNINSTALL_RETRY_COUNT = 5
+_UNINSTALL_RETRY_DELAY_S = 0.05
 
 
 def placeholders(profile):
@@ -69,6 +74,8 @@ def destination_for(rel):
     parts = list(rel.parts)
     if parts and parts[0] == "claude":
         parts[0] = ".claude"
+    elif parts and parts[0] == "github":
+        parts[0] = ".github"
     dest = Path(*parts)
     if dest.suffix == ".tmpl":
         dest = dest.with_suffix("")
@@ -195,7 +202,14 @@ def uninstall(target, flags):
         if target_resolved not in abs_path.parents:
             die(f"Refusing path outside target: {f}")
         if abs_path.is_file():
-            abs_path.unlink()
+            for attempt in range(_UNINSTALL_RETRY_COUNT):
+                try:
+                    abs_path.unlink()
+                    break
+                except OSError as e:
+                    if attempt == _UNINSTALL_RETRY_COUNT - 1:
+                        raise e
+                    time.sleep(_UNINSTALL_RETRY_DELAY_S)
     # Remove now-empty directories the kit created (best effort, deepest first).
     dirs_set = set()
     for f in files:
@@ -210,11 +224,10 @@ def uninstall(target, flags):
         except OSError:
             pass  # not empty — keep
     # Report backup files if any exist.
-    import re as _re
     bkp_files = []
     try:
         for name in sorted(target.iterdir()):
-            if _re.match(r"^(CLAUDE|AGENTS)_bkp_\d{8}_\d{6}\.md$", name.name):
+            if re.match(r"^(CLAUDE|AGENTS)_bkp_\d{8}_\d{6}\.md$", name.name):
                 bkp_files.append(name.name)
     except OSError:
         pass

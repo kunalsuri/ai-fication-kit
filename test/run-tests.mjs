@@ -124,8 +124,10 @@ async function testInstaller(label, exec, script) {
     path.join("ai", "analysis", "FEATURE_CATALOG_BACKEND.md"),
     path.join("ai", "analysis", "FEATURE_CATALOG_FRONTEND.md"),
     path.join(".claude", "commands", "cold-start.md"),
+    path.join(".claude", "commands", "check-drift.md"),
     path.join(".claude", "agents", "repo-explorer.md"),
     path.join(".claude", "skills", "add-feature", "SKILL.md"),
+    path.join(".github", "workflows", "ai-check.yml"),
     path.join("ai", "install-manifest.json")]) {
     ok(await exists(path.join(repo, f)), `installed ${f}`);
   }
@@ -164,7 +166,7 @@ async function testInstaller(label, exec, script) {
 
   // uninstall removes manifest files, keeps user files
   r = run(exec, [script, "uninstall", repo, "--yes"]);
-  ok(r.code === 0, `uninstall exits 0`);
+  ok(r.code === 0, `uninstall exits 0` + (r.code === 0 ? "" : ` (out: ${r.out})`));
   ok(!(await exists(path.join(repo, "CLAUDE.md"))), `uninstall removed CLAUDE.md`);
   ok(!(await exists(path.join(repo, "ai"))), `uninstall removed empty ai/ tree`);
   ok(await exists(path.join(repo, "package.json")) && await exists(path.join(repo, "app.ts")),
@@ -553,6 +555,27 @@ console.log("\n— drift stale (git) —");
     }
     await fs.rm(grepo, { recursive: true, force: true });
   }
+}
+// ---------- unit tests: destinationFor ----------
+{
+  console.log("\n— destinationFor unit tests —");
+  const { destinationFor } = await import(pathToFileURL(path.join(kitRoot, "lib", "installer.mjs")).href);
+  ok(destinationFor(path.join("claude", "commands", "cold-start.md")) ===
+    path.join(".claude", "commands", "cold-start.md"),
+    `claude/ → .claude/ mapping`);
+  ok(destinationFor(path.join("github", "workflows", "ai-check.yml.tmpl")) ===
+    path.join(".github", "workflows", "ai-check.yml"),
+    `github/ → .github/ mapping with .tmpl strip`);
+  ok(destinationFor(path.join("github", "workflows", "ai-check.yml")) ===
+    path.join(".github", "workflows", "ai-check.yml"),
+    `github/ → .github/ mapping without .tmpl`);
+  ok(destinationFor(path.join("ai", "INDEX.md.tmpl")) ===
+    path.join("ai", "INDEX.md"),
+    `non-prefixed .tmpl strip`);
+  ok(destinationFor(path.join("AGENTS.md.tmpl")) === "AGENTS.md",
+    `root-level .tmpl strip`);
+  ok(destinationFor("README.md") === "README.md",
+    `plain file passthrough`);
 }
 
 const py = pythonCmd();

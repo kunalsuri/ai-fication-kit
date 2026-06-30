@@ -1,0 +1,27 @@
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+name: AI Knowledge-Base Check
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ai-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for git drift (stale) check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install ai-fication-kit
+        run: npm install -g ai-fication-kit
+      - name: Verify Path Claims
+        run: ai-fication-kit verify . --strict
+      - name: Check for Code Drift
+        run: ai-fication-kit drift . --git --strict

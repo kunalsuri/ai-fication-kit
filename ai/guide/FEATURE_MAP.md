@@ -75,3 +75,17 @@
 - **Gotchas:** Enforces license headers (Apache-2.0) on all `.js`, `.mjs`, `.py`, `.md` source files and checks for leaked template placeholders (`{{...}}`).
 - **Related:** `verify`, `drift`
 
+### ci-checks  `[inferred]`
+- **Business goal:** Provide a GitHub Actions workflow template that runs `verify --strict` and `drift --git --strict` automatically on push/PR for target repos.
+- **Touches:** `templates/github/workflows/ai-check.yml.tmpl`, `.github/workflows/ai-check.yml`, `lib/installer.mjs`, `lib/installer.py`
+- **Verify with:** `npm test` (integration test checks `.github/workflows/ai-check.yml` is installed)
+- **Gotchas:** The template uses `npm install -g ai-fication-kit` to fetch the kit in CI; requires the package to be published to npm. The kit's own self-hosted workflow uses `node install.mjs` directly.
+- **Related:** `verify`, `drift`, `install`
+
+### check-drift (Claude command)  `[inferred]`
+- **Business goal:** Provide a Claude Code slash command (`/check-drift`) for interactive verification and drift analysis of the `ai/` knowledge-base.
+- **Touches:** `templates/claude/commands/check-drift.md`, `.claude/commands/check-drift.md`
+- **Verify with:** `npm test` (integration test checks `.claude/commands/check-drift.md` is installed)
+- **Gotchas:** Uses `--strict` flags matching CI for consistency. Instructs the agent to mark changes as `[inferred]`.
+- **Related:** `verify`, `drift`, `ci-checks`
+

@@ -8,6 +8,7 @@ Rules:
 - All other files are copied verbatim.
 - `templates/claude/**` installs to `.claude/**` (kept visible here so the kit's own
   tree is browsable).
+- `templates/github/**` installs to `.github/**` (CI/CD workflow templates).
 - This README is documentation for kit developers and is **not** installed.
 
 Placeholders (filled by the `orient` step; confirm them in your audit):
