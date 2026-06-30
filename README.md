@@ -92,12 +92,14 @@ Get up and running in under five minutes.
 
 <br>
 
-> [!NOTE]
-> The name `shazam` is inspired by the magic word: the idea is to transform a repository into an AI-native repository with a single command. Under the hood, `shazam` runs `check-repo-maturity` → `orient` → starts the intake wizard → stamps the intelligence layer → prints clear next steps.
+### 1️⃣ Run the Scaffolder [Shazam == Orient + Install]
 
 <br>
 
-### 1️⃣ Run the Scaffolder [Shazam == Orient + Install]
+> [!TIP]
+> The name `shazam` is inspired by the magic word: the idea is to transform a repository into an AI-native repository with a single command. Under the hood, `shazam` runs `check-repo-maturity` → `orient` → starts the intake wizard → stamps the intelligence layer → prints clear next steps.
+
+<br>
 
 Select one of the options (A or B) below depending on your stack and preferences:
 
