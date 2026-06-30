@@ -7,16 +7,17 @@
 ## The big pieces  `[inferred]`
 - **CLI shell** (`install.mjs` / `install.py`) — arg parsing and command dispatch only; no business logic.
 - **`lib/util.mjs`** (and `lib/util.py`) — shared fs probes, prompts, constants (incl. `KIT_VERSION`).
-- **`lib/orient.mjs`** — deterministic stack detection from marker files → `ai/repo-profile.json`.
-- **`lib/installer.mjs`** — stamps `templates/` into the target, substitutes `{{PLACEHOLDERS}}`, writes `ai/install-manifest.json`; manifest-based `uninstall`.
-- **`lib/verify.mjs`** — extracts backtick path claims from the knowledge docs and checks each against the real tree (no LLM).
+- **`lib/orient.mjs`** (and `lib/orient.py`) — deterministic stack detection from marker files → `ai/repo-profile.json`.
+- **`lib/indepth.mjs`** (and `lib/indepth.py`) — comprehensive Tier-2 analysis of dependencies, structure, code metrics, git history, configurations, and scalability → `ai/repo-indepth.json`.
+- **`lib/installer.mjs`** (and `lib/installer.py`) — stamps `templates/` into the target, substitutes `{{PLACEHOLDERS}}`, writes `ai/install-manifest.json`; manifest-based `uninstall`.
+- **`lib/verify.mjs`** (and `lib/verify.py`) — extracts backtick path claims from the knowledge docs and checks each against the real tree (no LLM).
+- **`lib/drift.mjs`** (and `lib/drift.py`) — reverse mapping validation checking for unmapped, vanished, and stale verified modules.
+- **`lib/maturity.mjs`** (and `lib/maturity.py`) — deterministic repository maturity assessment engine.
+- **`lib/intake.mjs`** (and `lib/intake.py`) — interactive CLI wizard that guides target repository onboarding.
 - **`templates/`** — the payload: root guides, the `ai/` knowledge layer, and `templates/claude/` (commands/subagents/skill).
 
 ## How they connect  `[inferred]`
-The CLI parses argv, then calls `orient` → `install` (→ `verify`/`uninstall` on demand).
-Two runtimes (Node, Python) are kept deliberately behavior-identical and are exercised
-by the same smoke suite. The only "protocol" is the filesystem: `orient` writes a JSON
-profile that `install` reads; `install` writes a manifest that `uninstall` reads.
+The CLI parses argv, then handles command routing. When running `shazam` (or interactive `orient`), it invokes the `intake` wizard which prompts the user for the analysis level. Tier 1 (`orient`) writes `ai/repo-profile.json`. Tier 2 (`indepth`) builds on Tier 1 and generates `ai/repo-indepth.json` with structural and scalability heuristics. The `install` step then stamps templates from `templates/` into the target. Claims and drift checks (`verify` and `drift` commands) can be run on demand, writing audit reports to `ai/analysis/audit-reports/`. Both Node and Python runtimes remain behavior-identical and are verified by the same smoke test suite.
 
 ## Diagrams
 Text-based (Mermaid) diagrams live in `ai/analysis/diagrams/`. Regenerate them via

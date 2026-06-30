@@ -17,6 +17,7 @@ change, update this one file.
 | Role | Path | Authored by | Load pattern |
 |---|---|---|---|
 | Machine-readable repo facts | `ai/repo-profile.json` | `orient` (deterministic) | any time |
+| Machine-readable indepth facts | `ai/repo-indepth.json` | `indepth` (deterministic) | any time |
 | Navigation guide | `ai/guide/` | agent drafts, human verifies | every agent session |
 | Module map (start here) | `ai/guide/MODULE_MAP.md` | agent drafts, human verifies | every agent session |
 | Generated analysis | `ai/analysis/` | agent/tools | on demand per task |
@@ -29,6 +30,8 @@ change, update this one file.
 | Experiments | `ai/lab/experiments/` | human + AI | when trying new agent approaches |
 | Install manifest | `ai/install-manifest.json` | installer | uninstall only |
 | Maturity report | `ai/analysis/audit-reports/MATURITY_REPORT.json` | `check-repo-maturity` | on demand |
+| Drift report | `ai/analysis/audit-reports/DRIFT_REPORT.md` | `drift` | on demand |
+| Verification report | `ai/analysis/audit-reports/VERIFICATION_REPORT.md` | `verify` | on demand |
 | Prior config backup | `CLAUDE_bkp_*.md` / `AGENTS_bkp_*.md` | installer (from user files) | /cold-start only |
 
 ## The provenance rule (read this twice)

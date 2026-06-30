@@ -12,4 +12,4 @@
 
 No drift detected. The map matches the tree.
 
-> Stale check: stale check is opt-in — re-run with --git to compare against the last verified commit (local, read-only git).
+> Stale check: MODULE_MAP records no verified commit (`Last verified: … @ commit <sha>`); stale check skipped.

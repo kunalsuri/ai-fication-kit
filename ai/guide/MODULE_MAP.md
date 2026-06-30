@@ -23,7 +23,7 @@
 | Directory | Responsibility (one line) | Entry point | Stability (guess) | Status |
 |---|---|---|---|---|
 | `/` (root) | CLI entry points for both runtimes — parse args, dispatch to `lib/` | `install.mjs` · `install.py` | ours | [verified] (25/06/2026 20:50 CEST) |
-| `lib/` | Implementation modules, mirrored in Node (`.mjs`) and Python (`.py`): stack detection, template stamping, claim verification, drift detection, maturity assessment | `lib/util.mjs` · `lib/util.py` | ours | [verified] (25/06/2026 20:51 CEST) |
+| `lib/` | Implementation modules, mirrored in Node (`.mjs`) and Python (`.py`): stack detection, template stamping, claim verification, drift detection, maturity assessment, intake wizard, and indepth analysis | `lib/util.mjs` · `lib/util.py` | ours | [inferred] |
 | `templates/` | The installable kit — copied/stamped into a target repo by the installer | `templates/README.md` | ours | [verified] (25/06/2026 20:52 CEST) |
 | `templates/ai/` | Knowledge-layer templates (the `ai/` folder a target repo receives) | `templates/ai/INDEX.md.tmpl` | ours | [verified] (25/06/2026 20:52 CEST) |
 | `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [verified] (25/06/2026 20:52 CEST) |
