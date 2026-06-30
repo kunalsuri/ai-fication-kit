@@ -32,3 +32,15 @@ Work top to bottom; everything below the Zenodo step is immutable forever.
       contribution statement, implemented/designed table; cites the concept DOI and
       the v0.1.0 version DOI.
 - [ ] Example repos seeded; video linked from README (hosted externally).
+
+## npm publishing — deferred (as of v0.1.1)
+
+The kit is **not** on npm yet, and `NPM_TOKEN` is intentionally unset.
+
+- `.github/workflows/release.yml` auto-publishes on any `v*` tag, but its publish
+  step is **skipped while `NPM_TOKEN` is absent** — so tagging (e.g. `v0.1.1`) runs
+  the tests and creates the tag without publishing anything.
+- To publish later: add an `NPM_TOKEN` repository secret (npm Automation token),
+  then push a `v*` tag whose version matches `package.json`.
+- npm is independent of Zenodo — publishing to npm does **not** create a Zenodo
+  deposit (that still requires a GitHub *Release*).

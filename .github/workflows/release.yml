@@ -2,6 +2,9 @@ name: Release — npm publish
 
 # Publishes to npm when a version tag (e.g. v0.2.0) is pushed.
 # Requires an NPM_TOKEN repository secret (Automation token) with publish rights.
+# The publish step is SKIPPED when NPM_TOKEN is absent, so tagging a release
+# before npm is set up is safe: tests still run and the tag is created, but
+# nothing is published.
 # Provenance ties the published package to this workflow run; it needs a public
 # repo and id-token: write.
 
@@ -16,6 +19,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}   # mapped to env so the publish step can gate on it
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +37,7 @@ jobs:
             exit 1
           fi
       - name: Publish
+        if: ${{ env.NPM_TOKEN != '' }}   # skip cleanly until an NPM_TOKEN secret exists
         run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
