@@ -5,10 +5,13 @@
 <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/banner.svg" alt="ai-fication-kit — legacy → AI-native, with a human in the loop" width="100%">
 
 <br><br>
+[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue?style=for-the-badge&logo=python&logoColor=white)](#-quick-start)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.ai/code)
+
 [![Works with](https://img.shields.io/badge/also%20works%20with-Cursor%20%7C%20Copilot%20%7C%20Codex-lightgrey?style=for-the-badge)](docs/FAQ.md#cursor-copilot-codex)
 [![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
 
@@ -18,8 +21,6 @@
 
 </div>
 
----
-
 **A Toolkit to Give AI Coding Agents a Trusted Map of Any Existing/Legacy Repo**
 
 * Drafted by AI Agents, **verified by Humans**, and kept mechanically honest.
@@ -28,23 +29,12 @@
 
 * Two outcomes from one workflow: it makes your codebase **AI-native**, *and* it produces **AI-Powered Repo Intelligence** — a human-approved knowledge-base (`ai/`) that lets a new teammate onboard instantly.
 
+<br>
+
 ---
 
-### 🔑 The Three Pillars
+### 📑 Table of Contents
 
-Transforming a legacy repository into a trusted AI-native environment rests on three mechanisms:
-
-* 🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/`.
-* 🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
-* 🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree, so the maps cannot silently fall out of sync.
-
-> [!TIP]
-> **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first.
-
-<details>
-<summary>📑 Table of Contents</summary>
-
-* [Getting Started (new users)](docs/GETTING-STARTED.md) · [Glossary](docs/GLOSSARY.md)
 * [The Three Pillars](#-the-three-pillars)
 * [Quick Start](#-quick-start)
 * [How It Works](#-how-it-works)
@@ -59,7 +49,23 @@ Transforming a legacy repository into a trusted AI-native environment rests on t
 * [License](#-license)
 * [Acknowledgments](#-acknowledgments)
 
-</details>
+<br>
+
+---
+
+### 🔑 The Three Pillars
+
+Transforming a legacy repository into a trusted AI-native environment rests on three mechanisms:
+
+* 🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/`.
+* 🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
+* 🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree, so the maps cannot silently fall out of sync.
+
+<br>
+<br>
+
+> [!TIP]
+> **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first.
 
 ---
 
@@ -69,9 +75,26 @@ Get up and running in under five minutes.
 
 > **Prerequisites:** Node.js ≥ 18 **or** Python ≥ 3.8 — pick whichever you prefer. Both installers are feature-identical and zero-dependency (stdlib only, no packages to install).
 
-### 1️⃣ Run the Scaffolder
+<br>
 
-Select one of the options below depending on your stack and preferences:
+---
+
+### 🔄 How It Works [Overview]
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
+</p>
+
+<br>
+
+> [!NOTE]
+> The name `shazam` is inspired by the magic word: the idea is to transform a repository into an AI-native repository with a single command. Under the hood, `shazam` runs `check-repo-maturity` → `orient` → starts the intake wizard → stamps the intelligence layer → prints clear next steps.
+
+<br>
+
+### 1️⃣ Run the Scaffolder [Shazam == Orient + Install]
+
+Select one of the options (A or B) below depending on your stack and preferences:
 
 #### Option A: Direct via `npx` (No Clone Required, JS/TS Developers)
 
@@ -85,17 +108,7 @@ npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo --dry-run
 npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo
 ```
 
-> [!NOTE]
-> *Future publishing note:* We plan to publish this kit to the public npm registry. Once published, you'll be able to run `npx ai-fication-kit shazam /path/to/your/repo` directly.
-
-> [!TIP]
-> **First run is guided.** The first time you `shazam` a repo, a read-only **maturity
-> check** runs first (no LLM, no writes) and determines if this is a legacy repo
-> (**Process 1** — create everything from scratch) or a modern repo that already has
-> `CLAUDE.md`/`AGENTS.md` (**Process 2** — back up existing files, then install).
-> Then a short wizard (4–5 questions) sets you up safely: it warns you if you're on
-> `main`/`master`, lets you confirm the stack, and (for Process 2) explains the
-> backup flow. Your answers are saved to `ai/repo-profile.json`. Pass `--yes` to skip.
+<br>
 
 #### Option B: Local Clone (Node.js or Python Developers)
 
@@ -113,12 +126,11 @@ node install.mjs shazam /path/to/your/repo
 python install.py shazam /path/to/your/repo
 ```
 
-> [!NOTE]
-> The name `shazam` is inspired by the magic word: the idea is to transform a repository into an AI-native repository with a single command. Under the hood, `shazam` runs `check-repo-maturity` → `orient` → starts the intake wizard → stamps the intelligence layer → prints clear next steps.
+<br>
 
 ---
 
-### 2️⃣ Initialize Agent Maps
+### 2️⃣ Initialize Agent Loop / Mapping [Calude Code specific Command]
 
 Open your target repository in **Claude Code** (or your agent of choice) and run:
 
@@ -126,7 +138,9 @@ Open your target repository in **Claude Code** (or your agent of choice) and run
 /cold-start
 ```
 
-*This command runs for ~5 minutes as the agent scans the code and drafts the initial map.*
+*This command could take 5 minutes or more depending on the size of the repository as the agent scans the codebase and drafts the initial map.*
+
+<br>
 
 ---
 
@@ -139,65 +153,57 @@ Open `ai/guide/MODULE_MAP.md` to review the generated draft:
 3. Keep the docs mechanically honest — at any time, cross-check every file-path
    claim in the maps against the real tree (deterministic, no LLM):
 
-```bash
-node install.mjs verify /path/to/your/repo        # or: python install.py verify ...
-# writes ai/analysis/audit-reports/VERIFICATION_MANIFEST.json + a readable report
-# add --strict to fail (exit 1) on stale claims, e.g. in CI
-```
-
-As the code evolves, `drift` keeps the map honest the other way — it reports code the
-map has stopped covering (deterministic; the opt-in `--git` flag adds a stale check):
-
-```bash
-node install.mjs drift /path/to/your/repo         # or: python install.py drift ...
-# reports unmapped directories + vanished entries; add --git for stale [verified] rows
-# add --strict to fail (exit 1) on any drift, e.g. in CI
-```
-
-Need to adjust options? Override them: `--name`, `--build`, `--test`, `--upstream`.
-Changed your mind? Cleanly remove everything:
-
-```bash
-node install.mjs uninstall /path/to/your/repo
-```
-
-Want a read-only diagnostic first? Run the maturity check standalone:
-
-```bash
-node install.mjs check-repo-maturity /path/to/your/repo
-# writes ai/analysis/audit-reports/MATURITY_REPORT.json (no LLM, no code changes)
-```
+<br>
 
 > [!TIP]
 > The audit is the step that makes everything else trustworthy. See [docs/AUDIT-GUIDE.md](docs/AUDIT-GUIDE.md) for a step-by-step walkthrough, and [docs/FAQ.md](docs/FAQ.md) for answers to common questions.
 
----
+<br>
 
-## 🔄 How It Works
+## 📦 What You Get: The "AI-Native Repo Intelligence"
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
-</p>
+This kit scaffolds a minimal, highly structured knowledge directory inside your target repository. Once `/cold-start` has populated it and a human has verified it, this `ai/` directory *is* your AI-Powered Repo Intelligence — the knowledge-base that both agents and new teammates read to get up to speed:
 
-### The Maturity Gate: One Command, Two Paths
+<br>
 
-Before any files are written, `shazam` runs a **read-only maturity check** that inspects 11 aspects of your repo (version control, build system, tests, CI/CD, docs, dependencies, code structure, license, and — crucially — whether `CLAUDE.md`/`AGENTS.md` already exist). The result determines which installation process runs:
-
-| | **Process 1 — Legacy** | **Process 2 — Modern** |
-|:--|:--|:--|
-| **Trigger** | No existing `CLAUDE.md` / `AGENTS.md`, *or* only kit-generated ones | User-authored `CLAUDE.md` and/or `AGENTS.md` detected (no kit footer) |
-| **What happens** | Everything created from scratch | Existing files backed up with timestamp, then templates installed |
-| **Backup files** | None | `CLAUDE_bkp_20260617_221847.md`, `AGENTS_bkp_20260617_221847.md` |
-| **`/cold-start`** | Standard — drafts `ai/guide/` from code | **Step 0.5** first — extracts knowledge from backups, then drafts |
-| **Uninstall** | Standard removal | Reports backup file locations (never deletes them) |
-| **Re-runs** | Safe (skips existing unless `--force`) | Creates new timestamped backups (no conflicts) |
-
-You can also run the maturity check standalone — no LLM, no writes, just a diagnostic:
-
-```bash
-node install.mjs check-repo-maturity /path/to/your/repo
-# Prints a scored report + writes ai/analysis/audit-reports/MATURITY_REPORT.json
 ```
+your-repo/
+├── CLAUDE.md                   # auto-loaded by Claude Code (thin; points everywhere else)
+├── AGENTS.md                   # same rules for Cursor, Copilot, Codex, Windsurf
+├── CLAUDE_bkp_*.md             # (Process 2 only) timestamped backup of prior config
+├── AGENTS_bkp_*.md             # (Process 2 only) timestamped backup of prior config
+├── ai/
+│   ├── INDEX.md                # role → path manifest (prompts reference roles, not paths)
+│   ├── repo-profile.json       # machine-readable facts from orient (deterministic)
+│   ├── install-manifest.json   # what the installer wrote (for clean uninstall)
+│   ├── guide/                  # navigation, loaded every session
+│   │   ├── MODULE_MAP.md       # directory → responsibility → Stability  ← START HERE
+│   │   ├── PROJECT_OVERVIEW.md · ARCHITECTURE.md · FEATURE_MAP.md · CONVENTIONS.md
+│   ├── analysis/               # generated artifacts, loaded on demand
+│   │   ├── FEATURE_CATALOG.md  # feature → files index (+ _BACKEND/_FRONTEND splits)
+│   │   ├── diagrams/           # Mermaid; regenerate, don't hand-maintain
+│   │   ├── audit-reports/      # verification, drift, & maturity reports
+│   │   └── problems/           # dated analyses of specific issues
+│   └── lab/                    # development intelligence: specs/, decisions/ (ADRs),
+│                                 evaluations/, experiments/
+└── .claude/                    # commands (/cold-start, /add-feature, …),
+                                  subagents (repo-explorer, feature-builder, test-runner),
+                                  and the add-feature skill
+```
+
+<br>
+
+### Directory Structure Highlights
+
+* **Root Guides ([CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md)):** Thin root files that point the agent to the `ai/` folder.
+* **Knowledge Guide (`ai/guide/`):** Core maps (`MODULE_MAP.md` is your starting point!), conventions, and architectural overviews loaded by the agent every session — and, once verified, the first thing a new team member reads to onboard.
+* **Analysis Outputs (`ai/analysis/`):** Deep analytical results generated by the agent (e.g. diagrams, feature catalogs, and problems logs).
+* **Lab Space (`ai/lab/`):** A dedicated area for specifications (RFCs), architecture decision records (ADRs), and evaluations.
+* **Agent Operations (`.claude/`):** Reusable slash commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills.
+
+<br>
+
+## Detailed Overview of the Process
 
 ### Process Flow Diagram
 
@@ -276,7 +282,13 @@ flowchart TD
     style AgentLoop fill:none,stroke:#2f855a,stroke-width:1.5px,stroke-dasharray: 5 5;
     style HumanGate fill:none,stroke:#c53030,stroke-width:1.5px,stroke-dasharray: 5 5;
     style DevLoop fill:none,stroke:#00a3c4,stroke-width:1.5px,stroke-dasharray: 5 5;
+
 ```
+
+<br>
+
+<details>
+<summary><b>🤖 Click to Expand: Process Flow Diagram Explained </b></summary>
 
 ### Process 1 — Legacy Repo (No Existing AI Config)
 
@@ -313,46 +325,9 @@ For repos that already have a hand-written `CLAUDE.md` or `AGENTS.md`:
 | **5️⃣ Verify** *(Optional)*          | Script + Agent     | **Stability checks.** `verify` (script, no LLM) mechanically cross-checks every file-path claim in the docs against the real tree → `VERIFICATION_MANIFEST.json` + report. Then `/post-cold-start-verification` (semantic gap report), `/verify-ai-readiness` (maturity rating), or `/perform-feature-add-simulation` (simulated friction check). |
 | **6️⃣ `/add-feature`**               | Agent              | **Safeguarded development.** The agent builds specs, navigates using the maps, runs tests, and updates the knowledge layer without touching frozen code.                                                         |
 
----
+</details>
 
-## 📦 What You Get
-
-This kit scaffolds a minimal, highly structured knowledge directory inside your target repository. Once `/cold-start` has populated it and a human has verified it, this `ai/` directory *is* your AI-Powered Repo Intelligence — the knowledge-base that both agents and new teammates read to get up to speed:
-
-```
-your-repo/
-├── CLAUDE.md                   # auto-loaded by Claude Code (thin; points everywhere else)
-├── AGENTS.md                   # same rules for Cursor, Copilot, Codex, Windsurf
-├── CLAUDE_bkp_*.md             # (Process 2 only) timestamped backup of prior config
-├── AGENTS_bkp_*.md             # (Process 2 only) timestamped backup of prior config
-├── ai/
-│   ├── INDEX.md                # role → path manifest (prompts reference roles, not paths)
-│   ├── repo-profile.json       # machine-readable facts from orient (deterministic)
-│   ├── install-manifest.json   # what the installer wrote (for clean uninstall)
-│   ├── guide/                  # navigation, loaded every session
-│   │   ├── MODULE_MAP.md       # directory → responsibility → Stability  ← START HERE
-│   │   ├── PROJECT_OVERVIEW.md · ARCHITECTURE.md · FEATURE_MAP.md · CONVENTIONS.md
-│   ├── analysis/               # generated artifacts, loaded on demand
-│   │   ├── FEATURE_CATALOG.md  # feature → files index (+ _BACKEND/_FRONTEND splits)
-│   │   ├── diagrams/           # Mermaid; regenerate, don't hand-maintain
-│   │   ├── audit-reports/      # verification, drift, & maturity reports
-│   │   └── problems/           # dated analyses of specific issues
-│   └── lab/                    # development intelligence: specs/, decisions/ (ADRs),
-│                                 evaluations/, experiments/
-└── .claude/                    # commands (/cold-start, /add-feature, …),
-                                  subagents (repo-explorer, feature-builder, test-runner),
-                                  and the add-feature skill
-```
-
-### Directory Structure Highlights
-
-* **Root Guides ([CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md)):** Thin root files that point the agent to the `ai/` folder.
-* **Knowledge Guide (`ai/guide/`):** Core maps (`MODULE_MAP.md` is your starting point!), conventions, and architectural overviews loaded by the agent every session — and, once verified, the first thing a new team member reads to onboard.
-* **Analysis Outputs (`ai/analysis/`):** Deep analytical results generated by the agent (e.g. diagrams, feature catalogs, and problems logs).
-* **Lab Space (`ai/lab/`):** A dedicated area for specifications (RFCs), architecture decision records (ADRs), and evaluations.
-* **Agent Operations (`.claude/`):** Reusable slash commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills.
-
----
+<br>
 
 ## 🌉 The Bridge to AI-Native Onboarding
 
@@ -384,7 +359,7 @@ With a verified `ai/` knowledge-base in place, a **new teammate can onboard almo
 
 The same human-verified map that keeps AI agents honest becomes the fastest onboarding doc your team has ever had — and because the `verify` step keeps it mechanically honest, it stays accurate as the code evolves.
 
----
+<br>
 
 ## 🛡️ The Problem & The Solution
 
@@ -408,7 +383,7 @@ The answer isn't to rewrite your code. It's to give the agent a **provenance-tra
 * **`[verified]`** ➔ Human-checked and confirmed repository facts.
 * 🚫 **Strict Security:** AI agents are forbidden from marking their own drafts as `[verified]`. The flip is your signature.
 
----
+<br>
 
 ## 🤖 New to AI Coding Agents? Start Here
 
@@ -440,23 +415,12 @@ Helper assistant processes (`repo-explorer`, `feature-builder`, `test-runner`) s
 
 Those tools read `AGENTS.md` (the rules and the knowledge map), but slash commands and subagents are Claude Code-specific. With other tools, you drive the workflow by hand — e.g. paste the contents of `.claude/commands/cold-start.md` as a prompt to run the cold-start pass.
 
----
+<br>
 
-## 🔒 Security & Trust Guarantees
+## For More Details on Toolkit & Security
 
-We designed the installer to be lightweight and safe:
-
-* 🪶 **Zero Dependencies** – Node stdlib / Python stdlib only. No external npm packages.
-* 🔒 **No Network or Execution** – It only copies and stamps text files. No remote API calls or arbitrary code runs.
-* 🛡️ **Safe Scoping** – It only writes files inside your target directory.
-* 🔍 **Dry-Run Support** – Run with `--dry-run` to see exactly what files will be created before writing anything.
-* 🧹 **Clean Removal** – The installer writes `ai/install-manifest.json`. The `uninstall` command reads it to remove exactly what was written, leaving no trace.
-
-*For more details, read both installers or refer to [SECURITY.md](SECURITY.md).*
-
----
-
-## ⚖️ How This Toolkit Differs
+<details>
+<summary><b> ⚖️ Click to Expand: How This Toolkit Differs </b></summary>
 
 While other tools scaffold files or evaluate repositories, this kit focuses on **trust through provenance, with the human as the authority**:
 
@@ -469,13 +433,32 @@ While other tools scaffold files or evaluate repositories, this kit focuses on *
 | **Drift Detection**                        | The `drift` command catches the reverse problem as code evolves — directories the map no longer covers, entries that have vanished, and (with `--git`) `[verified]` rows whose code changed — so the map ages with the repo instead of silently rotting. |
 | **Dual-Mode Installation**                 | Automatic detection of legacy vs. modern repos. Process 2 preserves prior knowledge through timestamped backups and feeds it into `/cold-start` as seed intelligence — no user work is lost. |
 
----
+</details>
+
+<br>
+
+<details>
+<summary><b> 🔒 Click to Expand: Security & Trust Guarantees </b></summary>
+
+We designed the installer to be lightweight and safe:
+
+* 🪶 **Zero Dependencies** – Node stdlib / Python stdlib only. No external npm packages.
+* 🔒 **No Network or Execution** – It only copies and stamps text files. No remote API calls or arbitrary code runs.
+* 🛡️ **Safe Scoping** – It only writes files inside your target directory.
+* 🔍 **Dry-Run Support** – Run with `--dry-run` to see exactly what files will be created before writing anything.
+* 🧹 **Clean Removal** – The installer writes `ai/install-manifest.json`. The `uninstall` command reads it to remove exactly what was written, leaving no trace.
+
+*For more details, read both installers or refer to [SECURITY.md](SECURITY.md).*
+
+</details>
+
+<br>
 
 ## 🤝 Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Issues, example repos, and template improvements are the most helpful contributions right now. The project is pre-v1.0 and maintained by a single author — feedback from running the kit on real legacy repositories is especially valuable.
 
----
+<br>
 
 ## 📖 Citation
 
@@ -495,16 +478,16 @@ If you use this kit in academic or research work, please cite it:
 
 See [CITATION.cff](CITATION.cff) for the machine-readable format.
 
----
+<br>
 
 ## 📄 License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
 
----
+<br>
 
 ## 🙏 Acknowledgments
 
-Developed at CEA LIST, the French Alternative Energies and Atomic Energy Commission.
+Ongoing R&D work at CEA LIST, France.
 
 **Author**: Kunal Suri ([@kunalsuri](https://github.com/kunalsuri))
