@@ -4,6 +4,38 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](https://semver.org/).
 
+## [0.1.2] — 2026-06-30
+
+Comprehensive repository intelligence analysis, codebase maturity assessment, validation infrastructure, automation bias mitigation guidelines, and documentation updates.
+
+### Added
+- **`indepth` analysis mode**:
+  - Implements a comprehensive repository deep analysis and architectural inference engine (`lib/indepth.mjs` and `lib/indepth.py`).
+  - Analyzes files to compute detailed code metrics (Lines of Code, comment count, docstring ratio, import/export counts, direct dependencies).
+  - Generates detailed dependency graphs and computes structural health scores.
+  - Outputs a complete report to `ai/repo-indepth.json`.
+  - Added new CLI routing (`node install.mjs indepth <path>`) and CLI flags (`--indepth`, `--analysis-level general|indepth`).
+- **`deep-test` suite for codebase health**:
+  - Added `test/run-deep-test.mjs` and the `"deep-test"` npm script to verify repository health, standards compliance, placeholder leaks, and documentation/claim integrity.
+  - Bundled a new custom agent skill `.agents/skills/deep-test/SKILL.md` to automate deep testing inside AI environments.
+- **Drift verification workflow and Claude commands**:
+  - Added a GitHub Actions workflow `.github/workflows/ai-check.yml` (and templates) to run path verification and drift detection on CI.
+  - Added `.claude/commands/check-drift.md` (and template) to run drift diagnostics in Claude Code.
+
+### Changed
+- **Repository maturity assessment (`check-repo-maturity`)**:
+  - Refactored the command implementation (`lib/maturity.mjs` and `lib/maturity.py`) to run 11 deterministic checks with improved reliability and comprehensive reporting into `MATURITY_REPORT.json`.
+- **Installer and stack orientation improvements**:
+  - Refined `install.mjs` / `install.py` to support the new `indepth` option during orient and shazam.
+  - Refined stack profile extraction and file utility scripts.
+- **Mitigation of automation bias in drift detection**:
+  - Updated drift check commands (`.claude/commands/check-drift.md` and templates) to explicitly guide agents to run `git status` as a procedural safeguard to detect new files added to mapped directories that mechanical check tools might ignore.
+
+### Docs
+- Added developmental guides, lessons learned, and guidelines:
+  - `docs/dev/lessons-learnt/drift-blindspots-and-automation-bias.md` (records lessons learnt about codebase drift mechanical limitations and the risks of automation bias during repository audits).
+- Updated internal AI guides (`ai/guide/ARCHITECTURE.md`, `ai/guide/FEATURE_MAP.md`, `ai/guide/MODULE_MAP.md`) to align with the new analysis capabilities.
+
 ## [0.1.1] — 2026-06-30
 
 Post-release consolidation: documentation, citation metadata, audit-report hygiene, and one read-only diagnostic command finished after the initial `0.1.0` deposit. Not deposited on Zenodo — the `0.1.0` DOI remains the citable version.
@@ -54,5 +86,6 @@ First public release of the `ai-fication-kit` — a tool to create a knowledge l
 - **Uninstall Command**: Removes exactly what the installer wrote using the manifest record without touching any other files.
 - **Smoke Test Suite**: Cross-runtime test suite (`test/run-tests.mjs`) to verify Node and Python installers, stack detection, and verify operations.
 
+[0.1.2]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.2
 [0.1.1]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.0
