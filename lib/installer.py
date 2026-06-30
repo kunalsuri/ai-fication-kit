@@ -153,9 +153,9 @@ def install(target, profile, flags):
     manifest = {
         "kitVersion": KIT_VERSION,
         "installed": datetime.now(timezone.utc).isoformat(),
-        "files": sorted(set(prev_files)
-                        | {d.as_posix() for d, *_ in plan}
-                        | {PROFILE_REL.as_posix(), MANIFEST_REL.as_posix()}),
+        "files": sorted(list(set(prev_files)
+                         | {d.as_posix() for d, *_ in plan}
+                         | {PROFILE_REL.as_posix(), MANIFEST_REL.as_posix(), "ai/repo-indepth.json"})),
     }
     (target / MANIFEST_REL).write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

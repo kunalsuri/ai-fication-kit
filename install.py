@@ -75,13 +75,14 @@ from lib.maturity import check_maturity, print_maturity_report
 
 VALUE_OPTS = {"--name": "name", "--description": "description",
               "--build": "build", "--test": "test", "--upstream": "upstream"}
-COMMANDS = {"orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity"}
+COMMANDS = {"orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth"}
 
 USAGE = f"""ai-fication-kit {KIT_VERSION} — make any repo AI-native, with a human in the loop.
 
 Usage:
   python install.py shazam    <path-to-your-repo>   one-shot: orient + install + next steps
   python install.py orient    <path-to-your-repo>   detect stack, write ai/repo-profile.json
+  python install.py indepth   <path-to-your-repo>   run comprehensive indepth analysis
   python install.py install   <path-to-your-repo>   stamp templates into the repo
   python install.py uninstall <path-to-your-repo>   remove exactly what install wrote
   python install.py verify    <path-to-your-repo>   mechanically check every path claim
@@ -92,6 +93,7 @@ Usage:
                                                     (no LLM, no writes, just a report)
 
 Options: --dry-run --force --yes --strict --git --name --description --build --test --upstream
+         --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 """
 
@@ -111,6 +113,20 @@ def parse_args(argv):
             flags["git"] = True
         elif a == "--yes":
             flags["yes"] = True
+        elif a == "--skip-prompt":
+            flags["skip_prompt"] = True
+        elif a in ("--interactive", "-i"):
+            flags["interactive"] = True
+        elif a == "--indepth":
+            flags["analysis_level"] = "indepth"
+        elif a == "--analysis-level":
+            i += 1
+            if i >= len(argv):
+                die(f"{a} requires a value")
+            v = argv[i]
+            if v not in ("general", "indepth"):
+                die(f"{a} must be 'general' or 'indepth'")
+            flags["analysis_level"] = v
         elif a in VALUE_OPTS:
             i += 1
             if i >= len(argv):
@@ -124,6 +140,20 @@ def parse_args(argv):
     command = positional.pop(0) if positional and positional[0] in COMMANDS else None
     target = positional.pop(0) if positional else None
     return command, target, flags
+
+
+def choose_analysis_level(flags):
+    from lib.util import choose, is_interactive
+    if flags.get("analysis_level"):
+        return flags["analysis_level"]
+    if flags.get("yes") or flags.get("skip_prompt") or not is_interactive():
+        return "general"
+    options = [
+        "General (quick profile)\n       → Detects language, build system, frameworks, code quality\n       → Output: ai/repo-profile.json\n       → Time: ~200ms\n       → Best for: Quick onboarding, CI/CD pipelines",
+        "Indepth (comprehensive analysis)\n       → Includes: dependency graph, code metrics, architecture inference\n       → Output: ai/repo-profile.json + ai/repo-indepth.json\n       → Time: ~2-5s\n       → Best for: Full codebase understanding, refactoring planning"
+    ]
+    chosen = choose("Analysis level?", options, flags, 0)
+    return "general" if chosen.startswith("General") else "indepth"
 
 
 def main():
@@ -142,15 +172,51 @@ def main():
         die(f"Target is not a directory: {target}")
 
     if command == "orient":
+        level = choose_analysis_level(flags) if flags.get("interactive") else flags.get("analysis_level", "general")
         profile = orient(target, flags)
         print_profile(profile)
-        if flags.get("dry_run"):
-            print("--dry-run: profile not written.")
-        else:
+        if not flags.get("dry_run"):
             (target / "ai").mkdir(parents=True, exist_ok=True)
             (target / PROFILE_REL).write_text(
                 json.dumps(profile, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
             print(f"✓ Wrote {PROFILE_REL.as_posix()}")
+        
+        if level == "indepth":
+            from lib.indepth import indepth, print_indepth_report
+            indepth_result = indepth(target, flags)
+            print_indepth_report(indepth_result)
+            if not flags.get("dry_run"):
+                indepth_path = target / "ai" / "repo-indepth.json"
+                indepth_path.write_text(
+                    json.dumps(indepth_result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+                print("✓ Wrote ai/repo-indepth.json")
+        if flags.get("dry_run"):
+            print("--dry-run: profile not written.")
+    elif command == "indepth":
+        profile_path = target / PROFILE_REL
+        if profile_path.is_file():
+            try:
+                profile = json.loads(profile_path.read_text(encoding="utf-8"))
+            except (ValueError, OSError):
+                profile = orient(target, flags)
+        else:
+            profile = orient(target, flags)
+            if not flags.get("dry_run"):
+                (target / "ai").mkdir(parents=True, exist_ok=True)
+                profile_path.write_text(
+                    json.dumps(profile, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+                print(f"✓ Wrote {PROFILE_REL.as_posix()}")
+                
+        from lib.indepth import indepth, print_indepth_report
+        indepth_result = indepth(target, flags)
+        print_indepth_report(indepth_result)
+        if not flags.get("dry_run"):
+            indepth_path = target / "ai" / "repo-indepth.json"
+            indepth_path.write_text(
+                json.dumps(indepth_result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            print("✓ Wrote ai/repo-indepth.json")
+        else:
+            print("--dry-run: repo-indepth.json not written.")
     elif command == "check-repo-maturity":
         result = check_maturity(target)
         print_maturity_report(result)
@@ -171,6 +237,7 @@ def main():
         install(target, profile, flags)
     elif command == "shazam":
         print("⚡ shazam — orient, install, and hand you the audit. No magic past this point.")
+        level = choose_analysis_level(flags)
 
         # Step 1: Maturity check (read-only diagnostic, always runs first)
         maturity_result = check_maturity(target)
@@ -179,6 +246,17 @@ def main():
         # Step 2: Orient (embeds maturity results in profile)
         profile = orient(target, flags)
         print_profile(profile)
+
+        if level == "indepth":
+            from lib.indepth import indepth, print_indepth_report
+            indepth_result = indepth(target, flags)
+            print_indepth_report(indepth_result)
+            if not flags.get("dry_run"):
+                (target / "ai").mkdir(parents=True, exist_ok=True)
+                indepth_path = target / "ai" / "repo-indepth.json"
+                indepth_path.write_text(
+                    json.dumps(indepth_result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+                print("✓ Wrote ai/repo-indepth.json")
 
         # Step 3: First-run wizard (interactive only)
         if not flags.get("dry_run"):

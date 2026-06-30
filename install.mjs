@@ -62,7 +62,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-import { KIT_VERSION, PROFILE_REL, banner, die, exists, info, readText, style } from "./lib/util.mjs";
+import { KIT_VERSION, PROFILE_REL, banner, die, exists, info, readText, style, choose, isInteractive } from "./lib/util.mjs";
 import { orient, printProfile } from "./lib/orient.mjs";
 import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
@@ -76,7 +76,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -86,6 +86,15 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--force") flags.force = true;
   else if (a === "--git") flags.git = true;
   else if (a === "--yes") flags.yes = true;
+  else if (a === "--skip-prompt") flags.skipPrompt = true;
+  else if (a === "--interactive" || a === "-i") flags.interactive = true;
+  else if (a === "--indepth") flags.analysisLevel = "indepth";
+  else if (a === "--analysis-level") {
+    const v = argv[++i];
+    if (v === undefined) die(`${a} requires a value`);
+    if (v !== "general" && v !== "indepth") die(`${a} must be 'general' or 'indepth'`);
+    flags.analysisLevel = v;
+  }
   else if (["--name", "--description", "--build", "--test", "--upstream"].includes(a)) {
     const v = argv[++i];
     if (v === undefined) die(`${a} requires a value`);
@@ -96,6 +105,17 @@ for (let i = 0; i < argv.length; i++) {
 const command = COMMANDS.has(positional[0]) ? positional.shift() : null;
 const target = positional.shift();
 
+async function chooseAnalysisLevel(flags) {
+  if (flags.analysisLevel) return flags.analysisLevel;
+  if (flags.yes || flags.skipPrompt || !isInteractive()) return "general";
+  const options = [
+    "General (quick profile)\n       → Detects language, build system, frameworks, code quality\n       → Output: ai/repo-profile.json\n       → Time: ~200ms\n       → Best for: Quick onboarding, CI/CD pipelines",
+    "Indepth (comprehensive analysis)\n       → Includes: dependency graph, code metrics, architecture inference\n       → Output: ai/repo-profile.json + ai/repo-indepth.json\n       → Time: ~2-5s\n       → Best for: Full codebase understanding, refactoring planning"
+  ];
+  const chosen = await choose("Analysis level?", options, flags, 0);
+  return chosen.startsWith("General") ? "general" : "indepth";
+}
+
 if (!command || !target) {
   banner();
   console.log(`make any repo AI-native, with a human in the loop.
@@ -103,6 +123,7 @@ if (!command || !target) {
 Usage:
   node install.mjs shazam    <path-to-your-repo>   one-shot: orient + install + next steps
   node install.mjs orient    <path-to-your-repo>   detect stack, write ai/repo-profile.json
+  node install.mjs indepth   <path-to-your-repo>   run comprehensive indepth analysis
   node install.mjs install   <path-to-your-repo>   stamp templates into the repo
   node install.mjs uninstall <path-to-your-repo>   remove exactly what install wrote
   node install.mjs verify    <path-to-your-repo>   mechanically check every path claim
@@ -113,6 +134,7 @@ Usage:
                                                    (no LLM, no writes, just a report)
 
 Options: --dry-run --force --yes --strict --git --name --description --build --test --upstream
+         --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 `);
   process.exit(command ? 1 : 0);
@@ -125,14 +147,52 @@ if (!(await exists(targetAbs))) die(`Target does not exist: ${targetAbs}`);
 if (!(await fs.stat(targetAbs)).isDirectory()) die(`Target is not a directory: ${targetAbs}`);
 
 if (command === "orient") {
+  const level = flags.interactive ? await chooseAnalysisLevel(flags) : (flags.analysisLevel || "general");
   const profile = await orient(targetAbs, flags);
   printProfile(profile);
-  if (flags.dryRun) { info("--dry-run: profile not written."); }
-  else {
+  if (!flags.dryRun) {
     await fs.mkdir(path.join(targetAbs, "ai"), { recursive: true });
     await fs.writeFile(path.join(targetAbs, PROFILE_REL),
       JSON.stringify(profile, null, 2) + "\n", "utf8");
     info(`✓ Wrote ${PROFILE_REL}`);
+  }
+  if (level === "indepth") {
+    const { indepth, printIndepthReport } = await import("./lib/indepth.mjs");
+    const indepthResult = await indepth(targetAbs, flags);
+    printIndepthReport(indepthResult);
+    if (!flags.dryRun) {
+      const indepthPath = path.join(targetAbs, "ai", "repo-indepth.json");
+      await fs.writeFile(indepthPath, JSON.stringify(indepthResult, null, 2) + "\n", "utf8");
+      info(`✓ Wrote ai/repo-indepth.json`);
+    }
+  }
+  if (flags.dryRun) { info("--dry-run: profile not written."); }
+} else if (command === "indepth") {
+  const profilePath = path.join(targetAbs, PROFILE_REL);
+  let profile;
+  if (await exists(profilePath)) {
+    try {
+      profile = JSON.parse(await readText(profilePath));
+    } catch {
+      profile = await orient(targetAbs, flags);
+    }
+  } else {
+    profile = await orient(targetAbs, flags);
+    if (!flags.dryRun) {
+      await fs.mkdir(path.join(targetAbs, "ai"), { recursive: true });
+      await fs.writeFile(profilePath, JSON.stringify(profile, null, 2) + "\n", "utf8");
+      info(`✓ Wrote ${PROFILE_REL}`);
+    }
+  }
+  const { indepth, printIndepthReport } = await import("./lib/indepth.mjs");
+  const indepthResult = await indepth(targetAbs, flags);
+  printIndepthReport(indepthResult);
+  if (!flags.dryRun) {
+    const indepthPath = path.join(targetAbs, "ai", "repo-indepth.json");
+    await fs.writeFile(indepthPath, JSON.stringify(indepthResult, null, 2) + "\n", "utf8");
+    info(`✓ Wrote ai/repo-indepth.json`);
+  } else {
+    info("--dry-run: repo-indepth.json not written.");
   }
 } else if (command === "check-repo-maturity") {
   const { checkMaturity, printMaturityReport } = await import("./lib/maturity.mjs");
@@ -155,6 +215,8 @@ if (command === "orient") {
   banner();
   info("  " + style.amber("⚡ shazam") + style.gray(" — orient · install · then hand you the audit. No magic past this point."));
 
+  const level = await chooseAnalysisLevel(flags);
+
   // Step 1: Maturity check (read-only diagnostic, always runs first)
   const { checkMaturity, printMaturityReport } = await import("./lib/maturity.mjs");
   const maturityResult = await checkMaturity(targetAbs);
@@ -163,6 +225,18 @@ if (command === "orient") {
   // Step 2: Orient (embeds maturity results in profile)
   const profile = await orient(targetAbs, flags);
   printProfile(profile);
+
+  if (level === "indepth") {
+    const { indepth, printIndepthReport } = await import("./lib/indepth.mjs");
+    const indepthResult = await indepth(targetAbs, flags);
+    printIndepthReport(indepthResult);
+    if (!flags.dryRun) {
+      const indepthPath = path.join(targetAbs, "ai", "repo-indepth.json");
+      await fs.mkdir(path.join(targetAbs, "ai"), { recursive: true });
+      await fs.writeFile(indepthPath, JSON.stringify(indepthResult, null, 2) + "\n", "utf8");
+      info(`✓ Wrote ai/repo-indepth.json`);
+    }
+  }
 
   // Step 3: First-run wizard (interactive only)
   if (!flags.dryRun) {

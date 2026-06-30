@@ -20,6 +20,7 @@
     "prepack": "node -e \"require('fs').rmSync('lib/__pycache__',{recursive:true,force:true})\"",
     "shazam": "node install.mjs shazam",
     "orient": "node install.mjs orient",
+    "indepth": "node install.mjs indepth",
     "setup": "node install.mjs install",
     "remove": "node install.mjs uninstall",
     "test": "node test/run-tests.mjs",

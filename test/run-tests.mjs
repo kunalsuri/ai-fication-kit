@@ -59,9 +59,10 @@ async function makeFixture(name, { fork }) {
   await fs.rm(dir, { recursive: true, force: true });
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, "package.json"),
-    JSON.stringify({ name, version: "1.0.0", scripts: { build: "tsc", test: "vitest" } }, null, 2));
+    JSON.stringify({ name, version: "1.0.0", scripts: { build: "tsc", test: "vitest" }, dependencies: { "express": "^4.18.2" } }, null, 2));
   await fs.writeFile(path.join(dir, "tsconfig.json"), "{}\n");
   await fs.mkdir(path.join(dir, "tests"), { recursive: true });
+  await fs.writeFile(path.join(dir, "tests", "app.test.ts"), "import { x } from '../app';\n");
   await fs.writeFile(path.join(dir, "README.md"),
     `# ${name}\n\nA tiny invoicing SaaS used as a kit test fixture.\n`);
   await fs.writeFile(path.join(dir, "app.ts"), "export const x = 1;\n");
@@ -92,6 +93,18 @@ async function testInstaller(label, exec, script) {
     `detects fork upstream from .git/config: ${profile.fork.upstream}`);
   ok(profile.testDirs.includes("tests/"), `detects tests/ dir`);
   ok(profile.description.includes("invoicing SaaS"), `description from README prose line`);
+
+  // indepth
+  r = run(exec, [script, "indepth", repo]);
+  ok(r.code === 0, `indepth exits 0`);
+  const indepthPath = path.join(repo, "ai", "repo-indepth.json");
+  ok(await exists(indepthPath), `indepth writes ai/repo-indepth.json`);
+  const indepthResult = JSON.parse(await fs.readFile(indepthPath, "utf8"));
+  ok(indepthResult.analysisLevel === "indepth", `indepth analysisLevel is indepth`);
+  ok(indepthResult.dependencies.direct > 0, `indepth detects direct dependencies: ${indepthResult.dependencies.direct}`);
+  ok(indepthResult.codeStructure.codeMetrics.fileCount > 0, `indepth counts files: ${indepthResult.codeStructure.codeMetrics.fileCount}`);
+  ok(indepthResult.documentation.completionScore > 0, `indepth computes doc completion score: ${indepthResult.documentation.completionScore}`);
+  ok(indepthResult.testing.testFileCount > 0, `indepth detects test files: ${indepthResult.testing.testFileCount}`);
 
   // dry-run writes nothing new
   r = run(exec, [script, "install", repo, "--dry-run"]);
@@ -263,6 +276,7 @@ async function testInstaller(label, exec, script) {
     "| Directory | Responsibility | Entry point | Stability | Status |\n" +
     "|---|---|---|---|---|\n" +
     "| `src/` | core logic | `src/core.ts` | ours | [inferred] |\n" +
+    "| `tests/` | unit tests | `tests/app.test.ts` | stable | [inferred] |\n" +
     "| `gone/` | removed module | `gone/old.ts` | stable | [inferred] |\n");
 
   // dry-run writes nothing
