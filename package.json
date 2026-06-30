@@ -1,6 +1,6 @@
 {
   "name": "ai-fication-kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Make any legacy repository AI-native, with a human in the loop",
   "type": "module",
   "main": "install.mjs",
