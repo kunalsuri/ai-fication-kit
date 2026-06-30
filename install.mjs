@@ -62,7 +62,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-import { KIT_VERSION, PROFILE_REL, die, exists, info, readText } from "./lib/util.mjs";
+import { KIT_VERSION, PROFILE_REL, banner, die, exists, info, readText, style } from "./lib/util.mjs";
 import { orient, printProfile } from "./lib/orient.mjs";
 import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
@@ -97,7 +97,8 @@ const command = COMMANDS.has(positional[0]) ? positional.shift() : null;
 const target = positional.shift();
 
 if (!command || !target) {
-  console.log(`ai-fication-kit ${KIT_VERSION} — make any repo AI-native, with a human in the loop.
+  banner();
+  console.log(`make any repo AI-native, with a human in the loop.
 
 Usage:
   node install.mjs shazam    <path-to-your-repo>   one-shot: orient + install + next steps
@@ -151,7 +152,8 @@ if (command === "orient") {
   const profile = existingProfile ? JSON.parse(existingProfile) : await orient(targetAbs, flags);
   await install(targetAbs, profile, flags);
 } else if (command === "shazam") {
-  info("⚡ shazam — orient, install, and hand you the audit. No magic past this point.");
+  banner();
+  info("  " + style.amber("⚡ shazam") + style.gray(" — orient · install · then hand you the audit. No magic past this point."));
 
   // Step 1: Maturity check (read-only diagnostic, always runs first)
   const { checkMaturity, printMaturityReport } = await import("./lib/maturity.mjs");
@@ -178,19 +180,21 @@ if (command === "orient") {
 
   if (!flags.dryRun) {
     const isProcess2 = profile.maturity?.process === 2;
-    info(`
-Next steps (the part that needs a brain):
-  1. Open the repo in Claude Code and run  /cold-start
-     The agent drafts ai/guide/MODULE_MAP.md and friends — everything tagged [inferred].${isProcess2 ? `
-     ↳ Backup files exist — the agent will extract and reuse knowledge from
-       your prior CLAUDE.md / AGENTS.md to seed the ai/guide/ documents.` : ""}
-     (Not using Claude Code? See docs/FAQ.md#cursor-copilot-codex for other tools.)
-  2. Audit (~30 min): set each module's Stability (frozen / stable / ours),
-     flip [inferred] -> [verified] on rows you confirm.
-  3. Optional: node install.mjs verify <repo>  (mechanical claim check, no LLM),
-     then /post-cold-start-verification, /verify-ai-readiness.
-  4. Build: /add-feature.
-`);
+    const step = (n) => style.coral(`${n}.`);
+    info("\n" + style.bold("Next steps") + style.gray(" (the part that needs a brain):"));
+    info(`  ${step(1)} Open the repo in Claude Code and run  ${style.bold("/cold-start")}`);
+    info(`     The agent drafts ai/guide/MODULE_MAP.md and friends — everything tagged ${style.dim("[inferred]")}.`);
+    if (isProcess2) {
+      info(`     ${style.amber("↳")} Backup files exist — the agent will extract and reuse knowledge from`);
+      info(`       your prior CLAUDE.md / AGENTS.md to seed the ai/guide/ documents.`);
+    }
+    info(`     ${style.gray("(Not using Claude Code? See docs/FAQ.md#cursor-copilot-codex for other tools.)")}`);
+    info(`  ${step(2)} Audit (~30 min): set each module's Stability (frozen / stable / ours),`);
+    info(`     flip ${style.dim("[inferred]")} -> ${style.green("[verified]")} on rows you confirm.`);
+    info(`  ${step(3)} Optional: node install.mjs verify <repo>  (mechanical claim check, no LLM),`);
+    info(`     then /post-cold-start-verification, /verify-ai-readiness.`);
+    info(`  ${step(4)} Build: ${style.bold("/add-feature")}.`);
+    info("");
   }
 } else if (command === "uninstall") {
   await uninstall(targetAbs, flags);
