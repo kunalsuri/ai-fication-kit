@@ -18,6 +18,13 @@ MANIFEST_REL = Path("ai") / "install-manifest.json"
 KIT_FOOTER_MARKER = "<!-- Installed by ai-fication-kit"
 
 
+def sha256_text(text):
+    """Content fingerprint used by the install manifest to tell kit-owned files
+    apart from human-edited ones on re-runs. Pure hashing — no execution, no network."""
+    import hashlib
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def backup_name(base, ext=".md"):
     """Generate a timestamped backup filename, e.g. CLAUDE_bkp_20260617_221847.md"""
     from datetime import datetime, timezone

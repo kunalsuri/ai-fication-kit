@@ -27,7 +27,11 @@
 //     run LOCAL, READ-ONLY git: `drift --git` computes the stale set, and `indepth`
 //     reads commit/contributor history. Everything else is pure file inspection.)
 //   - It does NOT write anywhere outside the target folder you pass in.
-//   - It does NOT overwrite existing files unless you pass --force.
+//   - It NEVER overwrites a file you have edited. Re-runs are incremental: new kit
+//     files are added, untouched kit files are refreshed (told apart by the content
+//     hashes recorded in ai/install-manifest.json), and anything you changed is kept.
+//     --force overwrites edited files only after a timestamped backup — and files
+//     carrying a human [verified] tag are never overwritten, even with --force.
 //   - It has NO dependencies, so there is nothing else to trust.
 //
 // This file is only the command-line interface. The implementation is split into
