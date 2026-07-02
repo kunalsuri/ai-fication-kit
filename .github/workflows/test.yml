@@ -33,3 +33,20 @@ jobs:
         run: python -m py_compile install.py lib/__init__.py lib/drift.py lib/installer.py lib/intake.py lib/maturity.py lib/orient.py lib/util.py lib/verify.py
       - name: Run smoke tests (both installers)
         run: node test/run-tests.mjs
+
+  # Coverage floor for the Node installer (c8/V8; the Python installer is
+  # exercised functionally by the matrix job above but not instrumented).
+  # Floors sit a few points under the measured numbers so environment noise
+  # doesn't flake the gate; raise them as coverage improves.
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Measure coverage and enforce the floor
+        run: >
+          npx --yes c8 --include "lib/**/*.mjs" --include install.mjs
+          --check-coverage --lines 83 --branches 73 --functions 90 --statements 83
+          --reporter=text node test/run-tests.mjs

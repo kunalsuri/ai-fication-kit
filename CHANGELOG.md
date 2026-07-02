@@ -44,6 +44,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     (the `github/` → `.github/` mapping already covered the Copilot assets).
   - No new rules files were added for Antigravity: it already reads the tool-agnostic
     `AGENTS.md` at the repo root natively.
+- **Coverage-driven test-suite hardening.** The smoke suite grows from 246 to 327
+  checks (Node installer coverage: 78.6 % → 85.8 % lines, 66.6 % → 76.4 % branches):
+  - table-driven `orient` detector tests across every supported stack (Gradle both
+    variants, Go, Rust, Ruby, PHP, CMake, the bare-Makefile fallback and its
+    suppression, pip, yarn/bun/Pipenv lockfiles, Turborepo, `package.json` without
+    a `build` script, malformed `package.json`, empty repo, multi-stack note) plus
+    `--name`/`--description`/`--build`/`--test`/`--upstream` overrides and README
+    description-extraction edge cases (badge/HTML skipping, 160-char truncation,
+    fill-in fallback);
+  - per-ecosystem `indepth` dependency-parsing tests (pip, Poetry, Go, Cargo,
+    Bundler, Composer) and a real-git-repo fixture exercising the git-history
+    analyzer (commit/contributor/tag counts) in both runtimes;
+  - unit tests for `classifyAction` pinning the full re-run matrix — including the
+    kit-upgrade `"update"` path that end-to-end tests cannot reach — and for the
+    intake wizard's `detectBranch` (normal / detached HEAD / no `.git`; exported
+    from `lib/intake.mjs` for testing);
+  - `verify` edge cases (no knowledge docs → clear error; duplicate basenames →
+    `2 matches` note) and CLI surface checks (usage text, unknown option);
+  - a **Node ↔ Python parity test**: both installers must write byte-identical
+    orient profiles (modulo timestamp) for the same fixture, so cross-runtime
+    drift now fails the suite instead of shipping;
+  - `npm run coverage` (c8, fetched via `npx`) and a CI `coverage` job in
+    `test.yml` enforcing a floor (83 % lines / 73 % branches).
+
+### Fixed
+- Python `orient` recorded fork evidence with an ASCII `->` where the Node
+  installer writes `→`; the two now emit identical profiles (caught by the new
+  parity test).
 
 ## [0.1.2] — 2026-06-30
 
