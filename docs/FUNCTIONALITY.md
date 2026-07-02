@@ -17,6 +17,7 @@ graph TD
     CLI[install.mjs / install.py] --> UTIL[lib/util]
     CLI --> MATURITY[lib/maturity]
     CLI --> ORIENT[lib/orient]
+    CLI --> INDEPTH[lib/indepth]
     CLI --> INTAKE[lib/intake]
     CLI --> INSTALLER[lib/installer]
     CLI --> VERIFY[lib/verify]
@@ -25,6 +26,7 @@ graph TD
     MATURITY -->|read-only checks| TARGET[Target Repo]
     ORIENT -->|calls| MATURITY
     ORIENT -->|writes| PROFILE[ai/repo-profile.json]
+    INDEPTH -->|writes| INDEPTHJSON[ai/repo-indepth.json]
     INTAKE -->|adds humanContext| PROFILE
     INSTALLER -->|reads| PROFILE
     INSTALLER -->|backs up on Process 2| BACKUP[CLAUDE_bkp_*.md]
@@ -43,7 +45,8 @@ These entry points parse CLI flags and target directories, check the target path
 
 | Command | Action | Key Invocation |
 | :--- | :--- | :--- |
-| **`orient`** | Detects repository stacks and generates profile. | Calls `orient()` and writes `ai/repo-profile.json`. |
+| **`orient`** | Detects repository stacks and generates profile. | Calls `orient()` and writes `ai/repo-profile.json`. With `--analysis-level indepth` (or `--indepth`), also runs `indepth()`. |
+| **`indepth`** | Comprehensive Tier-2 repository analysis. | Calls `indepth()` (reusing an existing profile, or running `orient()` first) and writes `ai/repo-indepth.json`. |
 | **`install`** | Stamped templates with profile info. | Calls `install()` using either existing or fresh profile. |
 | **`shazam`** | One-shot interactive onboarding. | Runs maturity check, `orient()`, `runFirstRunWizard()`, then `install()` with process-aware backup. |
 | **`uninstall`**| Clean removal of stamped templates. | Calls `uninstall()` using `ai/install-manifest.json`. Reports backup file locations. |
@@ -59,7 +62,7 @@ These entry points parse CLI flags and target directories, check the target path
 Shared file system wrappers, user prompts, and static constants.
 
 #### Constants
-- `KIT_VERSION` (`"0.1.0"`): Package version.
+- `KIT_VERSION` (`"0.1.2"`): Package version.
 - `PROFILE_REL` (`"ai/repo-profile.json"`): Profile path.
 - `MANIFEST_REL` (`"ai/install-manifest.json"`): Manifest path.
 - `KIT_FOOTER_MARKER` (`"<!-- Installed by ai-fication-kit"`): Marker used to detect kit-generated files vs user-authored ones.
@@ -101,7 +104,7 @@ Responsible for analyzing files in a project root directory to compile language,
 
 ---
 
-### `lib/maturity` *(NEW)*
+### `lib/maturity`
 Deterministic, read-only AI readiness assessment. Every check is a file-existence or file-content test — nothing is executed and nothing is written to disk. The output drives the Process 1 (legacy) vs Process 2 (modern) decision gate.
 
 #### Functions
@@ -109,6 +112,17 @@ Deterministic, read-only AI readiness assessment. Every check is a file-existenc
   Runs 11 deterministic checks (AI config, version control, build system, test infra, CI/CD, documentation, dependency locks, code structure, license, security, gitignore). Returns a result dict with `score` (0-100), `level` (Minimal/Early/Developing/Mature), `process` (1 or 2), and `existingAIConfig`.
 - **`printMaturityReport(result)`** / **`print_maturity_report(result)`**
   Pretty-prints a formatted maturity report to the console with a visual score bar, check-by-check results, and process summary.
+
+---
+
+### `lib/indepth`
+Comprehensive Tier-2 deep analysis and architectural inference (v0.1.2). Deterministic heuristics only — no LLM. Reads source files and manifests; the git-history section is one of the kit's two documented local, read-only `git` exceptions.
+
+#### Functions
+- **`indepth(targetAbs, flags)`** / **`indepth(target, flags)`**
+  Runs the full analysis: per-file code metrics (LOC, comments, docstring ratio, import/export counts), dependency analysis (direct/transitive, production/development, from manifests and lockfiles), dependency graph, architecture-pattern inference (with confidence score and detected layers), communication/scalability signals (HTTP server, database access, caching), git history (commit count, contributors, last commit), and a documentation completion score. Returns the result object written to `ai/repo-indepth.json`.
+- **`printIndepthReport(r)`** / **`print_indepth_report(r)`**
+  Prints the sectioned console summary (analysis, dependencies, architecture & scalability, git history, documentation).
 
 ---
 
@@ -123,9 +137,11 @@ Handles copying templates, replacing variables, and cleanly deleting generated f
 - **`listTemplateFiles()`** / **`list_template_files()`**
   Recursively collects all files under the `templates/` directory, throwing an error if a symbolic link is encountered.
 - **`destinationFor(rel)`** / **`destination_for(rel)`**
-  Maps relative template paths to their target locations, renaming the `claude/` directory prefix to `.claude/` and removing `.tmpl` suffixes.
+  Maps relative template paths to their target locations — `claude/` → `.claude/`, `github/` → `.github/` (Copilot prompts/chatmodes), `agents/` → `.agents/` (Antigravity workflows/skills) — and removes `.tmpl` suffixes.
+- **`classifyAction(...)`** / **`classify_action(...)`**
+  The incremental re-run brain (v0.1.2+): a three-way compare between the manifest's recorded SHA-256 hash, the file on disk, and the freshly stamped template classifies each file as **write** (missing), **refresh** (kit-owned, unedited), or **keep** (human-edited). `--force` downgrades "keep" to overwrite-with-backup — except for files carrying a `[verified]` tag, which only `--force-verified` (typed consent) can unlock.
 - **`install(targetAbs, profile, flags)`** / **`install(target, profile, flags)`**
-  On Process 2 repos, first backs up user-authored `CLAUDE.md`/`AGENTS.md` with timestamped names (e.g. `CLAUDE_bkp_20260617_221847.md`). Then executes variable replacement on template files, writes them to the target folder (force-overwriting backed-up files), and creates/updates `ai/install-manifest.json` with posix-normalized paths.
+  On Process 2 repos, first backs up user-authored `CLAUDE.md`/`AGENTS.md` with timestamped names (e.g. `CLAUDE_bkp_20260617_221847.md`). Then executes variable replacement on template files, writes them per the `classifyAction` decision, and creates/updates `ai/install-manifest.json` with posix-normalized paths and per-file content hashes (`fileHashes`). The profile's `humanContext` is carried forward across re-runs.
 - **`uninstall(targetAbs, flags)`** / **`uninstall(target, flags)`**
   Deletes all files registered in `ai/install-manifest.json` after verifying they are strictly inside the target path (as a security safeguard), removes empty parent directories, and reports any backup files that were preserved with their full paths.
 

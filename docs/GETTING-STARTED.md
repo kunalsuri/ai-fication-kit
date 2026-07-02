@@ -40,9 +40,13 @@ From the kit, point `shazam` at your repository:
 node install.mjs shazam /path/to/your/repo        # or: python install.py shazam ...
 ```
 
-The first interactive run asks 4–5 short questions (your familiarity with the
-code, a **warning if you're on `main`/`master`**, and a chance to correct the
-detected stack), then stamps the templates. Pass `--yes` to skip the wizard in CI.
+The first interactive run asks you to pick an **analysis level** — *General*
+(quick profile, the default) or *Indepth* (adds code metrics, a dependency
+graph, and architecture inference to `ai/repo-indepth.json`) — then asks 4–5
+short questions (your familiarity with the code, a **warning if you're on
+`main`/`master`**, and a chance to correct the detected stack), then stamps the
+templates. Pass `--yes` to skip the prompts in CI. Every command and flag is
+specified in [CLI-REFERENCE.md](CLI-REFERENCE.md).
 
 **✅ Checkpoint.** Your repo now contains `CLAUDE.md`, `AGENTS.md`, and an `ai/`
 folder. Confirm:
@@ -143,7 +147,9 @@ stays inside the modules you marked `ours`/`stable`.
 |---|---|
 | Understand a term | [GLOSSARY.md](GLOSSARY.md) |
 | Do the audit well | [AUDIT-GUIDE.md](AUDIT-GUIDE.md) |
+| Look up any command or flag | [CLI-REFERENCE.md](CLI-REFERENCE.md) |
+| Understand *why* the method works | [METHODOLOGY.md](METHODOLOGY.md) |
 | Troubleshoot detection, monorepos, re-runs | [FAQ.md](FAQ.md) |
-| Use Copilot / Antigravity / Cursor / Codex instead | [FAQ.md](FAQ.md#cursor-copilot-codex) |
+| Use Copilot / Antigravity / Cursor / Codex instead | [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md) |
 | See a full before/after on a sample repo | [legacy-calculator](../examples/legacy-calculator/README.md) |
 | Understand the code of the kit itself | [FUNCTIONALITY.md](FUNCTIONALITY.md) |
