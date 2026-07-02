@@ -128,6 +128,15 @@ async function testInstaller(label, exec, script) {
     path.join(".claude", "agents", "repo-explorer.md"),
     path.join(".claude", "skills", "add-feature", "SKILL.md"),
     path.join(".github", "workflows", "ai-check.yml"),
+    path.join(".github", "copilot-instructions.md"),
+    path.join(".github", "prompts", "cold-start.prompt.md"),
+    path.join(".github", "prompts", "check-drift.prompt.md"),
+    path.join(".github", "chatmodes", "repo-explorer.chatmode.md"),
+    path.join(".github", "chatmodes", "feature-builder.chatmode.md"),
+    path.join(".github", "chatmodes", "test-runner.chatmode.md"),
+    path.join(".agents", "workflows", "cold-start.md"),
+    path.join(".agents", "workflows", "add-feature.md"),
+    path.join(".agents", "skills", "add-feature", "SKILL.md"),
     path.join("ai", "install-manifest.json")]) {
     ok(await exists(path.join(repo, f)), `installed ${f}`);
   }
@@ -569,6 +578,15 @@ console.log("\n— drift stale (git) —");
   ok(destinationFor(path.join("github", "workflows", "ai-check.yml")) ===
     path.join(".github", "workflows", "ai-check.yml"),
     `github/ → .github/ mapping without .tmpl`);
+  ok(destinationFor(path.join("github", "prompts", "cold-start.prompt.md")) ===
+    path.join(".github", "prompts", "cold-start.prompt.md"),
+    `github/prompts/ → .github/prompts/ mapping (Copilot)`);
+  ok(destinationFor(path.join("agents", "workflows", "cold-start.md")) ===
+    path.join(".agents", "workflows", "cold-start.md"),
+    `agents/ → .agents/ mapping (Antigravity)`);
+  ok(destinationFor(path.join("agents", "skills", "add-feature", "SKILL.md")) ===
+    path.join(".agents", "skills", "add-feature", "SKILL.md"),
+    `agents/skills/ → .agents/skills/ mapping (Antigravity)`);
   ok(destinationFor(path.join("ai", "INDEX.md.tmpl")) ===
     path.join("ai", "INDEX.md"),
     `non-prefixed .tmpl strip`);

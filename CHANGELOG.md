@@ -4,6 +4,23 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Native GitHub Copilot and Google Antigravity assets**, extending the kit beyond Claude Code:
+  - `templates/github/copilot-instructions.md`, `templates/github/prompts/*.prompt.md` (8 files),
+    and `templates/github/chatmodes/*.chatmode.md` (3 files) — installed to `.github/`, giving
+    Copilot Chat native `/cold-start`, `/add-feature`, etc. and chat-mode equivalents of the
+    `repo-explorer`/`feature-builder`/`test-runner` subagents.
+  - `templates/agents/workflows/*.md` (8 files) and `templates/agents/skills/add-feature/` —
+    installed to `.agents/`, giving Google Antigravity native workflow equivalents of the same
+    commands, plus the `add-feature` skill in the shared Agent Skills (`SKILL.md`) format that
+    Antigravity and Copilot both discover natively (no per-tool duplication).
+  - New `agents/` → `.agents/` destination mapping in `lib/installer.mjs` and `lib/installer.py`
+    (the `github/` → `.github/` mapping already covered the Copilot assets).
+  - No new rules files were added for Antigravity: it already reads the tool-agnostic
+    `AGENTS.md` at the repo root natively.
+
 ## [0.1.2] — 2026-06-30
 
 Comprehensive repository intelligence analysis, codebase maturity assessment, validation infrastructure, automation bias mitigation guidelines, and documentation updates.

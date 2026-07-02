@@ -87,16 +87,33 @@ so don't `--force` anything a human has audited. The manifest merges across
 installs, so `uninstall` still removes everything cleanly.
 
 <a id="cursor-copilot-codex"></a>
-## What do Cursor / Copilot / Codex users actually get?
+## What do Cursor / Copilot / Antigravity / Codex users actually get?
 
-The knowledge layer (`ai/`) and the rules (`AGENTS.md`) — those are tool-agnostic.
-The slash commands, subagents, and the `add-feature` skill are Claude Code-specific.
-With other tools, run the workflow manually: paste the contents of `.claude/commands/cold-start.md` (or any other command file) into the tool as a prompt. 
+The knowledge layer (`ai/`) and the rules (`AGENTS.md`) are tool-agnostic — every
+tool reads the same maps. On top of that, three tools get **native** slash-command
+equivalents installed automatically alongside `.claude/`, no manual pasting needed:
+
+| Tool | Where the kit installs its assets | Invocation |
+|---|---|---|
+| **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/` | `/cold-start`, `/add-feature`, … |
+| **GitHub Copilot** (VS Code) | `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`, `.github/chatmodes/*.chatmode.md` | `/cold-start`, `/add-feature`, … in Copilot Chat; switch chat mode for `repo-explorer`/`feature-builder`/`test-runner` |
+| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/add-feature/` | `/cold-start`, `/add-feature`, … in the Agent Manager |
+
+The `add-feature` skill is written once in the shared `SKILL.md` (Agent Skills)
+format — Antigravity and Copilot both discover it from `.agents/skills/` (Copilot
+also reads `.claude/skills/`), so it isn't duplicated per tool. Antigravity reads
+the tool-agnostic `AGENTS.md` at the repo root natively, so the kit does not ship
+separate Antigravity rules files either.
+
+**Cursor and Codex** don't yet have a dedicated template tree here — run the
+workflow manually: paste the contents of `.claude/commands/cold-start.md` (or any
+other command file) into the tool as a prompt.
 
 > [!TIP]
-> **Important tip for manual pasting:** The command files under `.claude/commands/` contain metadata headers called YAML frontmatter (lines starting and ending with `---`, such as `description: ...`). Before pasting these prompts into Cursor, Copilot, or Codex, **delete the `---` delimiters and everything between them**. Start pasting from the actual instructions (e.g., "Run the cold-start bootstrap..."). This prevents the LLM from getting confused by the configuration headers.
+> **Important tip for manual pasting:** The command files under `.claude/commands/` contain metadata headers called YAML frontmatter (lines starting and ending with `---`, such as `description: ...`). Before pasting these prompts into Cursor or Codex, **delete the `---` delimiters and everything between them**. Start pasting from the actual instructions (e.g., "Run the cold-start bootstrap..."). This prevents the LLM from getting confused by the configuration headers.
 
-The provenance discipline works the same; only the automation is missing.
+The provenance discipline works the same across every tool; only the automation
+differs.
 
 ## Is the `ai/` folder only for AI agents, or can people use it to onboard?
 

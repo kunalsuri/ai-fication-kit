@@ -7,8 +7,17 @@ Rules:
 - Files ending `.tmpl` have `{{PLACEHOLDERS}}` substituted and lose the `.tmpl` suffix.
 - All other files are copied verbatim.
 - `templates/claude/**` installs to `.claude/**` (kept visible here so the kit's own
-  tree is browsable).
-- `templates/github/**` installs to `.github/**` (CI/CD workflow templates).
+  tree is browsable): Claude Code slash commands, subagents, the `add-feature` skill.
+- `templates/github/**` installs to `.github/**`: the CI/CD workflow template, plus
+  GitHub Copilot assets — `copilot-instructions.md` (repo-wide instructions),
+  `prompts/*.prompt.md` (slash-command equivalents of the Claude commands), and
+  `chatmodes/*.chatmode.md` (equivalents of the Claude subagents).
+- `templates/agents/**` installs to `.agents/**`: Google Antigravity assets —
+  `workflows/*.md` (slash-command equivalents of the Claude commands) and
+  `skills/add-feature/` (the same Agent Skills-format skill Claude Code uses —
+  Antigravity and Copilot both discover `SKILL.md` from `.agents/skills/` natively,
+  so it is not duplicated per tool). Antigravity reads the tool-agnostic
+  `AGENTS.md` at the repo root natively, so no separate rules files are shipped here.
 - This README is documentation for kit developers and is **not** installed.
 
 Placeholders (filled by the `orient` step; confirm them in your audit):
