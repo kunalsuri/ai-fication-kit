@@ -29,7 +29,13 @@ WHAT THIS DOES NOT DO (by design, so it cannot harm you):
     run LOCAL, READ-ONLY git: `drift --git` computes the stale set, and `indepth`
     reads commit/contributor history. Everything else is pure file inspection.)
   - It does NOT write anywhere outside the target folder you pass in.
-  - It does NOT overwrite existing files unless you pass --force.
+  - It NEVER overwrites a file you have edited. Re-runs are incremental: new kit
+    files are added, untouched kit files are refreshed (told apart by the content
+    hashes recorded in ai/install-manifest.json), and anything you changed is kept.
+    --force overwrites edited files only after a timestamped backup -- and files
+    carrying a human [verified] tag are never overwritten, even with --force.
+    Only the dedicated --force-verified flag can unlock those, and it first shows
+    you every signature that will be lost and asks you to type "overwrite".
   - It has NO dependencies, so there is nothing else to trust.
 
 This file is only the command-line interface. The implementation is split into
@@ -55,8 +61,11 @@ USAGE:
   python install.py check-repo-maturity <path-to-your-repo> [--dry-run]
 
 OPTIONS:
-  --dry-run --force --yes --strict --git
+  --dry-run --force --force-verified --yes --strict --git
   --name X  --description X  --build X  --test X  --upstream org/repo
+  (--force backs up edited files before overwriting but still keeps [verified]
+   files; --force-verified implies --force, warns per lost signature, and asks
+   you to type "overwrite")
 """
 
 import json
@@ -98,7 +107,8 @@ Usage:
   python install.py check-repo-maturity <path>      read-only AI readiness diagnostic
                                                     (no LLM, no writes, just a report)
 
-Options: --dry-run --force --yes --strict --git --name --description --build --test --upstream
+Options: --dry-run --force --force-verified --yes --strict --git
+         --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 """
@@ -114,6 +124,9 @@ def parse_args(argv):
         elif a == "--strict":
             flags["strict"] = True
         elif a == "--force":
+            flags["force"] = True
+        elif a == "--force-verified":
+            flags["force_verified"] = True
             flags["force"] = True
         elif a == "--git":
             flags["git"] = True

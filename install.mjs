@@ -27,7 +27,13 @@
 //     run LOCAL, READ-ONLY git: `drift --git` computes the stale set, and `indepth`
 //     reads commit/contributor history. Everything else is pure file inspection.)
 //   - It does NOT write anywhere outside the target folder you pass in.
-//   - It does NOT overwrite existing files unless you pass --force.
+//   - It NEVER overwrites a file you have edited. Re-runs are incremental: new kit
+//     files are added, untouched kit files are refreshed (told apart by the content
+//     hashes recorded in ai/install-manifest.json), and anything you changed is kept.
+//     --force overwrites edited files only after a timestamped backup — and files
+//     carrying a human [verified] tag are never overwritten, even with --force.
+//     Only the dedicated --force-verified flag can unlock those, and it first shows
+//     you every signature that will be lost and asks you to type "overwrite".
 //   - It has NO dependencies, so there is nothing else to trust.
 //
 // This file is only the command-line interface. The implementation is split into
@@ -56,7 +62,11 @@
 //   --dry-run            show the plan, write nothing
 //   --strict             verify/drift only: exit 1 if any claim is unconfirmed / drifted
 //   --git                drift only: include the stale check (local, read-only git)
-//   --force              overwrite existing files
+//   --force              overwrite files you edited (timestamped backup taken first);
+//                        files carrying a human [verified] tag are still kept
+//   --force-verified     implies --force AND unlocks [verified] files too — shows
+//                        exactly which signatures will be lost, then asks you to
+//                        type "overwrite" to confirm (backups still taken)
 //   --yes                skip the confirmation prompt
 //   --name "X"           project name        (default: target folder name)
 //   --description "X"    one-line description (default: first line of README, or placeholder)
@@ -90,6 +100,7 @@ for (let i = 0; i < argv.length; i++) {
   if (a === "--dry-run") flags.dryRun = true;
   else if (a === "--strict") flags.strict = true;
   else if (a === "--force") flags.force = true;
+  else if (a === "--force-verified") { flags.forceVerified = true; flags.force = true; }
   else if (a === "--git") flags.git = true;
   else if (a === "--yes") flags.yes = true;
   else if (a === "--skip-prompt") flags.skipPrompt = true;
@@ -139,7 +150,8 @@ Usage:
   node install.mjs check-repo-maturity <path>      read-only AI readiness diagnostic
                                                    (no LLM, no writes, just a report)
 
-Options: --dry-run --force --yes --strict --git --name --description --build --test --upstream
+Options: --dry-run --force --force-verified --yes --strict --git
+         --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 `);

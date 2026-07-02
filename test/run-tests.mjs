@@ -7,7 +7,9 @@
 //   1. builds a throwaway fixture repo (TS app, fork remote, Java fixture too)
 //   2. orient        → asserts repo-profile.json has the right facts
 //   3. shazam --yes  → asserts files exist, placeholders resolved, fork rule stamped
-//   4. install (re-run) → asserts existing files are skipped without --force
+//   4. re-run (incremental) → asserts edited files are kept (child-lock), missing
+//      files are restored, humanContext survives, --force backs up + respects
+//      [verified], --force-verified warns per signature + needs explicit consent
 //   5. uninstall --yes  → asserts every manifest file is gone and user files remain
 //   6. --dry-run     → asserts nothing is written
 
@@ -169,9 +171,79 @@ async function testInstaller(label, exec, script) {
     await fs.rm(path.join(repo, "ai", "analysis", "audit-reports", f), { force: true });
   }
 
-  // re-run without --force skips
-  r = run(exec, [script, "install", repo, "--yes"]);
-  ok(r.code === 0 && /skip \(exists/.test(r.out), `re-install skips existing files without --force`);
+  // ---------- incremental re-run: hash provenance + the child-lock ----------
+  const manifestPath = path.join(repo, "ai", "install-manifest.json");
+  const manifestAfterShazam = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  ok(manifestAfterShazam.fileHashes && typeof manifestAfterShazam.fileHashes["CLAUDE.md"] === "string",
+    `manifest records a content hash per installed file`);
+
+  // simulate a human-audited map (carries [verified]) and a plainly edited doc
+  const mapPath = path.join(repo, "ai", "guide", "MODULE_MAP.md");
+  const auditedMap = (await fs.readFile(mapPath, "utf8")) +
+    "\n| `app.ts` | core | `app.ts` | ours | [verified] (01/07/2026) |\n";
+  await fs.writeFile(mapPath, auditedMap);
+  const convPath = path.join(repo, "ai", "guide", "CONVENTIONS.md");
+  await fs.writeFile(convPath, "# my own conventions\n");
+  // simulate a kit update shipping a new file: remove one so the re-run restores it
+  const newFeatureFile = path.join(repo, ".agents", "workflows", "cold-start.md");
+  await fs.rm(newFeatureFile);
+  // give shazam a humanContext to prove re-runs carry it forward
+  const profileBefore = JSON.parse(await fs.readFile(profilePath, "utf8"));
+  profileBefore.humanContext = { skill: "expert" };
+  await fs.writeFile(profilePath, JSON.stringify(profileBefore, null, 2) + "\n");
+
+  r = run(exec, [script, "shazam", repo, "--yes"]);
+  ok(r.code === 0, `shazam re-run exits 0`);
+  ok((await fs.readFile(mapPath, "utf8")) === auditedMap,
+    `re-run keeps the human-audited MODULE_MAP.md byte-for-byte`);
+  ok((await fs.readFile(convPath, "utf8")) === "# my own conventions\n",
+    `re-run keeps the edited CONVENTIONS.md`);
+  ok(await exists(newFeatureFile), `re-run adds only the missing (new-feature) file`);
+  ok(/keep \(/.test(r.out) && /write \(new\)/.test(r.out),
+    `re-run reports kept and newly written files`);
+  const profileAfterRerun = JSON.parse(await fs.readFile(profilePath, "utf8"));
+  ok(profileAfterRerun.humanContext?.skill === "expert",
+    `re-run carries humanContext forward (wizard answers survive)`);
+
+  // --force: [verified] content stays locked; other edits get a backup, then overwrite
+  r = run(exec, [script, "install", repo, "--yes", "--force"]);
+  ok(r.code === 0, `--force re-install exits 0`);
+  ok((await fs.readFile(mapPath, "utf8")) === auditedMap,
+    `child-lock: --force never overwrites [verified] content`);
+  ok((await fs.readFile(convPath, "utf8")) !== "# my own conventions\n",
+    `--force overwrites the edited (non-verified) file`);
+  const guideFiles = await fs.readdir(path.join(repo, "ai", "guide"));
+  ok(guideFiles.some(n => /^CONVENTIONS_bkp_\d{8}_\d{6}\.md$/.test(n)),
+    `--force leaves a timestamped backup of the file it overwrote`);
+
+  // --force-verified: the explicit escape hatch for [verified] files.
+  // In a non-TTY shell without --yes, the typed "overwrite" confirmation cannot
+  // be given, so the run must warn and abort without touching anything.
+  r = run(exec, [script, "install", repo, "--force-verified"]);
+  ok(r.code === 0 && /LOST/.test(r.out) && /Aborted/.test(r.out),
+    `--force-verified without confirmation warns and aborts`);
+  ok((await fs.readFile(mapPath, "utf8")) === auditedMap,
+    `aborted --force-verified leaves the [verified] map untouched`);
+
+  // with --yes (explicit automation opt-in) it proceeds: warning + backup + overwrite
+  r = run(exec, [script, "install", repo, "--yes", "--force-verified"]);
+  ok(r.code === 0, `--force-verified --yes exits 0`);
+  ok(/DANGER/.test(r.out) && /signature\(s\) will be LOST/.test(r.out),
+    `--force-verified prints the per-signature warning`);
+  ok(/\[verified\] \(01\/07\/2026\)/.test(r.out),
+    `warning quotes the actual [verified] line(s) from the file on disk`);
+  ok((await fs.readFile(mapPath, "utf8")) !== auditedMap,
+    `--force-verified overwrites the [verified] file`);
+  const guideFilesAfter = await fs.readdir(path.join(repo, "ai", "guide"));
+  const mapBkp = guideFilesAfter.find(n => /^MODULE_MAP_bkp_\d{8}_\d{6}\.md$/.test(n));
+  ok(Boolean(mapBkp), `--force-verified leaves a timestamped backup of the [verified] file`);
+  ok(mapBkp && (await fs.readFile(path.join(repo, "ai", "guide", mapBkp), "utf8")) === auditedMap,
+    `the backup preserves the audited content byte-for-byte`);
+
+  // remove backups (not manifest-listed) so the uninstall empty-tree check holds
+  for (const n of guideFilesAfter) {
+    if (/_bkp_/.test(n)) await fs.rm(path.join(repo, "ai", "guide", n));
+  }
 
   // uninstall removes manifest files, keeps user files
   r = run(exec, [script, "uninstall", repo, "--yes"]);

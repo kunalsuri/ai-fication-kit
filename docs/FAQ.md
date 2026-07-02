@@ -81,10 +81,29 @@ running `/post-cold-start-verification` first — it tells you which rows went s
 
 ## How do I update the kit in a repo where it's already installed?
 
-Re-run `install` from a newer kit checkout. Without `--force` it skips every file
-that already exists (your edited maps are safe); with `--force` it overwrites —
-so don't `--force` anything a human has audited. The manifest merges across
-installs, so `uninstall` still removes everything cleanly.
+Re-run `shazam` (or `install`) from the newer kit checkout — re-runs are
+incremental and safe by default. The manifest records a content hash for every
+file the kit writes, so the installer can tell exactly who owns each file:
+
+- **new kit files** (say, a newly added tool integration) are written;
+- **kit-owned files you never touched** are refreshed to the new template;
+- **anything you edited is kept** — your audited maps are never overwritten;
+- `--force` overwrites edited files only after leaving a timestamped `_bkp_`
+  copy next to them, and files carrying a human `[verified]` tag are **never**
+  overwritten, even with `--force` (the child-lock);
+- `--force-verified` (implies `--force`) is the only way through the child-lock.
+  Before writing anything it lists each affected file with the exact `[verified]`
+  signature lines that will be lost, explains that the file returns to the stock
+  `[inferred]` template a human must re-audit, and requires you to type
+  `overwrite` at the prompt (a `y/N` reflex-click is not enough). A timestamped
+  backup is still taken first. In automation, `--force-verified --yes` skips the
+  prompt but still prints the full warning; `--force-verified` alone in a
+  non-interactive shell safely aborts.
+
+Your `humanContext` (the intake wizard's answers) also survives re-runs. The
+manifest merges across installs, so `uninstall` still removes everything cleanly.
+Repos installed by an older kit have no recorded hashes yet; their existing files
+are simply kept (the old behavior) until the first re-run records fresh hashes.
 
 <a id="cursor-copilot-codex"></a>
 ## What do Cursor / Copilot / Antigravity / Codex users actually get?

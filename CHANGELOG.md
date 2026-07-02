@@ -7,6 +7,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **Incremental, hash-verified re-runs with a "child-lock" for human work.**
+  `install`/`shazam` re-runs are now safe by construction: the install manifest
+  records a SHA-256 content hash for every file the kit writes (`fileHashes` in
+  `ai/install-manifest.json`), and a three-way compare (recorded hash / disk /
+  freshly stamped template) classifies each file deterministically — no LLM, no guessing:
+  - files missing from disk are **written** (how new kit features, e.g. new tool
+    integrations, arrive on upgrade);
+  - kit-owned files never edited by a human are **refreshed** to the new template;
+  - files edited since install are **kept** untouched by default;
+  - with `--force`, edited files are overwritten only after a timestamped `_bkp_`
+    copy is written next to them — and files carrying a human `[verified]` tag are
+    **never** overwritten, even with `--force` (the child-lock protecting audit work);
+  - `--force-verified` (implies `--force`) is the explicit escape hatch through the
+    child-lock: it prints a per-file warning quoting the exact `[verified]` signature
+    lines that will be lost and what the file becomes afterwards, then requires the
+    word `overwrite` to be typed (backups still taken; `--yes` skips the prompt for
+    automation but the warning is always printed; non-interactive runs without
+    `--yes` abort safely);
+  - `ai/repo-profile.json` re-writes now carry the intake wizard's `humanContext`
+    forward, so onboarding answers survive re-runs.
+  Implemented identically in `lib/installer.mjs` and `lib/installer.py`
+  (`classifyAction` / `classify_action`); covered by new smoke tests for both
+  runtimes. Manifests written by older kit versions have no hashes, so their
+  existing files classify as "keep" — exactly the old skip behavior, nothing regresses.
 - **Native GitHub Copilot and Google Antigravity assets**, extending the kit beyond Claude Code:
   - `templates/github/copilot-instructions.md`, `templates/github/prompts/*.prompt.md` (8 files),
     and `templates/github/chatmodes/*.chatmode.md` (3 files) — installed to `.github/`, giving
