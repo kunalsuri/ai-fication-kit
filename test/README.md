@@ -9,6 +9,7 @@ This directory contains the testing suites for the `ai-fication-kit` repository.
 |---|---|---|---|
 | **`npm test`**<br>(`node test/run-tests.mjs`) | Installer Functionality | Runs cross-runtime smoke tests for the Node and Python installers against throwaway mock repositories (e.g. testing orient, install, shazam, and uninstall). | Run during active development of the installer code or stack detection modules. |
 | **`npm run deep-test`**<br>(`node test/run-deep-test.mjs`) | Full Repo Health & Standards | Performs a complete audit of the repository, including running the installer smoke tests, document claim verification, structural drift detection, license header checking, and placeholder leakage detection. | Run before submitting a PR, tagging a release, or declaring a task complete. |
+| **`npm run coverage`**<br>(c8 over `run-tests.mjs`) | Node Installer Coverage | Runs the smoke tests under [c8](https://github.com/bcoe/c8) (V8 coverage, fetched via `npx`; the child `install.mjs` processes are instrumented too) and prints per-module line/branch coverage for `install.mjs` and `lib/*.mjs`. CI enforces a floor in the `coverage` job of `test.yml`. | Run when adding tests or touching `lib/` to see what the suite actually exercises. |
 
 ## Details of Deep Test Verification
 

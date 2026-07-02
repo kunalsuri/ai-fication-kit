@@ -55,7 +55,7 @@ def detect_fork(target, flags):
             url = m.group(1)
             gh = re.search(r'[:/]([^/:]+/[^/]+?)(?:\.git)?$', url)
             return {"isFork": True, "upstream": gh.group(1) if gh else url,
-                    "evidence": f'git remote "upstream" -> {url}'}
+                    "evidence": f'git remote "upstream" → {url}'}
     return {"isFork": False, "upstream": None, "evidence": 'no remote named "upstream"'}
 
 
