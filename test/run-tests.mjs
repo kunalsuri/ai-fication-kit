@@ -3,7 +3,7 @@
 //
 // Smoke tests for ai-fication-kit. Zero dependencies. Run: node test/run-tests.mjs
 //
-// For EACH installer (Node, Python — if present on PATH) this:
+// For the Node installer this:
 //   1. builds a throwaway fixture repo (TS app, fork remote, Java fixture too)
 //   2. orient        → asserts repo-profile.json has the right facts
 //   3. shazam --yes  → asserts files exist, placeholders resolved, fork rule stamped
@@ -46,14 +46,6 @@ async function exists(p) {
 function run(cmd, args) {
   const r = spawnSync(cmd, args, { encoding: "utf8" });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || ""), error: r.error };
-}
-
-function pythonCmd() {
-  for (const c of ["python3", "python"]) {
-    const r = spawnSync(c, ["--version"], { encoding: "utf8" });
-    if (r.status === 0) return c;
-  }
-  return null;
 }
 
 async function makeFixture(name, { fork }) {
@@ -666,13 +658,6 @@ console.log("\n— drift stale (git) —");
     `root-level .tmpl strip`);
   ok(destinationFor("README.md") === "README.md",
     `plain file passthrough`);
-}
-
-const py = pythonCmd();
-if (py) {
-  await testInstaller("python", py, path.join(kitRoot, "install.py"));
-} else {
-  console.log("\n— python — SKIPPED (no python on PATH)");
 }
 
 console.log(`\n${checks - failures}/${checks} checks passed`);

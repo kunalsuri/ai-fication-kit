@@ -23,15 +23,15 @@
 
 | Directory | Responsibility (one line) | Entry point | Stability (guess) | Status |
 |---|---|---|---|---|
-| `/` (root) | CLI entry points for both runtimes — parse args, dispatch to `lib/` | `install.mjs` · `install.py` | ours | [verified] (25/06/2026 20:50 CEST) |
-| `lib/` | Implementation modules, mirrored in Node (`.mjs`) and Python (`.py`): stack detection, template stamping, claim verification, drift detection, maturity assessment, intake wizard, and indepth analysis | `lib/util.mjs` · `lib/util.py` | ours | [inferred] |
-| `templates/` | The installable kit — copied/stamped into a target repo by the installer | `templates/README.md` | ours | [verified] (25/06/2026 20:52 CEST) |
+| `/` (root) | CLI entry point — parses args, dispatches to `lib/` | `install.mjs` | ours | [inferred] (changed by the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
+| `lib/` | Implementation modules (Node `.mjs`, stdlib only): stack detection, template stamping, claim verification, drift detection, maturity assessment, intake wizard, and indepth analysis | `lib/util.mjs` | ours | [inferred] |
+| `templates/` | The installable kit — copied/stamped into a target repo by the installer | `templates/README.md` | ours | [inferred] (files under it changed in the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
 | `templates/ai/` | Knowledge-layer templates (the `ai/` folder a target repo receives) | `templates/ai/INDEX.md.tmpl` | ours | [verified] (25/06/2026 20:52 CEST) |
 | `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [verified] (25/06/2026 20:52 CEST) |
 | `templates/github/` | Stamped to `.github/`: CI checks for verify/drift, plus GitHub Copilot assets (`copilot-instructions.md`, `prompts/*.prompt.md`, `chatmodes/*.chatmode.md`) | `templates/github/workflows/ai-check.yml.tmpl` | ours | [inferred] |
 | `templates/agents/` | Google Antigravity assets stamped to `.agents/`: workflow equivalents of the Claude commands, and the add-feature skill (shared Agent Skills format) | `templates/agents/workflows/cold-start.md` | ours | [inferred] |
-| `test/` | Cross-runtime smoke tests and deep-test standards verification | `test/run-tests.mjs` · `test/run-deep-test.mjs` | ours | [inferred] |
-| `docs/` | Human-facing guides (audit guide, FAQ, release checklist) | `docs/README.md` | ours | [verified] (25/06/2026 20:52 CEST) |
+| `test/` | Smoke tests and deep-test standards verification | `test/run-tests.mjs` · `test/run-deep-test.mjs` | ours | [inferred] |
+| `docs/` | Human-facing guides (audit guide, FAQ, release checklist) | `docs/README.md` | ours | [inferred] (files under it changed in the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
 | `examples/` | Sample target repos used to demonstrate/exercise the kit | `examples/README.md` | ours | [verified] (25/06/2026 20:52 CEST) |
 
 Detected test locations (from orient): test/

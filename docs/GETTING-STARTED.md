@@ -12,11 +12,10 @@ defined in one line in the [Glossary](GLOSSARY.md). Keep it open in a tab.
 
 ## Before you start
 
-You need **one** of:
-- Node.js ≥ 18, **or**
-- Python ≥ 3.8
+You need:
+- Node.js ≥ 18
 
-Both installers are feature-identical and zero-dependency. You also need a repo
+The installer is zero-dependency (Node stdlib only). You also need a repo
 to point the kit at — your own, or the bundled sample (see "Try it risk-free"
 below).
 
@@ -37,7 +36,7 @@ below).
 From the kit, point `shazam` at your repository:
 
 ```bash
-node install.mjs shazam /path/to/your/repo        # or: python install.py shazam ...
+node install.mjs shazam /path/to/your/repo
 ```
 
 The first interactive run asks you to pick an **analysis level** — *General*

@@ -19,7 +19,7 @@ sequenceDiagram
     autonumber
     actor Dev as Developer (Operator)
     actor CI as CI / CD Pipeline
-    participant CLI as install.mjs / install.py
+    participant CLI as install.mjs
     participant Agent as AI Coding Agent (e.g. Claude Code)
     participant FS as Target Repo Filesystem
 
@@ -195,6 +195,6 @@ sequenceDiagram
 | :--- | :--- |
 | **Developer (Operator)** | The operator initiating setup, auditing drafted guides, and verifying code changes. |
 | **CI / CD Pipeline** | Automated checks verifying documentation consistency (`verify`) and codebase drift (`drift`) in pull requests. |
-| **install.mjs / install.py** | The kit's CLI, providing zero-dependency tools for scaffolding, verification, and drift detection. |
+| **install.mjs** | The kit's CLI, providing zero-dependency tools for scaffolding, verification, and drift detection. |
 | **AI Coding Agent** | The conversational AI assistant performing exploration, bootstrapping, configuration reviews, and safe feature authoring. |
 | **Target Repo Filesystem** | The repository folder containing the codebase being analyzed and "ai-fified". |

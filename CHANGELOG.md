@@ -6,6 +6,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+### Removed
+- **Python installer removed — the kit is now Node.js-only.** `install.py` and the
+  parallel Python modules (`lib/*.py`) are gone; `install.mjs` + `lib/*.mjs`
+  (Node.js ≥ 18, stdlib only, zero dependencies) is the single implementation.
+  Maintaining two feature-identical runtimes doubled the cost of every change and
+  risked silent behavior drift between them. Nothing changes for target repos:
+  Python projects are still fully supported by stack detection (`orient`),
+  `indepth` analysis, and all knowledge-layer features — only the runtime that
+  executes the kit itself now requires Node. CI and the smoke-test suite run
+  Node-only accordingly.
+
 ### Added
 - **Incremental, hash-verified re-runs with a "child-lock" for human work.**
   `install`/`shazam` re-runs are now safe by construction: the install manifest
@@ -27,9 +38,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     `--yes` abort safely);
   - `ai/repo-profile.json` re-writes now carry the intake wizard's `humanContext`
     forward, so onboarding answers survive re-runs.
-  Implemented identically in `lib/installer.mjs` and `lib/installer.py`
-  (`classifyAction` / `classify_action`); covered by new smoke tests for both
-  runtimes. Manifests written by older kit versions have no hashes, so their
+  Implemented in `lib/installer.mjs` (`classifyAction`); covered by new smoke
+  tests. Manifests written by older kit versions have no hashes, so their
   existing files classify as "keep" — exactly the old skip behavior, nothing regresses.
 - **Native GitHub Copilot and Google Antigravity assets**, extending the kit beyond Claude Code:
   - `templates/github/copilot-instructions.md`, `templates/github/prompts/*.prompt.md` (8 files),
@@ -40,7 +50,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     installed to `.agents/`, giving Google Antigravity native workflow equivalents of the same
     commands, plus the `add-feature` skill in the shared Agent Skills (`SKILL.md`) format that
     Antigravity and Copilot both discover natively (no per-tool duplication).
-  - New `agents/` → `.agents/` destination mapping in `lib/installer.mjs` and `lib/installer.py`
+  - New `agents/` → `.agents/` destination mapping in `lib/installer.mjs`
     (the `github/` → `.github/` mapping already covered the Copilot assets).
   - No new rules files were added for Antigravity: it already reads the tool-agnostic
     `AGENTS.md` at the repo root natively.

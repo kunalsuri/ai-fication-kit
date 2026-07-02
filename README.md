@@ -9,7 +9,6 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue?style=for-the-badge&logo=python&logoColor=white)](#-quick-start)
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
 [![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
 
@@ -82,7 +81,7 @@ Transforming a legacy repository into a trusted AI-native environment rests on t
 
 Get up and running in under five minutes.
 
-> **Prerequisites:** Node.js ≥ 18 **or** Python ≥ 3.8 — pick whichever you prefer. Both installers are feature-identical and zero-dependency (stdlib only, no packages to install).
+> **Prerequisites:** Node.js ≥ 18. The installer is zero-dependency (Node stdlib only, no packages to install).
 
 <br>
 
@@ -107,7 +106,7 @@ Get up and running in under five minutes.
 
 Select one of the options (A or B) below depending on your stack and preferences:
 
-#### Option A: Direct via `npx` (No Clone Required, JS/TS Developers)
+#### Option A: Direct via `npx` (No Clone Required)
 
 Run the installer directly using `npx` against the GitHub repository:
 
@@ -121,9 +120,9 @@ npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo
 
 <br>
 
-#### Option B: Local Clone (Node.js or Python Developers)
+#### Option B: Local Clone
 
-Clone the repository and run the scripts locally (pure Node.js or Python stdlib):
+Clone the repository and run the script locally (pure Node.js stdlib):
 
 ```bash
 # Clone the repository
@@ -132,9 +131,6 @@ cd ai-fication-kit
 
 # Run with Node.js
 node install.mjs shazam /path/to/your/repo
-
-# OR run with Python (pure stdlib, no external dependencies)
-python install.py shazam /path/to/your/repo
 ```
 
 <br>
@@ -507,7 +503,7 @@ The full trust model and workflow rationale, in depth: [docs/METHODOLOGY.md](doc
 
 We designed the installer to be lightweight and safe:
 
-* 🪶 **Zero Dependencies** – Node stdlib / Python stdlib only. No external npm packages.
+* 🪶 **Zero Dependencies** – Node stdlib only. No external npm packages.
 * 🔒 **No Network or Execution** – It only copies and stamps text files. No remote API calls or arbitrary code runs.
 * 🛡️ **Safe Scoping** – It only writes files inside your target directory.
 * 🔍 **Dry-Run Support** – Run with `--dry-run` to see exactly what files will be created before writing anything.

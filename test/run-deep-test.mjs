@@ -51,7 +51,6 @@ async function walk(dir, fileList = []) {
       file.name === ".git" ||
       file.name === ".github" ||
       file.name === "node_modules" ||
-      file.name === "__pycache__" ||
       file.name === "audit-reports" ||
       file.name.startsWith("tmp-")
     ) {
@@ -102,8 +101,8 @@ try {
   const allFiles = await walk(repoRoot);
   const codeFiles = allFiles.filter(f => {
     const ext = path.extname(f);
-    // Scan only .js, .mjs, .py, .md files (exclude packages/check files/etc)
-    return [".js", ".mjs", ".py", ".md"].includes(ext);
+    // Scan only .js, .mjs, .md files (exclude packages/check files/etc)
+    return [".js", ".mjs", ".md"].includes(ext);
   });
 
   console.log(`    Scanning ${codeFiles.length} source/documentation files for license headers...`);
@@ -146,7 +145,7 @@ try {
   const allFiles = await walk(repoRoot);
   const textFiles = allFiles.filter(file => {
     const ext = path.extname(file);
-    return [".md", ".json", ".mjs", ".py", ".html"].includes(ext);
+    return [".md", ".json", ".mjs", ".html"].includes(ext);
   });
   console.log(`    Checking ${textFiles.length} files for unresolved placeholders...`);
 
@@ -161,14 +160,13 @@ try {
       relPath.startsWith("docs/") ||
       relPath.startsWith(".agents/") ||
       relPath === "install.mjs" ||
-      relPath === "install.py" ||
       relPath === "test/run-tests.mjs"
     ) {
       continue;
     }
     // Only check text-like extensions
     const ext = path.extname(file);
-    if (![".md", ".json", ".mjs", ".py", ".html"].includes(ext)) {
+    if (![".md", ".json", ".mjs", ".html"].includes(ext)) {
       continue;
     }
     const content = await fs.readFile(file, "utf8");

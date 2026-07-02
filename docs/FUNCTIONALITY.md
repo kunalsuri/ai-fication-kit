@@ -7,14 +7,14 @@ This document provides a concise reference to the internal modules and functions
 
 ## 1. System Architecture Overview
 
-The toolkit is designed to be **dual-runtime** and **behavior-identical** between Node.js (`.mjs`) and Python (`.py`). 
-- There are no third-party dependencies in either runtime.
+The toolkit is a **single-runtime** Node.js (`.mjs`) implementation.
+- There are no third-party dependencies — Node stdlib only.
 - The command-line scripts act as minimal wrappers that parse arguments and delegate to the `lib/` modules.
 - State is passed strictly via filesystem documents (`repo-profile.json` and `install-manifest.json`).
 
 ```mermaid
 graph TD
-    CLI[install.mjs / install.py] --> UTIL[lib/util]
+    CLI[install.mjs] --> UTIL[lib/util]
     CLI --> MATURITY[lib/maturity]
     CLI --> ORIENT[lib/orient]
     CLI --> INDEPTH[lib/indepth]
@@ -40,8 +40,8 @@ graph TD
 
 ## 2. CLI Entry Points
 
-### `install.mjs` / `install.py`
-These entry points parse CLI flags and target directories, check the target path validity, and route commands to their respective implementations:
+### `install.mjs`
+This entry point parses CLI flags and target directories, checks the target path validity, and routes commands to their respective implementations:
 
 | Command | Action | Key Invocation |
 | :--- | :--- | :--- |

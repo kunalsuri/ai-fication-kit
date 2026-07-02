@@ -8,9 +8,9 @@
 **A Toolkit to Give AI Coding Agents a Trusted Map of Any Existing/Legacy Repo**
 
 ## Stack (from `ai/repo-profile.json` — deterministic)
-- Languages: JavaScript/TypeScript (Node ≥ 18) and Python ≥ 3.8 — two mirrored, zero-dependency implementations
+- Languages: JavaScript/TypeScript (Node ≥ 18) — a single zero-dependency implementation
 - Build: `npm install` (zero-dependency; `package.json` defines no `build` script, so there is nothing to compile)
-- Test:  `npm test` (runs `node test/run-tests.mjs`, which exercises both installers)
+- Test:  `npm test` (runs `node test/run-tests.mjs`, which exercises the installer)
 
 ## Why it exists  `[inferred]`
 AI coding agents are powerful but context-blind on large or legacy repositories: they
@@ -23,11 +23,10 @@ vs. **model inference** (`/cold-start`, everything tagged `[inferred]`), with a 
 audit as the trust boundary.
 
 ## What we add vs. what we inherit  `[inferred]`
-Not a fork — all code here is `ours`. The implementation is intentionally split into
-two parallel runtimes that must stay behavior-identical: `install.mjs` + `lib/*.mjs`
-(Node) and `install.py` + `lib/*.py` (Python). `templates/` is the payload that gets
-stamped into target repos; everything else (`lib/`, `test/`, `docs/`) is the tooling
-around it.
+Not a fork — all code here is `ours`. The implementation is a single Node.js runtime:
+`install.mjs` + `lib/*.mjs` (the parallel Python runtime was removed in v0.2).
+`templates/` is the payload that gets stamped into target repos; everything else
+(`lib/`, `test/`, `docs/`) is the tooling around it.
 
 ## Glossary  `[inferred]`
 | Term | Meaning here |
