@@ -11,5 +11,3 @@
 | stale | 0 | `[verified]` row whose code changed since the verified commit |
 
 No drift detected. The map matches the tree.
-
-> Stale check: MODULE_MAP records no verified commit (`Last verified: … @ commit <sha>`); stale check skipped.

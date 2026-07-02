@@ -4,7 +4,8 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-06-25 @ commit <set to the release commit sha when tagging>
+> Last verified: 2026-06-25 @ commit 834c61b (drift baseline set 2026-07-02 by the
+> audit-fix pass — the per-row human audit dates below remain the authoritative signatures)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
