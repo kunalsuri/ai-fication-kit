@@ -44,13 +44,13 @@
 
 * [The Three Pillars](#-the-three-pillars)
 * [Quick Start](#-quick-start)
-* [How It Works](#-how-it-works)
-* [What You Get](#-what-you-get)
+* [How It Works](#-how-it-works-overview)
+* [What You Get](#-what-you-get-the-ai-native-repo-intelligence)
 * [The Bridge to AI-Native Onboarding](#-the-bridge-to-ai-native-onboarding)
 * [The Problem & The Solution](#-the-problem--the-solution)
 * [New to AI Coding Agents? Start Here](#-new-to-ai-coding-agents-start-here)
-* [Security & Trust Guarantees](#-security--trust-guarantees)
-* [How This Toolkit Differs](#-how-this-toolkit-differs)
+* [Security & Trust Guarantees](#for-more-details-on-toolkit--security)
+* [How This Toolkit Differs](#for-more-details-on-toolkit--security)
 * [Contributing](#-contributing)
 * [Citation](#-citation)
 * [License](#-license)
@@ -64,15 +64,15 @@
 
 Transforming a legacy repository into a trusted AI-native environment rests on three mechanisms:
 
-* 🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/`.
+* 🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/` — plus native GitHub Copilot equivalents in `.github/` and Google Antigravity equivalents in `.agents/`.
 * 🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
-* 🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree, so the maps cannot silently fall out of sync.
+* 🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree — a ready-made GitHub Actions workflow (`ai-check.yml`) ships with the kit — so the maps cannot silently fall out of sync.
 
 <br>
 <br>
 
 > [!TIP]
-> **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first.
+> **Brand new here?** Follow the one linear path in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** (zero → trusted map in five steps), and keep the **[Glossary](docs/GLOSSARY.md)** open for any unfamiliar term (`[inferred]`, *Stability*, *slash command*, …). New to AI coding agents specifically? Jump to the [2-minute primer](#-new-to-ai-coding-agents-start-here) first. The full manual — tutorials, audit guide, CLI reference, methodology — lives in the **[docs/ hub](docs/README.md)**.
 
 <br>
 
@@ -139,7 +139,21 @@ python install.py shazam /path/to/your/repo
 
 <br>
 
-### 2️⃣ Initialize Agent Loop / Mapping [Calude Code specific Command]
+Two more deterministic commands worth knowing (no LLM, seconds to run — see [docs/CLI-REFERENCE.md](docs/CLI-REFERENCE.md) for every command, flag, and exit code):
+
+```bash
+# Deeper analysis: dependency graph, code metrics, structural health scores
+#   → ai/repo-indepth.json   (or pass --analysis-level indepth to shazam)
+node install.mjs indepth /path/to/your/repo
+
+# Changed your mind? Removes exactly what the installer wrote
+#   (reads ai/install-manifest.json; timestamped backups are preserved)
+node install.mjs uninstall /path/to/your/repo
+```
+
+<br>
+
+### 2️⃣ Initialize Agent Loop / Mapping [Claude Code-specific Command]
 
 Open your target repository in **Claude Code** (or your agent of choice) and run:
 
@@ -160,6 +174,17 @@ Open `ai/guide/MODULE_MAP.md` to review the generated draft:
 2. Mark verified entries as `[verified]`.
 3. Keep the docs mechanically honest — at any time, cross-check every file-path
    claim in the maps against the real tree (deterministic, no LLM):
+
+```bash
+# Every file-path claim in the knowledge docs must exist on disk
+node install.mjs verify /path/to/your/repo --strict
+
+# The reverse check: code the map no longer covers (--git also flags
+# [verified] rows whose underlying code has changed since the audit)
+node install.mjs drift /path/to/your/repo --git
+```
+
+The stamped GitHub Actions workflow (`.github/workflows/ai-check.yml`) runs both checks on every push and pull request, so the map cannot silently rot.
 
 <br>
 
@@ -183,7 +208,8 @@ your-repo/
 ├── ai/
 │   ├── INDEX.md                # role → path manifest (prompts reference roles, not paths)
 │   ├── repo-profile.json       # machine-readable facts from orient (deterministic)
-│   ├── install-manifest.json   # what the installer wrote (for clean uninstall)
+│   ├── repo-indepth.json       # (optional) indepth: dependency graph, metrics, health scores
+│   ├── install-manifest.json   # what the installer wrote + content hashes (clean uninstall, safe re-runs)
 │   ├── guide/                  # navigation, loaded every session
 │   │   ├── MODULE_MAP.md       # directory → responsibility → Stability  ← START HERE
 │   │   ├── PROJECT_OVERVIEW.md · ARCHITECTURE.md · FEATURE_MAP.md · CONVENTIONS.md
@@ -211,7 +237,22 @@ your-repo/
 * **Knowledge Guide (`ai/guide/`):** Core maps (`MODULE_MAP.md` is your starting point!), conventions, and architectural overviews loaded by the agent every session — and, once verified, the first thing a new team member reads to onboard.
 * **Analysis Outputs (`ai/analysis/`):** Deep analytical results generated by the agent (e.g. diagrams, feature catalogs, and problems logs).
 * **Lab Space (`ai/lab/`):** A dedicated area for specifications (RFCs), architecture decision records (ADRs), and evaluations.
-* **Agent Operations (`.claude/`):** Reusable slash commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills.
+* **Agent Operations (`.claude/`, `.github/`, `.agents/`):** Reusable workflow commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills — stamped natively for Claude Code, GitHub Copilot, and Google Antigravity in one install.
+
+### The Eight Workflow Commands
+
+Every command ships in three native formats — Claude Code slash command (`.claude/commands/`), Copilot prompt (`.github/prompts/`), and Antigravity workflow (`.agents/workflows/`):
+
+| Command                            | What it does                                                                                                   |
+|:---------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
+| `/cold-start`                      | Bootstrap the `ai/guide/` maps and diagrams; drafts everything as `[inferred]` for a human to audit.           |
+| `/add-feature`                     | Safeguarded implementation: spec first, locate via the maps, surgical diffs, tests before done, knowledge updated after. |
+| `/check-drift`                     | Run the `verify` + `drift` checks and report missing documentation or stale references.                        |
+| `/create-feature-catalog`          | Deep-mine the source to discover implemented features; writes `ai/analysis/FEATURE_CATALOG.md`.                |
+| `/review-agent-config`             | Read-only diagnostic of `CLAUDE.md`/`AGENTS.md` for completeness, consistency, and stale artifacts.            |
+| `/post-cold-start-verification`    | Audit every `ai/` file for gaps, stale placeholders, and inconsistencies after cold-start.                     |
+| `/verify-ai-readiness`             | Holistic assessment of the knowledge layer on a 5-level maturity scale; flags agent-blocking gaps.             |
+| `/perform-feature-add-simulation`  | Dry-run the add-feature workflow for a proposed feature — friction report and readiness score, no code written. |
 
 <br>
 
@@ -334,7 +375,7 @@ For repos that already have a hand-written `CLAUDE.md` or `AGENTS.md`:
 | **2️⃣ `install`**                    | Script (Seconds)   | **Scaffolding.** Process 2: backs up existing files first. Then stamps templates into your repository. Records every written file in an install manifest so `uninstall` can perform a clean removal.              |
 | **3️⃣ `/cold-start`**                | Agent (~5 Mins)    | **Model inference.** Process 2: Step 0.5 extracts knowledge from `*_bkp_*.md` backups first. Then drafts `MODULE_MAP.md`, diagrams, and candidate features. Every claim is tagged `[inferred]`.                  |
 | **4️⃣ Your Audit**                   | **You** (~30 Mins) | **The trust verification.** Review the map, set module stability (`frozen` / `stable` / `ours` / `?`), and flip confirmed rows to `[verified]`.                                                                 |
-| **5️⃣ Verify** *(Optional)*          | Script + Agent     | **Stability checks.** `verify` (script, no LLM) mechanically cross-checks every file-path claim in the docs against the real tree → `VERIFICATION_MANIFEST.json` + report. Then `/post-cold-start-verification` (semantic gap report), `/verify-ai-readiness` (maturity rating), or `/perform-feature-add-simulation` (simulated friction check). |
+| **5️⃣ Verify** *(Recommended)*       | Script + Agent     | **Stability checks.** `verify` (script, no LLM) mechanically cross-checks every file-path claim in the docs against the real tree → `VERIFICATION_MANIFEST.json` + report. Then `/post-cold-start-verification` (semantic gap report), `/verify-ai-readiness` (maturity rating), or `/perform-feature-add-simulation` (simulated friction check). |
 | **6️⃣ `/add-feature`**               | Agent              | **Safeguarded development.** The agent builds specs, navigates using the maps, runs tests, and updates the knowledge layer without touching frozen code.                                                         |
 
 </details>
@@ -426,9 +467,15 @@ The trust boundaries of the repository:
 👥 **Subagents**
 Helper assistant processes (`repo-explorer`, `feature-builder`, `test-runner`) spawned by the main agent to perform specific, isolated tasks.
 
-### Using Cursor, Copilot, or Codex instead of Claude Code?
+### Using GitHub Copilot, Google Antigravity, Cursor, or Codex instead of Claude Code?
 
-Those tools read `AGENTS.md` (the rules and the knowledge map), but slash commands and subagents are Claude Code-specific. With other tools, you drive the workflow by hand — e.g. paste the contents of `.claude/commands/cold-start.md` as a prompt to run the cold-start pass.
+The knowledge layer is tool-agnostic — every agent reads the same `AGENTS.md` rules and `ai/` maps — and the workflow automation is now native in more tools than Claude Code:
+
+* **GitHub Copilot** — one install stamps `.github/copilot-instructions.md`, native prompt files for every workflow command (`/cold-start`, `/add-feature`, …), and chat modes mirroring the `repo-explorer` / `feature-builder` / `test-runner` subagents.
+* **Google Antigravity** — the same commands as native workflows in `.agents/workflows/`, plus the `add-feature` skill in the shared Agent Skills (`SKILL.md`) format.
+* **Cursor, Codex, Windsurf** — read `AGENTS.md` natively; drive the workflow by hand, e.g. paste the contents of `.claude/commands/cold-start.md` as a prompt to run the cold-start pass.
+
+See [docs/MULTI-TOOL-SETUP.md](docs/MULTI-TOOL-SETUP.md) for the full per-tool guide.
 
 <br>
 
@@ -447,6 +494,9 @@ While other tools scaffold files or evaluate repositories, this kit focuses on *
 | **Active Verification**                    | The `verify` command deterministically cross-checks every file-path claim in the knowledge docs against the source tree (manifest + report, no LLM); agent workflows then cover the semantic checks a script cannot judge. |
 | **Drift Detection**                        | The `drift` command catches the reverse problem as code evolves — directories the map no longer covers, entries that have vanished, and (with `--git`) `[verified]` rows whose code changed — so the map ages with the repo instead of silently rotting. |
 | **Dual-Mode Installation**                 | Automatic detection of legacy vs. modern repos. Process 2 preserves prior knowledge through timestamped backups and feeds it into `/cold-start` as seed intelligence — no user work is lost. |
+| **Incremental Re-Runs (child-lock)**       | Re-running `install`/`shazam` is safe by construction: a hash-verified three-way compare brings in new kit assets, refreshes untouched kit files, and keeps anything you edited. Files carrying a human `[verified]` tag are **never** overwritten — even with `--force`. |
+
+The full trust model and workflow rationale, in depth: [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
 </details>
 
@@ -462,6 +512,7 @@ We designed the installer to be lightweight and safe:
 * 🛡️ **Safe Scoping** – It only writes files inside your target directory.
 * 🔍 **Dry-Run Support** – Run with `--dry-run` to see exactly what files will be created before writing anything.
 * 🧹 **Clean Removal** – The installer writes `ai/install-manifest.json`. The `uninstall` command reads it to remove exactly what was written, leaving no trace.
+* 🔁 **Safe Re-Runs & Upgrades** – The manifest records a SHA-256 hash for every stamped file. Re-running the installer keeps your edits, and a file carrying a human `[verified]` tag is never overwritten — even with `--force`. The only way through that child-lock is the explicit `--force-verified` flag, which quotes exactly what would be lost and requires typed consent (backups are still taken).
 
 *For more details, read both installers or refer to [SECURITY.md](SECURITY.md).*
 
