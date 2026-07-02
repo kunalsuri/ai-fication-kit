@@ -1,6 +1,6 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # SPEC: release-check — deterministic release-readiness gate
-> **Status:** draft
+> **Status:** approved
 > **Author:** Claude (agent-drafted, `[inferred]`) · **Date:** 2026-07-02
 
 ## Goal
@@ -80,7 +80,9 @@ skipped with an explicit "skipped" line, never silently.
 - Stability check: no `frozen` files modified; `test/` + `lib/`-adjacent rows are
   `[inferred]` — human approval to be recorded below before implementation.
 
-**Human approval:** _pending_
+**Human approval:** granted by the maintainer in-session on 2026-07-02 — scope:
+add files under `test/` (whose MODULE_MAP row is `[inferred]`) and read (not
+edit) `lib/util.mjs` / `lib/util.py`.
 
 ## Knowledge update on completion
 - [ ] FEATURE_MAP.md entry added/updated
