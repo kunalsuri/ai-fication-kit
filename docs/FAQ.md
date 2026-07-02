@@ -132,7 +132,18 @@ other command file) into the tool as a prompt.
 > **Important tip for manual pasting:** The command files under `.claude/commands/` contain metadata headers called YAML frontmatter (lines starting and ending with `---`, such as `description: ...`). Before pasting these prompts into Cursor or Codex, **delete the `---` delimiters and everything between them**. Start pasting from the actual instructions (e.g., "Run the cold-start bootstrap..."). This prevents the LLM from getting confused by the configuration headers.
 
 The provenance discipline works the same across every tool; only the automation
-differs.
+differs. The full per-tool walkthrough (command equivalence tables, chat modes,
+manual-mode steps) is [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md).
+
+## What is the "Indepth" analysis level `shazam` asks about?
+
+`orient`'s quick profile (the *General* level, ~200 ms) is all the kit needs.
+*Indepth* (~2–5 s) additionally writes `ai/repo-indepth.json` with code metrics,
+a dependency graph, heuristic architecture inference, and git-history stats —
+useful input for `/cold-start` on large repos and for refactoring planning. It is
+still fully deterministic (no LLM); its git-history section is one of the kit's
+two documented local, read-only `git` exceptions. You can run it any time later
+with `node install.mjs indepth <repo>` — see [CLI-REFERENCE.md](CLI-REFERENCE.md#indepth).
 
 ## Is the `ai/` folder only for AI agents, or can people use it to onboard?
 
@@ -147,10 +158,10 @@ over time with the `verify` command so onboarding stays accurate as the code evo
 
 ## Does the installer ever touch my source code?
 
-No. It writes `CLAUDE.md`, `AGENTS.md`, `ai/**`, and `.claude/**` — nothing else —
-and records every path in `ai/install-manifest.json`. `--dry-run` shows the exact
-plan; `uninstall` deletes exactly the recorded files. See `SECURITY.md` for the full
-guarantees.
+No. It writes `CLAUDE.md`, `AGENTS.md`, `ai/**`, and the per-tool assets
+(`.claude/**`, `.github/**`, `.agents/**`) — nothing else — and records every path
+in `ai/install-manifest.json`. `--dry-run` shows the exact plan; `uninstall`
+deletes exactly the recorded files. See `SECURITY.md` for the full guarantees.
 
 ## The agent flipped a tag to `[verified]` itself
 

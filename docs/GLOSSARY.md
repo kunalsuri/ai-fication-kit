@@ -37,10 +37,16 @@ concept is explained in depth.
 
 ## The commands
 
+- **`check-repo-maturity`** — read-only diagnostic: 11 deterministic checks, a 0–100
+  AI-readiness score, and the Process 1 (legacy) vs Process 2 (existing AI config)
+  decision. Runs automatically at the start of `shazam`.
 - **`orient`** — deterministic scan. Reads marker files (`package.json`, `pom.xml`, …)
   and writes `repo-profile.json`. No model, nothing executed.
-- **`shazam`** — the one-shot entry point: runs `orient` → first-run wizard → stamps the
-  templates. This is what most people run first.
+- **`indepth`** — the optional deep scan on top of `orient`: code metrics, dependency
+  graph, architecture inference, git-history stats → `repo-indepth.json`. Still
+  deterministic, no LLM.
+- **`shazam`** — the one-shot entry point: runs `check-repo-maturity` → `orient` →
+  first-run wizard → stamps the templates. This is what most people run first.
 - **`install`** — just the template-stamping step of `shazam` (no scan/wizard).
 - **`verify`** — mechanically cross-checks every file-path claim in the docs against the
   real tree. Catches docs that have gone stale. No LLM.
@@ -56,9 +62,10 @@ concept is explained in depth.
   leading slash (e.g. `/cold-start`).
 - **Context window / tokens** — an agent's working memory. Large repos overflow it, which
   is why the kit builds a compact map the agent reads instead of re-crawling the tree.
-- **Slash command** — a Claude Code action like `/cold-start` or `/add-feature`. Other
-  tools don't have these; you paste the command file's body as a prompt instead (see
-  [FAQ.md](FAQ.md#cursor-copilot-codex)).
+- **Slash command** — a Claude Code action like `/cold-start` or `/add-feature`. GitHub
+  Copilot and Google Antigravity get native equivalents (prompts / workflows); with
+  Cursor or Codex you paste the command file's body as a prompt instead (see
+  [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md)).
 - **`/cold-start`** — the slash command that makes the agent draft the maps. Everything it
   writes is `[inferred]`, awaiting your audit.
 - **Subagent** — a helper process the main agent spawns for an isolated job:
