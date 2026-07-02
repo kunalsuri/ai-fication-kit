@@ -76,6 +76,8 @@ def destination_for(rel):
         parts[0] = ".claude"
     elif parts and parts[0] == "github":
         parts[0] = ".github"
+    elif parts and parts[0] == "agents":
+        parts[0] = ".agents"
     dest = Path(*parts)
     if dest.suffix == ".tmpl":
         dest = dest.with_suffix("")

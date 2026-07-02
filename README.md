@@ -14,7 +14,9 @@
 [![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.ai/code)
-[![Works with](https://img.shields.io/badge/also%20works%20with-Cursor%20%7C%20Copilot%20%7C%20Codex-lightgrey?style=for-the-badge)](docs/FAQ.md#cursor-copilot-codex)
+[![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-compatible-8957e5?style=for-the-badge&logo=githubcopilot&logoColor=white)](docs/FAQ.md#cursor-copilot-codex)
+[![Google Antigravity](https://img.shields.io/badge/Google%20Antigravity-compatible-4285F4?style=for-the-badge&logo=google&logoColor=white)](docs/FAQ.md#cursor-copilot-codex)
+[![Works with](https://img.shields.io/badge/also%20works%20with-Cursor%20%7C%20Codex-lightgrey?style=for-the-badge)](docs/FAQ.md#cursor-copilot-codex)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
 
@@ -192,9 +194,13 @@ your-repo/
 │   │   └── problems/           # dated analyses of specific issues
 │   └── lab/                    # development intelligence: specs/, decisions/ (ADRs),
 │                                 evaluations/, experiments/
-└── .claude/                    # commands (/cold-start, /add-feature, …),
-                                  subagents (repo-explorer, feature-builder, test-runner),
-                                  and the add-feature skill
+├── .claude/                    # Claude Code: commands (/cold-start, /add-feature, …),
+│                                 subagents (repo-explorer, feature-builder, test-runner),
+│                                 and the add-feature skill
+├── .github/                    # GitHub Copilot: copilot-instructions.md, prompts/*.prompt.md
+│                                 (same commands), chatmodes/*.chatmode.md (same subagents)
+└── .agents/                    # Google Antigravity: workflows/*.md (same commands),
+                                  skills/add-feature/ (shared Agent Skills format)
 ```
 
 <br>

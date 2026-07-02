@@ -67,8 +67,10 @@ It runs ~5 minutes, scanning the code and drafting `MODULE_MAP.md`, diagrams, an
 candidate features. **Every line it writes is tagged `[inferred]`** — a guess, not
 yet a fact.
 
-> Not using Claude Code? Paste the body of `.claude/commands/cold-start.md` as a
-> prompt — see [FAQ.md](FAQ.md#cursor-copilot-codex).
+> Using GitHub Copilot or Google Antigravity instead? The kit installed native
+> equivalents too — type `/cold-start` in Copilot Chat or Antigravity's Agent
+> Manager. Using Cursor or Codex? Paste the body of `.claude/commands/cold-start.md`
+> as a prompt — see [FAQ.md](FAQ.md#cursor-copilot-codex).
 
 **✅ Checkpoint.** `ai/guide/MODULE_MAP.md` now has real rows (one per directory),
 each ending in `[inferred]`. If it still shows placeholder text, `/cold-start`
@@ -142,6 +144,6 @@ stays inside the modules you marked `ours`/`stable`.
 | Understand a term | [GLOSSARY.md](GLOSSARY.md) |
 | Do the audit well | [AUDIT-GUIDE.md](AUDIT-GUIDE.md) |
 | Troubleshoot detection, monorepos, re-runs | [FAQ.md](FAQ.md) |
-| Use Cursor / Copilot / Codex instead | [FAQ.md](FAQ.md#cursor-copilot-codex) |
+| Use Copilot / Antigravity / Cursor / Codex instead | [FAQ.md](FAQ.md#cursor-copilot-codex) |
 | See a full before/after on a sample repo | [legacy-calculator](../examples/legacy-calculator/README.md) |
 | Understand the code of the kit itself | [FUNCTIONALITY.md](FUNCTIONALITY.md) |

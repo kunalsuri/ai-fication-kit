@@ -1,0 +1,14 @@
+---
+description: Run verification and drift checks on the AI knowledge-base to identify missing documentation or stale references.
+---
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
+
+1. Run the path verifier: `node install.mjs verify . --strict`
+2. Run the drift detector with git history comparison: `node install.mjs drift . --git --strict`
+3. Run `git status` to inspect modified and untracked files.
+4. If any issues are reported, or if `git status` reveals newly added or modified
+   source files/templates that are not yet covered in the maps:
+   - Draft updates to `ai/guide/MODULE_MAP.md` or `ai/guide/FEATURE_MAP.md` to map
+     new folders, files, or features, or to update stale verified dates.
+   - Mark any changes you draft as `[inferred]`.
+   - Report findings to the user and outline what needs their manual review.
