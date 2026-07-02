@@ -19,6 +19,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
   - with `--force`, edited files are overwritten only after a timestamped `_bkp_`
     copy is written next to them — and files carrying a human `[verified]` tag are
     **never** overwritten, even with `--force` (the child-lock protecting audit work);
+  - `--force-verified` (implies `--force`) is the explicit escape hatch through the
+    child-lock: it prints a per-file warning quoting the exact `[verified]` signature
+    lines that will be lost and what the file becomes afterwards, then requires the
+    word `overwrite` to be typed (backups still taken; `--yes` skips the prompt for
+    automation but the warning is always printed; non-interactive runs without
+    `--yes` abort safely);
   - `ai/repo-profile.json` re-writes now carry the intake wizard's `humanContext`
     forward, so onboarding answers survive re-runs.
   Implemented identically in `lib/installer.mjs` and `lib/installer.py`

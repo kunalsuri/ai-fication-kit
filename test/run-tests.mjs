@@ -8,7 +8,8 @@
 //   2. orient        → asserts repo-profile.json has the right facts
 //   3. shazam --yes  → asserts files exist, placeholders resolved, fork rule stamped
 //   4. re-run (incremental) → asserts edited files are kept (child-lock), missing
-//      files are restored, humanContext survives, --force backs up + respects [verified]
+//      files are restored, humanContext survives, --force backs up + respects
+//      [verified], --force-verified warns per signature + needs explicit consent
 //   5. uninstall --yes  → asserts every manifest file is gone and user files remain
 //   6. --dry-run     → asserts nothing is written
 
@@ -214,8 +215,33 @@ async function testInstaller(label, exec, script) {
   const guideFiles = await fs.readdir(path.join(repo, "ai", "guide"));
   ok(guideFiles.some(n => /^CONVENTIONS_bkp_\d{8}_\d{6}\.md$/.test(n)),
     `--force leaves a timestamped backup of the file it overwrote`);
+
+  // --force-verified: the explicit escape hatch for [verified] files.
+  // In a non-TTY shell without --yes, the typed "overwrite" confirmation cannot
+  // be given, so the run must warn and abort without touching anything.
+  r = run(exec, [script, "install", repo, "--force-verified"]);
+  ok(r.code === 0 && /LOST/.test(r.out) && /Aborted/.test(r.out),
+    `--force-verified without confirmation warns and aborts`);
+  ok((await fs.readFile(mapPath, "utf8")) === auditedMap,
+    `aborted --force-verified leaves the [verified] map untouched`);
+
+  // with --yes (explicit automation opt-in) it proceeds: warning + backup + overwrite
+  r = run(exec, [script, "install", repo, "--yes", "--force-verified"]);
+  ok(r.code === 0, `--force-verified --yes exits 0`);
+  ok(/DANGER/.test(r.out) && /signature\(s\) will be LOST/.test(r.out),
+    `--force-verified prints the per-signature warning`);
+  ok(/\[verified\] \(01\/07\/2026\)/.test(r.out),
+    `warning quotes the actual [verified] line(s) from the file on disk`);
+  ok((await fs.readFile(mapPath, "utf8")) !== auditedMap,
+    `--force-verified overwrites the [verified] file`);
+  const guideFilesAfter = await fs.readdir(path.join(repo, "ai", "guide"));
+  const mapBkp = guideFilesAfter.find(n => /^MODULE_MAP_bkp_\d{8}_\d{6}\.md$/.test(n));
+  ok(Boolean(mapBkp), `--force-verified leaves a timestamped backup of the [verified] file`);
+  ok(mapBkp && (await fs.readFile(path.join(repo, "ai", "guide", mapBkp), "utf8")) === auditedMap,
+    `the backup preserves the audited content byte-for-byte`);
+
   // remove backups (not manifest-listed) so the uninstall empty-tree check holds
-  for (const n of guideFiles) {
+  for (const n of guideFilesAfter) {
     if (/_bkp_/.test(n)) await fs.rm(path.join(repo, "ai", "guide", n));
   }
 

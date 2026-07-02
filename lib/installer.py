@@ -15,7 +15,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from .util import (KIT_VERSION, MANIFEST_REL, PROFILE_REL, TEMPLATES_ROOT,
-                   backup_name, confirm, die, sha256_text)
+                   ask, backup_name, confirm, die, sha256_text)
 
 # Retry budget for transient filesystem locks (Windows AV, etc.).
 _UNINSTALL_RETRY_COUNT = 5
@@ -88,11 +88,12 @@ def destination_for(rel):
 
 # The human audit signature. A modified file carrying this tag holds verification
 # work a human spent real time on — the installer refuses to overwrite it, even
-# under --force (the "child-lock"). Remove the file yourself if you truly mean it.
+# under --force (the "child-lock"). Only --force-verified can override it, and
+# that path shows every signature at risk and demands a typed confirmation.
 VERIFIED_TAG = "[verified]"
 
 
-def classify_action(disk_text, recorded_hash, new_text, force):
+def classify_action(disk_text, recorded_hash, new_text, force, force_verified=False):
     """Decide what a (re-)install may do to one file. Provenance is the hash
     recorded in ai/install-manifest.json when the kit last wrote the file.
     Three-way compare (recorded / on disk / freshly stamped):
@@ -102,6 +103,8 @@ def classify_action(disk_text, recorded_hash, new_text, force):
       "locked"     — edited AND carries [verified]: kept, even under --force
       "keep"       — edited (or provenance unknown, e.g. pre-hash manifest): kept
       "overwrite"  — edited, --force given, no [verified] tag: backup then overwrite
+      "overwrite-verified" — edited AND [verified], --force-verified given: backup,
+                     a loud per-signature warning, and an explicit typed confirmation
     """
     if disk_text is None:
         return "new"
@@ -111,8 +114,32 @@ def classify_action(disk_text, recorded_hash, new_text, force):
     if recorded_hash and disk_hash == recorded_hash:
         return "update"
     if VERIFIED_TAG in disk_text:
-        return "locked"
+        return "overwrite-verified" if force_verified else "locked"
     return "overwrite" if force else "keep"
+
+
+def print_verified_warning(verified_overwrites):
+    """The --force-verified warning: for each file, show what is on disk NOW (the
+    human [verified] signatures) and what the overwrite does to it, so "are you
+    sure?" is answered with full knowledge, not a guess."""
+    shown = 3  # example lines per file — enough to recognize the audit work
+    print("")
+    print("  ⚠ DANGER — --force-verified will overwrite human-verified files.")
+    print("    These files carry [verified] signatures: audit work a human spent real")
+    print("    time on. Overwriting resets them to the pristine kit template.")
+    for p in verified_overwrites:
+        print("")
+        print(f"  {p['dest_rel'].as_posix()} — {len(p['verified_lines'])} "
+              f"{VERIFIED_TAG} signature(s) will be LOST. On disk now:")
+        for line in p["verified_lines"][:shown]:
+            trimmed = line.strip()
+            print(f"      {trimmed[:93] + '...' if len(trimmed) > 96 else trimmed}")
+        if len(p["verified_lines"]) > shown:
+            print(f"      … and {len(p['verified_lines']) - shown} more {VERIFIED_TAG} line(s)")
+        print("    after: the file becomes the stock template again — audited content is")
+        print("    replaced, rows return to [inferred] placeholders, and a human must re-audit.")
+        print(f"    backup: the current file is copied to {p['backup'].as_posix()} first.")
+    print("")
 
 
 def install(target, profile, flags):
@@ -174,7 +201,7 @@ def install(target, profile, flags):
             action = "new" if disk_text is None else "overwrite-backed-up"
         else:
             action = classify_action(disk_text, prev_hashes.get(dest_rel.as_posix()),
-                                     content, flags.get("force"))
+                                     content, flags.get("force"), flags.get("force_verified"))
         if action == "up-to-date":
             up_to_date.append({"dest_rel": dest_rel, "hash": sha256_text(content)})
             continue
@@ -182,12 +209,21 @@ def install(target, profile, flags):
             kept.append({"dest_rel": dest_rel, "action": action})
             continue
         all_leftovers.update(leftover)
-        # Plain "overwrite" targets a human-edited file — take a timestamped backup first.
+        # "overwrite" / "overwrite-verified" target a human-edited file — take a
+        # timestamped backup first.
         backup = None
-        if action == "overwrite":
+        if action in ("overwrite", "overwrite-verified"):
             backup = dest_rel.parent / backup_name(dest_rel.stem, dest_rel.suffix)
+        verified_lines = None
+        if action == "overwrite-verified":
+            # Show the human's signatures, not the template's own [verified] prose:
+            # prefer tag lines that do not appear verbatim in the pristine template.
+            template_lines = set(content.split("\n"))
+            tag_lines = [l for l in disk_text.split("\n") if VERIFIED_TAG in l]
+            human_added = [l for l in tag_lines if l not in template_lines]
+            verified_lines = human_added or tag_lines
         plan.append({"dest_rel": dest_rel, "dest_abs": dest_abs, "content": content,
-                     "action": action, "backup": backup})
+                     "action": action, "backup": backup, "verified_lines": verified_lines})
 
     print(f"\nPlan for {target}:")
     for p in plan:
@@ -197,11 +233,13 @@ def install(target, profile, flags):
             print(f"  update (kit-owned, never edited)  {p['dest_rel'].as_posix()}")
         elif p["action"] == "overwrite":
             print(f"  overwrite (--force; backup: {p['backup'].as_posix()})  {p['dest_rel'].as_posix()}")
+        elif p["action"] == "overwrite-verified":
+            print(f"  overwrite (--force-verified — see warning below; backup: {p['backup'].as_posix()})  {p['dest_rel'].as_posix()}")
         else:
             print(f"  overwrite (backed up above)  {p['dest_rel'].as_posix()}")
     for k in kept:
         if k["action"] == "locked":
-            print(f"  keep (child-lock: human {VERIFIED_TAG} content — never overwritten)  {k['dest_rel'].as_posix()}")
+            print(f"  keep (child-lock: human {VERIFIED_TAG} content — only --force-verified overrides)  {k['dest_rel'].as_posix()}")
         else:
             hint = "" if flags.get("force") else "; --force to overwrite with backup"
             print(f"  keep (edited since install{hint})  {k['dest_rel'].as_posix()}")
@@ -212,9 +250,25 @@ def install(target, profile, flags):
     if all_leftovers:
         print(f"  ⚠ unresolved placeholders left for you to fill: {', '.join(sorted(all_leftovers))}")
 
+    # --force-verified: show exactly what will be destroyed, then require an explicit
+    # typed confirmation. Printed on --dry-run too, so the warning can be previewed.
+    verified_overwrites = [p for p in plan if p["action"] == "overwrite-verified"]
+    if verified_overwrites:
+        print_verified_warning(verified_overwrites)
+
     if flags.get("dry_run"):
         print("\n--dry-run: nothing written.")
         return
+
+    if verified_overwrites and not flags.get("yes"):
+        # Deliberately NOT a y/N prompt: destroying audit signatures takes a typed word.
+        # Non-interactive runs without --yes get "" back from ask() and abort safely.
+        answer = ask(
+            f'Are you SURE? Type "overwrite" to replace the {len(verified_overwrites)} '
+            f"{VERIFIED_TAG} file(s) above (anything else aborts):", flags, "")
+        if answer.strip().lower() != "overwrite":
+            print(f"Aborted; nothing written. Your {VERIFIED_TAG} files are untouched.")
+            return
     if not confirm(f"Write {len(plan) + 2} file(s) into {target}?", flags):
         print("Aborted; nothing written.")
         return
