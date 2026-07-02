@@ -1,0 +1,26 @@
+%% Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+%% seam — the kit's main boundary: deterministic observation vs. model inference,
+%% with the human audit as the trust flip. Drafted [inferred] 2026-07-02;
+%% regenerate via /cold-start rather than hand-editing.
+sequenceDiagram
+    participant U as Human
+    participant K as Kit CLI (deterministic)
+    participant A as AI agent (inference)
+    participant R as ai/ knowledge layer
+
+    U->>K: shazam <repo>
+    K->>R: repo-profile.json · scaffolds · install-manifest.json
+    Note over K,R: facts only — no LLM, nothing executed
+
+    U->>A: /cold-start
+    A->>R: draft MODULE_MAP / ARCHITECTURE / FEATURE_MAP …
+    Note over A,R: everything tagged [inferred]
+
+    U->>R: audit (~30 min): set Stability, flip [inferred] → [verified] (date)
+    Note over U,R: the flip is the human's signature — agents never do it
+
+    loop keep it honest (CI + on demand)
+        K->>R: verify --strict (path claims) · drift --git --strict (map decay)
+    end
+
+    U->>A: /add-feature (agent now navigates via the verified map)

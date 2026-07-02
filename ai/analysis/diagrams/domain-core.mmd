@@ -1,0 +1,35 @@
+%% Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+%% domain-core — the kit's core artifacts and which command produces/consumes each.
+%% Drafted [inferred] 2026-07-02; regenerate via /cold-start rather than hand-editing.
+graph LR
+    subgraph commands["CLI commands (deterministic, no LLM)"]
+        SHAZAM[shazam]
+        ORIENT[orient]
+        INDEPTH[indepth]
+        MATURITY[check-repo-maturity]
+        INSTALL[install]
+        UNINSTALL[uninstall]
+        VERIFY[verify]
+        DRIFT[drift]
+    end
+
+    subgraph artifacts["Artifacts in the target repo"]
+        PROFILE["ai/repo-profile.json"]
+        INDEPTHJSON["ai/repo-indepth.json"]
+        MANIFEST["ai/install-manifest.json"]
+        GUIDE["ai/guide/*.md + CLAUDE.md/AGENTS.md<br/>(stamped scaffolds; /cold-start fills, human verifies)"]
+        REPORTS["ai/analysis/audit-reports/*"]
+    end
+
+    SHAZAM --> ORIENT & INSTALL
+    ORIENT --> PROFILE
+    ORIENT --> MATURITY
+    INDEPTH --> INDEPTHJSON
+    MATURITY --> REPORTS
+    INSTALL --> GUIDE
+    INSTALL --> MANIFEST
+    UNINSTALL -- "deletes exactly what" --> MANIFEST
+    VERIFY -- "checks path claims in" --> GUIDE
+    VERIFY --> REPORTS
+    DRIFT -- "reverse-checks MODULE_MAP vs tree" --> GUIDE
+    DRIFT --> REPORTS

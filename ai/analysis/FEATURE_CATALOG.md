@@ -5,13 +5,9 @@
 
 > ## Provenance & scope
 >
-> **Status until generated: PLACEHOLDER.** This catalog is populated on demand by
-> `/create-feature-catalog`, not by `/cold-start`. The example rows below use
-> `<angle-bracket>` placeholders on purpose — they are illustrative only, and the
-> deterministic `verify` command ignores them, so a freshly installed repo stays
-> mechanically honest until you generate real, backtick-quoted entries.
->
-> **Cold-start snapshot — 2026-06-17** (commit `<commit-hash>`), once generated.
+> **Generated 2026-07-02** by a /create-feature-catalog pass (commit 3aea265 of main),
+> after a full read of `install.mjs`, `install.py`, every `lib/` module, `templates/`,
+> and both test runners. Every entry is `[inferred]` until a human audits it.
 >
 > **Confidence key used throughout (same scheme as `ai/INDEX.md`):**
 > - `[inferred]` — written by an agent or tool; a guess until a human checks it
@@ -22,60 +18,107 @@
 
 ---
 
-## How to use the catalog (Split provision for complex codebases)
+## How to use the catalog
 
-Depending on the complexity of ai-fication-kit, the catalog can live in a single file or be split to reduce token context overhead:
+ai-fication-kit is a two-runtime CLI (Node + Python), not a backend/frontend project,
+so the whole catalog lives in this single file (Option A). The split files
+(`FEATURE_CATALOG_BACKEND.md`, `FEATURE_CATALOG_FRONTEND.md`) are intentionally
+not-applicable stubs — do not populate them.
 
-### Option A: Single-file Catalog
-For small to medium codebases, keep all feature indices, API surfaces, and touch lists in this file.
-
-### Option B: Split Catalog (only if there is a real split to make)
-The split below assumes a backend + frontend project. **Many projects are not** — a
-CLI, a library, a single-language service, a data pipeline. If that is you, keep
-everything in this file and leave the split files empty (or delete them). Use this
-master file as the navigation layer when you do split:
-
-| File | Contains | Load when |
-|---|---|---|
-| **This file** (`FEATURE_CATALOG.md`) | Feature index, API surface summary, cross-stack touch lists, decision tree | Always — it is the navigation layer |
-| [`FEATURE_CATALOG_BACKEND.md`](FEATURE_CATALOG_BACKEND.md) | Detailed backend modules, classes, and architectural roles | Working on backend/services |
-| [`FEATURE_CATALOG_FRONTEND.md`](FEATURE_CATALOG_FRONTEND.md) | Detailed frontend components, hooks, routes, and styles | Working on frontend/UI |
+The kit's layers, used in the touch lists below:
+- **CLI** — `install.mjs` / `install.py` (arg parsing + dispatch only)
+- **Core** — the mirrored module pair `lib/<name>.mjs` / `lib/<name>.py`
+- **Payload** — `templates/` (what gets stamped into a target repo)
+- **Tests** — `test/run-tests.mjs` (smoke, both runtimes) and `test/run-deep-test.mjs` (standards)
 
 ---
 
 ## §1 Feature Index
 
-> The two rows below are **placeholder examples** — `/create-feature-catalog` replaces
-> them with real features (in backticks). If you still see angle brackets, the catalog
-> has not been generated.
-
 | ID | Feature | What it does | Entry point(s) | Status |
 |---|---|---|---|---|
-| F1 | **Example Feature** | Brief description of capability | `<src/example_service.ext>` `[inferred]` | `?` |
-| F2 | **Another Feature** | Brief description of capability | `<src/another_module.ext>` `[inferred]` | `?` |
+| F1 | **shazam (one-shot onboarding)** | maturity → orient → optional indepth → first-run wizard → install → next steps | `install.mjs` `install.py` `[inferred]` | `?` |
+| F2 | **orient (stack detection)** | deterministic marker-file detection → `ai/repo-profile.json` | `lib/orient.mjs` `lib/orient.py` `[inferred]` | `?` |
+| F3 | **indepth (Tier-2 analysis)** | deps, code metrics, git history, architecture heuristics → `ai/repo-indepth.json` | `lib/indepth.mjs` `lib/indepth.py` `[inferred]` | `?` |
+| F4 | **check-repo-maturity** | read-only AI-readiness score; drives Process 1 vs 2 | `lib/maturity.mjs` `lib/maturity.py` `[inferred]` | `?` |
+| F5 | **intake (first-run wizard)** | captures `humanContext` (skill, familiarity, branch safety) before install | `lib/intake.mjs` `lib/intake.py` `[inferred]` | `?` |
+| F6 | **install (template stamping)** | stamps `templates/` into the target; Process-2 backup of prior CLAUDE/AGENTS; writes `ai/install-manifest.json` | `lib/installer.mjs` `lib/installer.py` `[inferred]` | `?` |
+| F7 | **uninstall** | deletes exactly the manifest-recorded files; refuses paths outside target | `lib/installer.mjs` `lib/installer.py` `[inferred]` | `?` |
+| F8 | **verify (claim check)** | backtick path claims in knowledge docs vs. real tree → audit reports | `lib/verify.mjs` `lib/verify.py` `[inferred]` | `?` |
+| F9 | **drift (map decay check)** | unmapped / vanished; opt-in `--git` stale check vs. verified commit | `lib/drift.mjs` `lib/drift.py` `[inferred]` | `?` |
+| F10 | **Claude Code workflow assets** | slash commands, subagents, add-feature skill stamped to `.claude/` | `templates/claude/commands/cold-start.md` `[inferred]` | `?` |
+| F11 | **CI knowledge-base check** | GitHub Actions template running `verify --strict` + `drift --git --strict` | `templates/github/workflows/ai-check.yml.tmpl` `[inferred]` | `?` |
+| F12 | **deep-test (kit standards gate)** | smoke + verify + drift + license headers + placeholder leaks | `test/run-deep-test.mjs` `[inferred]` | `?` |
 
 ---
 
-## §2 API / Interface Surface (if applicable)
+## §2 CLI Surface
 
-Detail the public surface this project exposes — REST/GraphQL endpoints, CLI commands,
-exported library functions, or message handlers. Skip if not applicable.
-
-| Operation / Entry | Handler | Purpose |
+| Command | Handler | Purpose |
 |---|---|---|
-| `<operation-name>` | `<handler-symbol>` | Description of purpose |
+| `shazam <repo>` | `install.mjs` / `install.py` dispatch | one-shot onboarding (F1) |
+| `orient <repo>` | `lib/orient.mjs` `orient()` | write `ai/repo-profile.json` (F2) |
+| `indepth <repo>` | `lib/indepth.mjs` `indepth()` | write `ai/repo-indepth.json` (F3) |
+| `check-repo-maturity <repo>` | `lib/maturity.mjs` `checkMaturity()` | write `MATURITY_REPORT.json` (F4) |
+| `install <repo>` | `lib/installer.mjs` `install()` | stamp templates (F6) |
+| `uninstall <repo>` | `lib/installer.mjs` `uninstall()` | manifest-based removal (F7) |
+| `verify <repo>` | `lib/verify.mjs` `verify()` | claim verification (F8) |
+| `drift <repo>` | `lib/drift.mjs` `drift()` | drift detection (F9) |
+
+Shared flags: `--dry-run --force --yes --strict --git --skip-prompt --interactive`
+`--analysis-level general|indepth --indepth --name --description --build --test --upstream --version`
+(Python handlers are the same-named functions in the `lib/*.py` mirror.)
 
 ---
 
-## §3 Full-Stack Touch Lists
+## §3 Touch Lists (per feature, across layers)
 
-For each feature, list the exact files to touch across layers (omit layers you don't have).
-
-### F1 — Example Feature
-| What to change | File / Component | Confidence |
+### F1 — shazam
+| Layer | Files | Confidence |
 |---|---|---|
-| Core logic | `<src/example_service.ext>` | `[inferred]` |
-| Entry / interface | `<src/example_entry.ext>` | `[inferred]` |
+| CLI | `install.mjs` `install.py` (dispatch + next-steps text) | `[inferred]` |
+| Core | `lib/maturity.mjs` `lib/orient.mjs` `lib/intake.mjs` `lib/installer.mjs` + `.py` mirrors | `[inferred]` |
+| Tests | `test/run-tests.mjs` (spawns both runtimes end-to-end) | `[inferred]` |
+
+### F2 — orient · F3 — indepth · F4 — maturity · F8 — verify · F9 — drift
+Single module pair each: `lib/<feature>.mjs` + `lib/<feature>.py`, dispatched from the
+CLI pair, asserted in `test/run-tests.mjs`. Outputs: F2 → `ai/repo-profile.json`,
+F3 → `ai/repo-indepth.json`, F4 → `ai/analysis/audit-reports/MATURITY_REPORT.json`,
+F8 → `ai/analysis/audit-reports/VERIFICATION_REPORT.md` (+ gitignored manifest),
+F9 → `ai/analysis/audit-reports/DRIFT_REPORT.md` (+ gitignored manifest). `[inferred]`
+
+### F5 — intake
+| Layer | Files | Confidence |
+|---|---|---|
+| Core | `lib/intake.mjs` `lib/intake.py` (branch check reads .git/HEAD as a plain file — never shells out) | `[inferred]` |
+| Output | `humanContext` key inside `ai/repo-profile.json` | `[inferred]` |
+| Tests | `test/run-tests.mjs` (non-TTY runs must bypass it) | `[inferred]` |
+
+### F6/F7 — install / uninstall
+| Layer | Files | Confidence |
+|---|---|---|
+| Core | `lib/installer.mjs` `lib/installer.py` (`destinationFor` maps `templates/claude/**` → `.claude/**`, `templates/github/**` → `.github/**`, strips `.tmpl`) | `[inferred]` |
+| Payload | everything under `templates/` except `templates/README.md` (not installed) | `[inferred]` |
+| Output | `ai/install-manifest.json` (merged across re-installs) | `[inferred]` |
+| Tests | `test/run-tests.mjs` (install/uninstall round-trip, backup flow) | `[inferred]` |
+
+### F10 — Claude Code workflow assets
+| Layer | Files | Confidence |
+|---|---|---|
+| Payload | `templates/claude/commands/` (8 commands) · `templates/claude/agents/` (3 subagents) · `templates/claude/skills/add-feature/SKILL.md` | `[inferred]` |
+| Installed twin | `.claude/` (kit dogfoods its own templates — keep byte-identical) | `[inferred]` |
+| Tests | `test/run-tests.mjs` (asserts installed paths) | `[inferred]` |
+
+### F11 — CI knowledge-base check
+| Layer | Files | Confidence |
+|---|---|---|
+| Payload | `templates/github/workflows/ai-check.yml.tmpl` (uses `npm install -g ai-fication-kit`; needs the npm package) | `[inferred]` |
+| Installed twin | `.github/workflows/ai-check.yml` (self-hosted variant runs `node install.mjs` directly) | `[inferred]` |
+
+### F12 — deep-test
+| Layer | Files | Confidence |
+|---|---|---|
+| Tests | `test/run-deep-test.mjs` · trigger docs in `.agents/skills/deep-test/SKILL.md` · `package.json` script `deep-test` | `[inferred]` |
 
 ---
 
@@ -83,23 +126,54 @@ For each feature, list the exact files to touch across layers (omit layers you d
 
 ```
 What kind of change?
-├── New core logic?    ➔ target the relevant module under your source root
-├── New interface?     ➔ target the API / CLI / UI layer that exposes it
-└── New data/schema?   ➔ target the schema or model layer
+├── New CLI command?          ➔ dispatch in install.mjs AND install.py; behavior in a
+│                               NEW lib/<name>.mjs + lib/<name>.py pair (never inline)
+├── New detection heuristic?  ➔ lib/orient.* (marker files) or lib/indepth.* (deep analysis)
+├── New installed artifact?   ➔ templates/ (use .tmpl + {{PLACEHOLDERS}} if it needs stamping);
+│                               mirror to .claude// .github/ happens via destinationFor
+├── New agent workflow?       ➔ templates/claude/commands/ or templates/claude/agents/
+│                               (then reinstall so .claude/ stays identical)
+└── New quality gate?         ➔ test/run-deep-test.mjs (kit-only) or test/run-tests.mjs (both runtimes)
 ```
-
-> Replace the generic targets above with the real directories from your `MODULE_MAP.md`.
 
 ---
 
-## §5 Specification-Driven Development — new features
+## §5 The 3-file rule — read these first per feature
+
+| Feature | Read 1 | Read 2 | Read 3 |
+|---|---|---|---|
+| F1 shazam | `install.mjs` | `lib/intake.mjs` | `lib/installer.mjs` |
+| F2 orient | `lib/orient.mjs` | `lib/util.mjs` | `test/run-tests.mjs` |
+| F3 indepth | `lib/indepth.mjs` | `ai/repo-indepth.json` | `test/run-tests.mjs` |
+| F4 maturity | `lib/maturity.mjs` | `lib/orient.mjs` (embeds result) | `lib/installer.mjs` (Process-2 use) |
+| F5 intake | `lib/intake.mjs` | `lib/util.mjs` (ask/choose/isInteractive) | `install.mjs` (wizard gating) |
+| F6/F7 install | `lib/installer.mjs` | `templates/README.md` | `ai/install-manifest.json` |
+| F8 verify | `lib/verify.mjs` | `ai/analysis/audit-reports/VERIFICATION_REPORT.md` | `CLAUDE.md` (what gets scanned) |
+| F9 drift | `lib/drift.mjs` | `ai/guide/MODULE_MAP.md` (what gets parsed) | `.github/workflows/ai-check.yml` |
+| F10 claude assets | `templates/claude/commands/cold-start.md` | `templates/claude/skills/add-feature/SKILL.md` | `templates/claude/agents/repo-explorer.md` |
+| F11 ci-check | `templates/github/workflows/ai-check.yml.tmpl` | `.github/workflows/ai-check.yml` | `lib/verify.mjs` |
+| F12 deep-test | `test/run-deep-test.mjs` | `.agents/skills/deep-test/SKILL.md` | `package.json` |
+
+---
+
+## §6 Specification-Driven Development — new features
 
 New features follow a spec-first workflow:
 
 ```
 1. Create specification: ai/lab/specs/SPEC_<feature-name>.md
-2. AI fills in: Full-stack design based on this catalog
+2. AI fills in: design based on this catalog (remember: BOTH runtimes)
 3. Human approves spec
 4. AI implements using the /add-feature skill
-5. AI updates: FEATURE_CATALOG.md
+5. AI updates: FEATURE_CATALOG.md and ai/guide/FEATURE_MAP.md
 ```
+
+---
+
+## Sampling guide — spot-check these 5 first (least certain entries)
+
+1. **F3 indepth touch list** — `lib/indepth.mjs` is ~1200 lines of heuristics; confirm the output sections listed in §3 match what it actually writes.
+2. **F4 → F6 Process-2 linkage** — confirm `checkMaturity()`'s `process` value is the only thing that triggers the backup flow in `lib/installer.mjs`.
+3. **F11 npm assumption** — the template installs the kit from npm in CI; confirm the published package name/dist-tags before relying on it in a target repo.
+4. **F5 skip conditions** — wizard skips on `--yes`/non-TTY and when `humanContext` already exists; confirm no other exit path writes a partial profile.
+5. **F10 "keep byte-identical" claim** — confirm the team actually intends `.claude/` to mirror `templates/claude/` (it does today; nothing enforces it).

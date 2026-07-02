@@ -25,9 +25,9 @@ WHAT THIS DOES, IN FULL:
                commit (stale). Writes a manifest + report into ai/analysis/audit-reports/.
 
 WHAT THIS DOES NOT DO (by design, so it cannot harm you):
-  - It does NOT execute any code or open any network connection. (The single
-    exception: `drift --git` runs LOCAL, READ-ONLY git to compute the stale set;
-    without --git, drift is pure file inspection like everything else here.)
+  - It does NOT execute any code or open any network connection. (Two exceptions
+    run LOCAL, READ-ONLY git: `drift --git` computes the stale set, and `indepth`
+    reads commit/contributor history. Everything else is pure file inspection.)
   - It does NOT write anywhere outside the target folder you pass in.
   - It does NOT overwrite existing files unless you pass --force.
   - It has NO dependencies, so there is nothing else to trust.
@@ -36,17 +36,23 @@ This file is only the command-line interface. The implementation is split into
 small single-purpose modules so a human can audit each in one sitting:
   lib/util.py       -- shared helpers and constants
   lib/orient.py     -- deterministic stack detection
+  lib/indepth.py    -- comprehensive Tier-2 analysis (deps, metrics, git history)
+  lib/maturity.py   -- read-only AI-readiness diagnostic
+  lib/intake.py     -- first-run wizard (the one interactive part)
   lib/installer.py  -- template stamping (install) and manifest-based uninstall
   lib/verify.py     -- mechanical claim verification
+  lib/drift.py      -- structural drift detection (unmapped/vanished/stale)
 You are encouraged to read them all before running this.
 
 USAGE:
   python install.py shazam    <path-to-your-repo> [options]
   python install.py orient    <path-to-your-repo> [--dry-run]
+  python install.py indepth   <path-to-your-repo> [--dry-run]
   python install.py install   <path-to-your-repo> [options]
   python install.py uninstall <path-to-your-repo> [--dry-run]
   python install.py verify    <path-to-your-repo> [--dry-run] [--strict]
   python install.py drift     <path-to-your-repo> [--dry-run] [--strict] [--git]
+  python install.py check-repo-maturity <path-to-your-repo> [--dry-run]
 
 OPTIONS:
   --dry-run --force --yes --strict --git

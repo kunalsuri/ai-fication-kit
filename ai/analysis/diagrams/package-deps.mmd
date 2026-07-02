@@ -1,0 +1,36 @@
+%% Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+%% package-deps — module dependency graph of the Node runtime (the Python runtime
+%% mirrors it 1:1: lib/<name>.py). Drafted [inferred] 2026-07-02 from real imports;
+%% regenerate via /cold-start rather than hand-editing.
+graph TD
+    CLI["install.mjs (CLI dispatch only)"]
+
+    UTIL["lib/util.mjs<br/>fs probes · prompts · style · KIT_VERSION"]
+    ORIENT["lib/orient.mjs<br/>stack detection → ai/repo-profile.json"]
+    INDEPTH["lib/indepth.mjs<br/>Tier-2 analysis → ai/repo-indepth.json"]
+    MATURITY["lib/maturity.mjs<br/>AI-readiness score · Process 1/2"]
+    INTAKE["lib/intake.mjs<br/>first-run wizard → humanContext"]
+    INSTALLER["lib/installer.mjs<br/>template stamping · uninstall"]
+    VERIFY["lib/verify.mjs<br/>path-claim verification"]
+    DRIFT["lib/drift.mjs<br/>unmapped / vanished / stale"]
+
+    CLI --> ORIENT
+    CLI --> INSTALLER
+    CLI --> VERIFY
+    CLI --> DRIFT
+    CLI --> INTAKE
+    CLI -. "dynamic import" .-> INDEPTH
+    CLI -. "dynamic import" .-> MATURITY
+
+    ORIENT --> MATURITY
+    ORIENT --> UTIL
+    INDEPTH --> UTIL
+    MATURITY --> UTIL
+    INTAKE --> UTIL
+    INSTALLER --> UTIL
+    VERIFY --> UTIL
+    DRIFT --> UTIL
+
+    %% The only two modules that shell out (LOCAL, READ-ONLY git):
+    DRIFT -. "git diff (only with --git)" .-> GIT[(local git)]
+    INDEPTH -. "git log/shortlog/branch/tag" .-> GIT

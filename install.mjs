@@ -23,9 +23,9 @@
 //               commit (stale). Writes a manifest + report into ai/analysis/audit-reports/.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
-//   - It does NOT execute any code or open any network connection. (The single
-//     exception: `drift --git` runs LOCAL, READ-ONLY git to compute the stale set;
-//     without --git, drift is pure file inspection like everything else here.)
+//   - It does NOT execute any code or open any network connection. (Two exceptions
+//     run LOCAL, READ-ONLY git: `drift --git` computes the stale set, and `indepth`
+//     reads commit/contributor history. Everything else is pure file inspection.)
 //   - It does NOT write anywhere outside the target folder you pass in.
 //   - It does NOT overwrite existing files unless you pass --force.
 //   - It has NO dependencies, so there is nothing else to trust.
@@ -34,17 +34,23 @@
 // small single-purpose modules so a human can audit each in one sitting:
 //   lib/util.mjs       — shared fs probes, prompts, and constants
 //   lib/orient.mjs     — deterministic stack detection
+//   lib/indepth.mjs    — comprehensive Tier-2 analysis (deps, metrics, git history)
+//   lib/maturity.mjs   — read-only AI-readiness diagnostic
+//   lib/intake.mjs     — first-run wizard (the one interactive part)
 //   lib/installer.mjs  — template stamping (install) and manifest-based uninstall
 //   lib/verify.mjs     — mechanical claim verification
+//   lib/drift.mjs      — structural drift detection (unmapped/vanished/stale)
 // You are encouraged to read them all before running this.
 //
 // USAGE:
 //   node install.mjs shazam   <path-to-your-repo> [options]
 //   node install.mjs orient   <path-to-your-repo> [--dry-run]
+//   node install.mjs indepth  <path-to-your-repo> [--dry-run]
 //   node install.mjs install  <path-to-your-repo> [options]
 //   node install.mjs uninstall <path-to-your-repo> [--dry-run]
 //   node install.mjs verify   <path-to-your-repo> [--dry-run] [--strict]
 //   node install.mjs drift    <path-to-your-repo> [--dry-run] [--strict] [--git]
+//   node install.mjs check-repo-maturity <path-to-your-repo> [--dry-run]
 //
 // OPTIONS:
 //   --dry-run            show the plan, write nothing
