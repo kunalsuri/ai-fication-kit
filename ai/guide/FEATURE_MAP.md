@@ -1,9 +1,6 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Feature map — feature → files, intent, gotchas
 
-> [!NOTE]
-> **This is a scaffolded template.** Run the `/cold-start` slash command in Claude Code (or see [docs/FAQ.md#cursor-copilot-codex](../../docs/FAQ.md#cursor-copilot-codex) for other tools) to have the agent explore your repository and automatically populate this file.
-
 > Humans think in features; agents should too. This file holds the SHORT version —
 > per-feature pointers and non-obvious notes. The full generated catalog lives in
 > `ai/analysis/FEATURE_CATALOG.md` (via /create-feature-catalog).
@@ -36,22 +33,36 @@
 ### intake  `[inferred]`
 - **Business goal:** Provide a user-friendly CLI wizard to guide new users through repo profile configuration.
 - **Touches:** `install.mjs`, `install.py`, `lib/intake.mjs`, `lib/intake.py`, `lib/util.mjs`, `lib/util.py`
-- **Verify with:** `node install.mjs shazam . --interactive` (interactive choose prompt)
-- **Gotchas:** Automatically bypassed in non-TTY/non-interactive shells (e.g. CI environments) or if `--yes` / `--skip-prompt` is provided.
+- **Verify with:** `node install.mjs shazam .` from a real terminal (wizard prompts appear before install)
+- **Gotchas:** The first-run wizard skips itself in non-TTY shells (e.g. CI) or when `--yes` is passed; `--skip-prompt` bypasses only the analysis-level chooser, not the wizard. Answers land under `humanContext` in `ai/repo-profile.json`, and the wizard is skipped on re-runs once `humanContext` exists.
 - **Related:** `shazam`
 
 ### install  `[inferred]`
 - **Business goal:** Copy and stamp `templates/` into the target repo using detected profile facts.
 - **Touches:** `install.mjs`, `install.py`, `lib/installer.mjs`, `lib/installer.py`, `templates/`
 - **Verify with:** `node install.mjs install . --dry-run`
-- **Gotchas:** Records every written path in `ai/install-manifest.json` for deterministic cleanup. Never overwrites files without `--force`.
+- **Gotchas:** Records every written path in `ai/install-manifest.json` for deterministic cleanup. Never overwrites files without `--force` — except files it just backed up in the Process-2 flow (see `shazam`), which are intentionally replaced. Re-installs merge into the existing manifest so no written path is ever forgotten.
 - **Related:** `uninstall`, `shazam`
+
+### shazam (one-shot onboarding)  `[inferred]`
+- **Business goal:** Single command that takes a repo from unknown to AI-ready: maturity check → orient → optional indepth → first-run wizard → install → printed next steps.
+- **Touches:** `install.mjs`, `install.py`, `lib/maturity.mjs`, `lib/maturity.py`, `lib/orient.mjs`, `lib/orient.py`, `lib/intake.mjs`, `lib/intake.py`, `lib/installer.mjs`, `lib/installer.py`
+- **Verify with:** `node install.mjs shazam . --dry-run --yes`
+- **Gotchas:** On Process-2 repos (existing hand-written `CLAUDE.md`/`AGENTS.md` without the kit footer), the installer first backs them up as `CLAUDE_bkp_<timestamp>.md` / `AGENTS_bkp_<timestamp>.md` so `/cold-start` can mine the prior knowledge; backups are never deleted by `uninstall`. The analysis-level prompt defaults to "general" when non-interactive.
+- **Related:** `orient`, `indepth`, `intake`, `install`
+
+### uninstall  `[inferred]`
+- **Business goal:** Remove exactly the files the installer recorded, and nothing else.
+- **Touches:** `install.mjs`, `install.py`, `lib/installer.mjs`, `lib/installer.py`
+- **Verify with:** `node install.mjs uninstall . --dry-run`
+- **Gotchas:** Deletes only paths listed in `ai/install-manifest.json` and refuses any path that resolves outside the target directory. Now-empty directories are pruned best-effort (deepest first); `*_bkp_*.md` backup files are reported but deliberately left in place.
+- **Related:** `install`, `shazam`
 
 ### verify  `[inferred]`
 - **Business goal:** Mechanically extract and check every backtick-quoted path claim in the knowledge documents against the active directory tree.
 - **Touches:** `install.mjs`, `install.py`, `lib/verify.mjs`, `lib/verify.py`
 - **Verify with:** `node install.mjs verify . --strict`
-- **Gotchas:** Requires exact file paths. Path checking is case-sensitive on Linux/macOS but case-insensitive on Windows by default.
+- **Gotchas:** Claim matching is case-INSENSITIVE by design on every platform (both index and lookup are lowercased in `lib/verify.mjs` / `lib/verify.py`), so a claim can stay confirmed even if its casing no longer matches the file on disk. Claims containing whitespace, globs, or `<placeholders>` are ignored.
 - **Related:** `drift`, `deep-test`
 
 ### drift  `[inferred]`
@@ -70,7 +81,7 @@
 
 ### deep-test  `[inferred]`
 - **Business goal:** Validate repository standards compliance, including smoke tests, verification, drift, license headers, and placeholders.
-- **Touches:** `test/run-deep-test.mjs`, `package.json`
+- **Touches:** `test/run-deep-test.mjs`, `package.json`, `.agents/skills/deep-test/SKILL.md`
 - **Verify with:** `npm run deep-test`
 - **Gotchas:** Enforces license headers (Apache-2.0) on all `.js`, `.mjs`, `.py`, `.md` source files and checks for leaked template placeholders (`{{...}}`).
 - **Related:** `verify`, `drift`

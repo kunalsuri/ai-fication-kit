@@ -21,7 +21,10 @@ The CLI parses argv, then handles command routing. When running `shazam` (or int
 
 ## Diagrams
 Text-based (Mermaid) diagrams live in `ai/analysis/diagrams/`. Regenerate them via
-/cold-start; do not hand-maintain. (Not yet drafted for this repo — see AUDIT TODO.)
+/cold-start; do not hand-maintain. Drafted `[inferred]` on 2026-07-02:
+- `ai/analysis/diagrams/package-deps.mmd` — module dependency graph (Node runtime; Python mirrors it)
+- `ai/analysis/diagrams/domain-core.mmd` — commands → artifacts they produce/consume
+- `ai/analysis/diagrams/seam.mmd` — the deterministic-vs-inference seam and the human trust flip
 
 ## Invariants an agent must not break  `[verified] required`
 <Only humans add rows here. Candidate invariants to confirm: "install.mjs and
