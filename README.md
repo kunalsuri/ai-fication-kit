@@ -20,6 +20,8 @@
 
 <h2> A Simple & Elegant Way to Make any Codebase / Repo AI-native while keeping it Trustworthy.</h2>
 
+<h3> Giving AI Tools / Coding Agents Context & Creating a Knowledge layer to optimize Token utilization.
+
 </div>
 
 ---
