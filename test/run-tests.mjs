@@ -941,5 +941,73 @@ console.log("\n— indepth git history —");
   await fs.rm(broot, { recursive: true, force: true });
 }
 
+// ---------- release-check: the deterministic release gate ----------
+// Fixture scenarios pin the failure modes from SPEC_release-check.md (criteria
+// 2–4); the final scenario runs the gate against the kit repo itself so any
+// real version/changelog/CLI-docs drift fails CI immediately.
+{
+  console.log("\n— release-check (release gate) —");
+  const gate = path.join(kitRoot, "test", "release-check.mjs");
+  const runGate = (dir, ...extra) => run(process.execPath, [gate, dir, ...extra]);
+
+  // criterion 2: one desynchronized version source → exit 1 naming the file
+  {
+    const dir = await makeBareFixture("relcheck-desync", {
+      "package.json": JSON.stringify({ name: "fx", version: "9.9.9" }),
+      "lib/util.mjs": `export const KIT_VERSION = "1.0.0";\n`,
+      "CHANGELOG.md": "# Changelog\n\n## [Unreleased]\n\n- pending\n",
+    });
+    const r = runGate(dir);
+    ok(r.code === 1 && r.out.includes("lib/util.mjs") && r.out.includes("1.0.0"),
+      `version desync → exit 1 naming the out-of-sync file`);
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+
+  // pre-tag mode: versions in sync + [Unreleased] present (no dated section yet) → green
+  {
+    const dir = await makeBareFixture("relcheck-ok", {
+      "package.json": JSON.stringify({ name: "fx", version: "9.9.9" }),
+      "lib/util.mjs": `export const KIT_VERSION = "9.9.9";\n`,
+      "CHANGELOG.md": "# Changelog\n\n## [Unreleased]\n\n- pending\n",
+    });
+    const r = runGate(dir);
+    ok(r.code === 0 && r.out.includes("[Unreleased] exists"),
+      `pre-tag mode passes on synced versions with only an [Unreleased] section`);
+    // criterion 4: tag mode with no dated ## [9.9.9] section → exit 1
+    const rt = runGate(dir, "--tag", "v9.9.9");
+    ok(rt.code === 1 && rt.out.includes("required at tag time"),
+      `tag mode without a dated ## [9.9.9] section → exit 1`);
+    // tag mode fully release-ready → green (dated section, link ref, [Unreleased] emptied)
+    await fs.writeFile(path.join(dir, "CHANGELOG.md"),
+      "# Changelog\n\n## [Unreleased]\n\n## [9.9.9] — 2026-07-03\n\n- shipped\n\n" +
+      "[9.9.9]: https://example.com/releases/tag/v9.9.9\n");
+    const rr = runGate(dir, "--tag", "v9.9.9");
+    ok(rr.code === 0, `tag mode passes once the section is dated, linked, and [Unreleased] is empty`);
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+
+  // criterion 3: a CLI token missing from docs/CLI-REFERENCE.md → exit 1 naming it
+  {
+    const dir = await makeBareFixture("relcheck-clidocs", {
+      "package.json": JSON.stringify({ name: "fx", version: "9.9.9" }),
+      "CHANGELOG.md": "# Changelog\n\n## [Unreleased]\n",
+      "install.mjs":
+        `const COMMANDS = new Set(["orient", "frobnicate"]);\n` +
+        `console.log("Usage: orient | frobnicate [--dry-run]");\n`,
+      "docs/CLI-REFERENCE.md": "# CLI\n\n`orient` — detect stack. Options: `--dry-run`.\n",
+    });
+    const r = runGate(dir);
+    ok(r.code === 1 && r.out.includes("frobnicate"),
+      `command missing from docs/CLI-REFERENCE.md → exit 1 naming the token`);
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+
+  // the kit repo itself must pass its own gate (pre-tag mode)
+  {
+    const r = runGate(kitRoot);
+    ok(r.code === 0, `the kit repo passes its own release gate (pre-tag mode)`);
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);

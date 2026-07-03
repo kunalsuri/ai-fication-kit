@@ -6,6 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-07-03
+
+Node-only runtime (Python installer removed), hash-verified incremental re-runs with a child-lock protecting human-verified work, native GitHub Copilot and Google Antigravity assets, a major test-suite hardening pass, and a deterministic release gate.
+
 ### Removed
 - **Python installer removed — the kit is now Node.js-only.** `install.py` and the
   parallel Python modules (`lib/*.py`) are gone; `install.mjs` + `lib/*.mjs`
@@ -76,6 +80,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     `test.yml` enforcing a floor (83 % lines / 73 % branches).
   (The suite briefly also carried a Node ↔ Python orient-parity gate; it was
   retired in the same cycle when the Python runtime was removed.)
+- **Deterministic release gate (`npm run release-check`).** Implements the approved
+  `ai/lab/specs/SPEC_release-check.md`: `test/release-check.mjs` (zero dependencies,
+  maintainer tooling — not stamped into target repos) checks **version-sync** across
+  `package.json`, `lib/util.mjs` `KIT_VERSION`, `CITATION.cff`, and the README BibTeX
+  block (plus the pushed tag in CI), a **changelog gate** (dated section with its
+  link reference at tag time; `[Unreleased]` allowed while developing), an
+  informational **coverage report** (files changed since the last tag, keyword-matched
+  against the changelog section), and **cli-docs-sync** (every command and flag in
+  `install.mjs` must appear in `docs/CLI-REFERENCE.md` and the usage help).
+  Runs on every `v*` tag via `.github/workflows/release-check.yml`, from the smoke
+  suite on every CI run, and as step 0 of `docs/RELEASE-CHECKLIST.md`; failure modes
+  are fixture-tested in `test/run-tests.mjs`. This gate would have caught the stale
+  version strings found in the pre-v0.2.0 audit.
 
 ## [0.1.2] — 2026-06-30
 
@@ -159,6 +176,8 @@ First public release of the `ai-fication-kit` — a tool to create a knowledge l
 - **Uninstall Command**: Removes exactly what the installer wrote using the manifest record without touching any other files.
 - **Smoke Test Suite**: Cross-runtime test suite (`test/run-tests.mjs`) to verify Node and Python installers, stack detection, and verify operations.
 
+[Unreleased]: https://github.com/kunalsuri/ai-fication-kit/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.2.0
 [0.1.2]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.2
 [0.1.1]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # SPEC: release-check — deterministic release-readiness gate
-> **Status:** approved
+> **Status:** implemented (2026-07-03, `[inferred]` — see Knowledge update below)
 > **Author:** Claude (agent-drafted, `[inferred]`) · **Date:** 2026-07-02
 
 ## Goal
@@ -84,9 +84,9 @@ add files under `test/` (whose MODULE_MAP row is `[inferred]`) and read (not
 edit) `lib/util.mjs`.
 
 ## Knowledge update on completion
-- [ ] FEATURE_MAP.md entry added/updated
-- [ ] FEATURE_CATALOG.md amended
-- [ ] MODULE_MAP.md `test/` responsibility line still accurate (extend to mention the release gate)
+- [x] FEATURE_MAP.md entry added/updated (`release-check`, `[inferred]`)
+- [x] FEATURE_CATALOG.md amended (F13, `[inferred]`)
+- [x] MODULE_MAP.md `test/` responsibility line extended to mention the release gate
 
 ## Sequencing note
 Docs PR [#7](https://github.com/kunalsuri/ai-fication-kit/pull/7) must merge

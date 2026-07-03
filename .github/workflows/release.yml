@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-      - name: Smoke tests (both installers)
+      - name: Smoke tests
         run: node test/run-tests.mjs
       - name: Verify tag matches package.json version
         run: |

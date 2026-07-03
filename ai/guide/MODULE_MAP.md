@@ -31,7 +31,7 @@
 | `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [inferred] (files under it changed in the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
 | `templates/github/` | Stamped to `.github/`: CI checks for verify/drift, plus GitHub Copilot assets (`copilot-instructions.md`, `prompts/*.prompt.md`, `chatmodes/*.chatmode.md`) | `templates/github/workflows/ai-check.yml.tmpl` | ours | [inferred] |
 | `templates/agents/` | Google Antigravity assets stamped to `.agents/`: workflow equivalents of the Claude commands, and the add-feature skill (shared Agent Skills format) | `templates/agents/workflows/cold-start.md` | ours | [inferred] |
-| `test/` | Smoke tests and deep-test standards verification | `test/run-tests.mjs` · `test/run-deep-test.mjs` | ours | [inferred] |
+| `test/` | Smoke tests, deep-test standards verification, and the deterministic release gate | `test/run-tests.mjs` · `test/run-deep-test.mjs` · `test/release-check.mjs` | ours | [inferred] |
 | `docs/` | Human-facing guides (audit guide, FAQ, release checklist) | `docs/README.md` | ours | [inferred] (files under it changed in the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
 | `examples/` | Sample target repos used to demonstrate/exercise the kit | `examples/README.md` | ours | [verified] (25/06/2026 20:52 CEST) |
 
