@@ -61,10 +61,15 @@ stops exactly where inference begins, handing the next steps to you and your age
    user-authored `CLAUDE.md`/`AGENTS.md`).
 3. **`orient`** — detects the stack and writes `ai/repo-profile.json` (with the
    maturity results embedded).
-4. **First-run wizard** — 4–5 short questions (your familiarity with the code, a
-   warning if you're on `main`/`master`, a chance to correct the detected stack).
-   Answers are stored under `humanContext` in the profile. Self-skips when the
-   profile already has a `humanContext`, when `--yes` is passed, or without a TTY.
+4. **First-run wizard** — a handful of short questions: your familiarity with the
+   code, a warning if you're on `main`/`master`, a chance to correct the detected
+   stack, and which AI coding tool you'll use (pre-selected via read-only
+   inspection of `~/.claude/`, `.cursor/`, and `~/.vscode/extensions/`). Answers
+   are stored under `humanContext` in the profile — the tool answer tailors step 1
+   of "Next steps" below to that tool alone (with a pointer to
+   `docs/MULTI-TOOL-SETUP.md` for the rest). Self-skips when the profile already
+   has a `humanContext`, when `--yes` is passed, or without a TTY — the "Next
+   steps" text then stays today's generic, Claude-Code-first output.
 5. **`install`** — stamps the templates (Process 2: timestamped backups first) and
    prints your next steps (`/cold-start` → audit → `verify`).
 

@@ -112,7 +112,7 @@ import { orient, printProfile } from "./lib/orient.mjs";
 import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
 import { drift } from "./lib/drift.mjs";
-import { runFirstRunWizard } from "./lib/intake.mjs";
+import { runFirstRunWizard, coldStartInstructionFor } from "./lib/intake.mjs";
 import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
 import { status } from "./lib/status.mjs";
 import { audit } from "./lib/audit.mjs";
@@ -327,14 +327,27 @@ if (command === "orient") {
   if (!flags.dryRun) {
     const isProcess2 = profile.maturity?.process === 2;
     const step = (n) => style.coral(`${n}.`);
+    const primaryTool = profile.humanContext?.primaryTool;
     info("\n" + style.bold("Next steps") + style.gray(" (the part that needs a brain):"));
-    info(`  ${step(1)} Open the repo in Claude Code and run  ${style.bold("/cold-start")}`);
-    info(`     The agent drafts ai/guide/MODULE_MAP.md and friends — everything tagged ${style.dim("[inferred]")}.`);
-    if (isProcess2) {
-      info(`     ${style.amber("↳")} Backup files exist — the agent will extract and reuse knowledge from`);
-      info(`       your prior CLAUDE.md / AGENTS.md to seed the ai/guide/ documents.`);
+
+    if (primaryTool === "None yet") {
+      info(`  ${step(1)} Pick an AI coding tool, then run the cold-start pass:`);
+      info(`     ${style.bold("Claude Code")}        — /cold-start`);
+      info(`     ${style.bold("GitHub Copilot")}      — /cold-start in Copilot Chat`);
+      info(`     ${style.bold("Cursor")}              — the cold-start rule in .cursor/rules/`);
+      info(`     ${style.bold("Google Antigravity")}  — the cold-start workflow in the Agent Manager`);
+      info(`     ${style.gray("See docs/MULTI-TOOL-SETUP.md for the full guide.")}`);
+    } else {
+      info(`  ${step(1)} ${coldStartInstructionFor(primaryTool)}`);
+      info(`     The agent drafts ai/guide/MODULE_MAP.md and friends — everything tagged ${style.dim("[inferred]")}.`);
+      if (isProcess2) {
+        info(`     ${style.amber("↳")} Backup files exist — the agent will extract and reuse knowledge from`);
+        info(`       your prior CLAUDE.md / AGENTS.md to seed the ai/guide/ documents.`);
+      }
+      info(`     ${style.gray(primaryTool && primaryTool !== "Several of these"
+        ? "(Using another tool too? See docs/MULTI-TOOL-SETUP.md for the rest.)"
+        : "(Not using Claude Code? See docs/FAQ.md#cursor-copilot-codex for other tools.)")}`);
     }
-    info(`     ${style.gray("(Not using Claude Code? See docs/FAQ.md#cursor-copilot-codex for other tools.)")}`);
     info(`  ${step(2)} Audit (~30 min): set each module's Stability (frozen / stable / ours),`);
     info(`     flip ${style.dim("[inferred]")} -> ${style.green("[verified]")} on rows you confirm.`);
     info(`  ${step(3)} Optional: node install.mjs verify <repo>  (mechanical claim check, no LLM),`);

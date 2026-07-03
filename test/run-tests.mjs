@@ -753,6 +753,79 @@ await testInstaller("node", process.execPath, path.join(kitRoot, "install.mjs"))
   ok(r === null, `intake wizard self-skips under --yes (no humanContext, no prompt)`);
 }
 
+// ---------- intake: AI-tool detection + tailored next-steps text ----------
+console.log("\n— intake: tool detection —");
+{
+  const { detectPrimaryTool, coldStartInstructionFor, PRIMARY_TOOL_OPTIONS } =
+    await import(pathToFileURL(path.join(kitRoot, "lib", "intake.mjs")).href);
+
+  ok(PRIMARY_TOOL_OPTIONS.includes("Claude Code") && PRIMARY_TOOL_OPTIONS.includes("None yet"),
+    `PRIMARY_TOOL_OPTIONS lists the expected choices: ${PRIMARY_TOOL_OPTIONS.join(", ")}`);
+
+  // signals detected in isolation — each fixture "home" carries exactly one signal
+  {
+    const home = await makeBareFixture("tool-detect-claude", { ".claude/settings.json": "{}\n" });
+    const target = await makeBareFixture("tool-detect-claude-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === "Claude Code",
+      `detectPrimaryTool: <home>/.claude/ → "Claude Code"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-nohome", {});
+    const target = await makeBareFixture("tool-detect-cursor-target", { ".cursor/settings.json": "{}\n" });
+    ok((await detectPrimaryTool(target, home)) === "Cursor",
+      `detectPrimaryTool: .cursor/ in the TARGET repo → "Cursor"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-cursor-home", { ".cursor/settings.json": "{}\n" });
+    const target = await makeBareFixture("tool-detect-plain-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === "Cursor",
+      `detectPrimaryTool: .cursor/ in the HOME dir → "Cursor"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-copilot", {
+      ".vscode/extensions/github.copilot-1.2.3/package.json": "{}\n",
+    });
+    const target = await makeBareFixture("tool-detect-copilot-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === "GitHub Copilot",
+      `detectPrimaryTool: ~/.vscode/extensions/github.copilot* → "GitHub Copilot"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    // no home dir at all (permissions, sandboxed container, …) — tolerated silently, no throw
+    const missingHome = path.join(here, `tmp-tool-detect-missing-${process.pid}`);
+    const target = await makeBareFixture("tool-detect-missing-target", { "app.ts": "export {};\n" });
+    let result, threw = false;
+    try { result = await detectPrimaryTool(target, missingHome); } catch { threw = true; }
+    ok(!threw && result === null, `detectPrimaryTool: missing home dir → null, no throw`);
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-none", {});
+    const target = await makeBareFixture("tool-detect-none-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === null,
+      `detectPrimaryTool: no signal at all → null (asks with no default guess)`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+
+  // coldStartInstructionFor: every named tool, plus the fallback cases
+  ok(/Claude Code/.test(coldStartInstructionFor("Claude Code")), `coldStartInstructionFor: Claude Code`);
+  ok(/Copilot Chat/.test(coldStartInstructionFor("GitHub Copilot")), `coldStartInstructionFor: GitHub Copilot`);
+  ok(/\.cursor\/rules\/cold-start\.mdc/.test(coldStartInstructionFor("Cursor")), `coldStartInstructionFor: Cursor`);
+  ok(/Agent Manager/.test(coldStartInstructionFor("Google Antigravity")), `coldStartInstructionFor: Google Antigravity`);
+  const fallback = coldStartInstructionFor("Claude Code");
+  ok(coldStartInstructionFor("Several of these") === fallback, `coldStartInstructionFor: "Several of these" falls back to Claude Code`);
+  ok(coldStartInstructionFor("something-unrecognized") === fallback, `coldStartInstructionFor: unrecognized value falls back to Claude Code`);
+  ok(coldStartInstructionFor(undefined) === fallback, `coldStartInstructionFor: undefined (no wizard ran) falls back to Claude Code`);
+}
+
 // ---------- check-repo-maturity: standalone command ----------
 console.log("\n— check-repo-maturity —");
 {

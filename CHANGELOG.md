@@ -7,6 +7,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **AI-tool detection in the first-run wizard** — one more question, "Which AI
+  coding tool will you use?", pre-selected via read-only inspection
+  (`~/.claude/`, `.cursor/` in the target or home dir,
+  `~/.vscode/extensions/github.copilot*`; any read failure tolerated
+  silently). Stored as `humanContext.primaryTool`; the post-install "Next
+  steps" step 1 then shows only that tool's instructions, with a pointer to
+  `docs/MULTI-TOOL-SETUP.md` for the rest. `--yes`/no-TTY runs are unaffected
+  — the wizard self-skips before this question, so automation keeps today's
+  generic output.
 - **Native Cursor rules assets** — `templates/cursor/rules/*.mdc`, stamped to
   `.cursor/rules/` in the target: one rule per workflow command (same content
   as the Copilot prompts, MDC frontmatter, `alwaysApply: false`), plus one

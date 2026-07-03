@@ -34,7 +34,7 @@
 - **Business goal:** Provide a user-friendly CLI wizard to guide new users through repo profile configuration.
 - **Touches:** `install.mjs`, `lib/intake.mjs`, `lib/util.mjs`
 - **Verify with:** `node install.mjs shazam .` from a real terminal (wizard prompts appear before install)
-- **Gotchas:** The first-run wizard skips itself in non-TTY shells (e.g. CI) or when `--yes` is passed; `--skip-prompt` bypasses only the analysis-level chooser, not the wizard. Answers land under `humanContext` in `ai/repo-profile.json`, and the wizard is skipped on re-runs once `humanContext` exists.
+- **Gotchas:** The first-run wizard skips itself in non-TTY shells (e.g. CI) or when `--yes` is passed; `--skip-prompt` bypasses only the analysis-level chooser, not the wizard. Answers land under `humanContext` in `ai/repo-profile.json`, and the wizard is skipped on re-runs once `humanContext` exists. The "which AI tool?" question (recorded as the `primaryTool` field of `humanContext`) is pre-selected by read-only inspection (`detectPrimaryTool`, exported for testing) — home-dir/target reads only, any failure tolerated silently, never a write. `coldStartInstructionFor` (also exported) maps the answer to the post-install "Next steps" step-1 text; `install.mjs`'s shazam branch is the only caller.
 - **Related:** `shazam`
 
 ### install  `[inferred]`
