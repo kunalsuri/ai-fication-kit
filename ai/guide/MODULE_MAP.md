@@ -4,15 +4,13 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-07-03 @ commit dd99400 (drift baseline re-anchored 2026-07-03, twice:
-> first to commit f781261 "Verified before v0.2.0 release", where the human re-audited and
-> flipped `/`, `lib/`, `templates/`, `templates/claude/`, `templates/github/`,
-> `templates/agents/`, `test/`, and `docs/` to `[verified]` — the previous 2026-06-25 anchor
-> predated that pass and made the `--git` drift check flag all of them as stale again. Then
-> commit dd99400 edited `test/run-tests.mjs` (env-isolation fix for the release-check
-> fixtures), which the human reviewed and re-verified the same day — re-anchored again so
-> only `test/` carries the newer timestamp below; the per-row human audit dates remain the
-> authoritative signatures)
+> Last verified: 2026-07-03 @ commit e28482e (drift baseline re-anchored 2026-07-03: PR #19
+> (9 backlog features — `doctor`, `drift --suggest`, `--github-summary`, `status`, `audit`,
+> `demo`, native Cursor rules, AI-tool detection in the wizard, the living progress page) and
+> PR #20 (fixes for GitHub Copilot's review of #19) touched `/`, `lib/`, `templates/`,
+> `templates/ai/`, `templates/github/`, `test/`, and `docs/` after the previous dd99400
+> baseline — the human (kunalsuri) reviewed and merged both PRs; the per-row human audit
+> dates below remain the authoritative signatures)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
