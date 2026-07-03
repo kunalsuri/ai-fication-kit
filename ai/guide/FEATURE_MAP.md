@@ -62,14 +62,14 @@
 - **Business goal:** Mechanically extract and check every backtick-quoted path claim in the knowledge documents against the active directory tree.
 - **Touches:** `install.mjs`, `lib/verify.mjs`
 - **Verify with:** `node install.mjs verify . --strict`
-- **Gotchas:** Claim matching is case-INSENSITIVE by design on every platform (both index and lookup are lowercased in `lib/verify.mjs`), so a claim can stay confirmed even if its casing no longer matches the file on disk. Claims containing whitespace, globs, or `<placeholders>` are ignored.
+- **Gotchas:** Claim matching is case-INSENSITIVE by design on every platform (both index and lookup are lowercased in `lib/verify.mjs`), so a claim can stay confirmed even if its casing no longer matches the file on disk. Claims containing whitespace, globs, or `<placeholders>` are ignored. `--github-summary` appends a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set — silent no-op otherwise, no effect on `--strict` exit codes.
 - **Related:** `drift`, `deep-test`
 
 ### drift  `[inferred]`
 - **Business goal:** Analyze codebase to identify unmapped active source directories, vanished map entries, and stale verified modules.
 - **Touches:** `install.mjs`, `lib/drift.mjs`
 - **Verify with:** `node install.mjs drift . --strict` (or `--git` for stale checks)
-- **Gotchas:** The stale check runs a read-only git command to detect modified files; it requires a valid git history and will be skipped in shallow clones. `--suggest` appends ready-to-paste MODULE_MAP rows/line pointers to the report and a `suggestions` array to the manifest — it never edits `MODULE_MAP.md` itself, and the entry-point guess is deterministic (`index.*`/`main.*`, else largest source file).
+- **Gotchas:** The stale check runs a read-only git command to detect modified files; it requires a valid git history and will be skipped in shallow clones. `--suggest` appends ready-to-paste MODULE_MAP rows/line pointers to the report and a `suggestions` array to the manifest — it never edits `MODULE_MAP.md` itself, and the entry-point guess is deterministic (`index.*`/`main.*`, else largest source file). `--github-summary` appends a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set — silent no-op otherwise.
 - **Related:** `verify`, `deep-test`
 
 ### maturity  `[inferred]`

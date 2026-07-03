@@ -7,6 +7,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **`--github-summary`** on `verify`/`drift` — appends a short plain-English
+  ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set (one line per problem, a
+  confirmation line on success), so CI failures read like guidance instead of
+  raw logs. Silent no-op without the env var or the flag; `--strict` exit
+  codes are unaffected. `templates/github/workflows/ai-check.yml.tmpl` now
+  passes the flag and runs its steps with `if: always()`.
 - **`drift --suggest`** — appends ready-to-paste `MODULE_MAP.md` rows for every
   unmapped directory (deterministic entry-point guess: `index.*`/`main.*`, else
   largest source file) and the exact line number to delete or fix for every

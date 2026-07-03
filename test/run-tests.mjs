@@ -617,6 +617,104 @@ async function testInstaller(label, exec, script) {
 
   await fs.rm(srepo, { recursive: true, force: true });
 
+  // ---------- --github-summary: friendly CI feedback ----------
+  {
+    const sumFile = path.join(here, `tmp-summary-${label}-${process.pid}.md`);
+    const runEnv = (extraEnv, args) => {
+      const rr = spawnSync(exec, [script, ...args], { encoding: "utf8", env: { ...process.env, ...extraEnv } });
+      return { code: rr.status, out: (rr.stdout || "") + (rr.stderr || "") };
+    };
+
+    // verify: failing claim + --github-summary + env set → ❌ headline naming the fix
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-fail`, {
+        "ai/guide/MODULE_MAP.md": "# map\nSee `missing/ghost.ts`.\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["verify", d, "--github-summary"]);
+      ok(rr.code === 0, `verify --github-summary exits 0 (no --strict) even with an unconfirmed claim`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/❌/.test(sum) && /missing\/ghost\.ts/.test(sum) && /check-drift/.test(sum),
+        `verify appends a ❌ summary naming the missing claim and the fix`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+
+    // verify: clean run + --github-summary + env set → ✅ headline + confirmation
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-ok`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["verify", d, "--github-summary"]);
+      ok(rr.code === 0, `verify --github-summary exits 0 on a clean run`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/✅/.test(sum) && /confirmed/.test(sum), `verify appends a ✅ confirmation summary`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+
+    // verify: --github-summary without the env var set → silent no-op, exit unaffected
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-noenv`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      });
+      const envNoSummary = { ...process.env };
+      delete envNoSummary.GITHUB_STEP_SUMMARY;
+      const rr = spawnSync(exec, [script, "verify", d, "--github-summary"], { encoding: "utf8", env: envNoSummary });
+      ok(rr.status === 0, `verify --github-summary without the env var still exits 0 (silent no-op)`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // verify: env var set but the flag absent → nothing appended (today's behavior)
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-noflag`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["verify", d]);
+      ok(!(await exists(sumFile)), `verify without --github-summary appends nothing, even with the env var set`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // drift: unmapped directory + --github-summary + env set → ❌ headline naming the fix
+    {
+      const d = await makeBareFixture(`${label}-summary-drift-fail`, {
+        "widgets/widget.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md":
+          "# map\n| Directory | Responsibility | Entry point | Stability | Status |\n|---|---|---|---|---|\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["drift", d, "--github-summary"]);
+      ok(rr.code === 0, `drift --github-summary exits 0 (no --strict) even with drift found`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/❌/.test(sum) && /widgets\//.test(sum) && /check-drift/.test(sum),
+        `drift appends a ❌ summary naming the unmapped directory and the fix`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+
+    // drift: clean run + --github-summary + env set → ✅ headline + confirmation
+    {
+      const d = await makeBareFixture(`${label}-summary-drift-ok`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md":
+          "# map\n| Directory | Responsibility | Entry point | Stability | Status |\n|---|---|---|---|---|\n" +
+          "| `/` (root) | core | `app.ts` | ours | [verified] |\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["drift", d, "--github-summary"]);
+      ok(rr.code === 0, `drift --github-summary exits 0 on a clean run`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/✅/.test(sum) && /No drift/.test(sum), `drift appends a ✅ confirmation summary`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+  }
+
   // ---------- error handling & CLI surface ----------
   r = run(exec, [script, "install", path.join(here, "definitely-not-here-xyz")]);
   ok(r.code !== 0, `missing target → non-zero exit`);

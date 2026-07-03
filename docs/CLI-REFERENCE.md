@@ -204,7 +204,7 @@ prior configuration.
 ## `verify` — mechanical claim verification
 
 ```bash
-node install.mjs verify /path/to/your/repo [--dry-run] [--strict]
+node install.mjs verify /path/to/your/repo [--dry-run] [--strict] [--github-summary]
 ```
 
 The mechanical half of "kept mechanically honest". Extracts every backtick-quoted
@@ -220,7 +220,14 @@ With `--strict`, the command exits `1` if any claim is unconfirmed — drop it i
 CI so a stale map fails the build (the kit's own
 `.github/workflows/ai-check.yml` template does exactly this).
 
-**Options:** `--dry-run`, `--strict`.
+With `--github-summary`, and only when the `$GITHUB_STEP_SUMMARY` env var is
+set (i.e. inside a GitHub Actions job), appends a short plain-English summary
+there instead of leaving a beginner to read raw console output: a ✅/❌
+headline, one line per unconfirmed claim naming the fix, or a confirmation
+line on success. A silent no-op anywhere else (no env var → nothing appended,
+no error); exit codes are unaffected.
+
+**Options:** `--dry-run`, `--strict`, `--github-summary`.
 
 ---
 
@@ -228,7 +235,7 @@ CI so a stale map fails the build (the kit's own
 ## `drift` — where the code outgrew the map
 
 ```bash
-node install.mjs drift /path/to/your/repo [--dry-run] [--strict] [--git] [--suggest]
+node install.mjs drift /path/to/your/repo [--dry-run] [--strict] [--git] [--suggest] [--github-summary]
 ```
 
 The reverse of `verify`: instead of checking what the docs quote, it checks what
@@ -258,7 +265,11 @@ first `index.*`/`main.*` file, else the largest source file — Stability always
 `suggestions` array in `DRIFT_MANIFEST.json`. Without `--suggest`, output is
 unchanged. It never edits `MODULE_MAP.md` itself.
 
-**Options:** `--dry-run`, `--strict`, `--git`, `--suggest`.
+With `--github-summary` (same behavior as `verify`'s), appends a ✅/❌
+headline plus one plain-English line per unmapped/vanished/stale finding to
+`$GITHUB_STEP_SUMMARY` when set; silent no-op elsewhere.
+
+**Options:** `--dry-run`, `--strict`, `--git`, `--suggest`, `--github-summary`.
 
 ---
 
@@ -315,6 +326,7 @@ which step you're on, a one-sentence diagnosis, and the exact next command.
 | `--strict` | `verify`, `drift` | exit `1` if any claim is unconfirmed / any drift found (for CI) |
 | `--git` | `drift` | enable the *stale* check (local, read-only git) |
 | `--suggest` | `drift` | append ready-to-paste MODULE_MAP fixes to the report/manifest |
+| `--github-summary` | `verify`, `drift` | append a plain-English summary to `$GITHUB_STEP_SUMMARY` if set (no-op otherwise) |
 | `--force` | `install`, `shazam` | overwrite files you edited, after a timestamped `_bkp_` copy; `[verified]` files still kept |
 | `--force-verified` | `install`, `shazam` | implies `--force`; unlocks `[verified]` files after showing every signature to be lost and requiring you to type `overwrite` |
 | `--yes` | `shazam`, `install`, `uninstall` | skip confirmation prompts and the wizard (CI mode); warnings still printed |

@@ -68,6 +68,8 @@
 //   --strict             verify/drift only: exit 1 if any claim is unconfirmed / drifted
 //   --git                drift only: include the stale check (local, read-only git)
 //   --suggest            drift only: append ready-to-paste MODULE_MAP fixes to the report
+//   --github-summary     verify/drift only: append a plain-English summary to
+//                        $GITHUB_STEP_SUMMARY if set (silent no-op otherwise)
 //   --force              overwrite files you edited (timestamped backup taken first);
 //                        files carrying a human [verified] tag are still kept
 //   --force-verified     implies --force AND unlocks [verified] files too — shows
@@ -110,6 +112,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--force-verified") { flags.forceVerified = true; flags.force = true; }
   else if (a === "--git") flags.git = true;
   else if (a === "--suggest") flags.suggest = true;
+  else if (a === "--github-summary") flags.githubSummary = true;
   else if (a === "--yes") flags.yes = true;
   else if (a === "--skip-prompt") flags.skipPrompt = true;
   else if (a === "--interactive" || a === "-i") flags.interactive = true;
@@ -162,7 +165,7 @@ Usage:
                                                    writes nothing
 
 Options: --dry-run --force --force-verified --yes --strict --git --suggest
-         --name --description --build --test --upstream
+         --github-summary --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 `);
