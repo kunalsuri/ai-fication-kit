@@ -6,18 +6,16 @@
 
 <br><br>
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
-
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
-[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
-[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
-
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-compatible-8957e5?style=for-the-badge&logo=githubcopilot&logoColor=white)](docs/FAQ.md#cursor-copilot-codex)
 [![Google Antigravity](https://img.shields.io/badge/Google%20Antigravity-compatible-4285F4?style=for-the-badge&logo=google&logoColor=white)](docs/FAQ.md#cursor-copilot-codex)
 [![Works with](https://img.shields.io/badge/also%20works%20with-Cursor%20%7C%20Codex-lightgrey?style=for-the-badge)](docs/FAQ.md#cursor-copilot-codex)
-
 [![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
+
+[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
+[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
 <h2> A Simple & Elegant Way to Make any Codebase / Repo AI-native while keeping it Trustworthy.</h2>
 
