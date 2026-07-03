@@ -10,9 +10,13 @@ from pathlib import Path
 from .util import KIT_VERSION
 
 
+# Runs argv directly (no shell), so callers can write git format strings like
+# --format='%(refname:short)' without cmd.exe on Windows mangling the `%`
+# placeholders or treating a literal `|` as a pipe.
 def run_cmd(cmd, cwd):
     try:
-        r = subprocess.run(cmd, shell=True, cwd=str(cwd), capture_output=True, text=True, encoding="utf-8", errors="replace")
+        args = [part.replace("'", "") for part in cmd.split(" ")]
+        r = subprocess.run(args, shell=False, cwd=str(cwd), capture_output=True, text=True, encoding="utf-8", errors="replace")
         return {"code": r.returncode, "out": r.stdout + r.stderr, "success": r.returncode == 0}
     except Exception as e:
         return {"code": 1, "out": str(e), "success": False}
