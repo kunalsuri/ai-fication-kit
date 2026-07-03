@@ -6,3 +6,5 @@
 - [ ] License headers match neighbors
 - [ ] Narrow suite green; spec-named suites green; commands and output reported
 - [ ] ai/ knowledge updated and tagged `[inferred]`
+- [ ] Review requested via /review-change (fresh context)
+- [ ] WORKLOG.md row appended linking spec, review, commits — tagged `[inferred]`

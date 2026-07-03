@@ -7,7 +7,7 @@ description: Add a feature to this repository the safe way — spec, locate via 
 # Add a feature
 
 The contract: **no code before a spec, no edits to frozen code, no "done" without
-green tests, no merge without a knowledge update.**
+green tests, no merge without a review and a knowledge update.**
 
 ## 1. Spec
 If `ai/lab/specs/SPEC_<name>.md` doesn't exist, draft it from SPEC_TEMPLATE.md
@@ -34,3 +34,7 @@ Red or unrun ⇒ not done.
 ## 6. Update knowledge
 FEATURE_MAP entry; catalog amendment; MODULE_MAP if layout changed; all `[inferred]`.
 Tell the user which tags await their `[verified]` flip.
+
+## 7. Review & record
+Request `/review-change` on the diff (fresh context — not this session). Append
+the work's row to `ai/lab/WORKLOG.md` linking spec, review, and commits.

@@ -25,7 +25,9 @@ change, update this one file.
 | Diagrams (Mermaid) | `ai/analysis/diagrams/` | `/cold-start`, regenerate don't hand-edit | on demand |
 | Development intelligence | `ai/lab/` | human (+ AI drafts) | when planning/reviewing |
 | Decisions (ADRs) | `ai/lab/decisions/` | human | when planning |
-| Feature specs | `ai/lab/specs/` | human + AI draft | per feature |
+| Feature & bugfix specs | `ai/lab/specs/` | human + AI draft | per unit of work |
+| Work ledger (what shipped, when, under which spec) | `ai/lab/WORKLOG.md` | AI appends, human audits | per unit of work |
+| Change reviews | `ai/lab/reviews/` | AI (fresh session) + human | pre-merge |
 | Evaluations | `ai/lab/evaluations/` | human | post-ship |
 | Experiments | `ai/lab/experiments/` | human + AI | when trying new agent approaches |
 | Lessons learnt (kit dev) | `docs/dev/lessons-learnt/` | human + AI draft | when questioning the ai/ design |

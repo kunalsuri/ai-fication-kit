@@ -7,6 +7,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **The engineering loop** — the method's steady state once a repo is AI-native:
+  every unit of work (feature or bug) runs Spec → Decide → Implement → Review →
+  Evaluate → Record, documented in `docs/METHODOLOGY.md` §7. Ships as:
+  - **`ai/lab/WORKLOG.md`** (stamped from `templates/ai/lab/WORKLOG.md.tmpl`) —
+    the append-only work ledger: one row per unit of work linking spec, ADRs,
+    review, evaluation, commits, and knowledge updates. `verify` now scans it
+    as a claim source, so a ledger row whose artifacts vanished fails
+    `--strict` CI instead of rotting silently.
+  - **`/fix-bug`** — the bug-fixing counterpart to `/add-feature`: bugfix doc
+    from the new `ai/lab/specs/BUGFIX_TEMPLATE.md`, a *failing* regression test
+    before any fix, root cause named before patching, Stability gates, then
+    review and a `bugfix` ledger row. Shipped as a shared Agent Skill
+    (`.claude/skills/fix-bug/`, `.agents/skills/fix-bug/`) plus the command /
+    workflow / prompt / rule wrappers in all four tool integrations.
+  - **`/review-change`** — review-driven development: a fresh-context session
+    (never the implementer) checks the diff against its spec with evidence per
+    check, files severity-ranked findings into `ai/lab/reviews/REVIEW_*.md`
+    (new `REVIEW_TEMPLATE.md`), and hands the human a verdict — the merge
+    decision stays the human's. Available in all four tool integrations.
+  - `/add-feature` gains step 7 (**Review & record**); `ai/lab/README.md`,
+    `ai/INDEX.md`, `docs/MULTI-TOOL-SETUP.md` (now ten workflow commands), and
+    the Copilot instructions register the new pieces.
 - **Living progress page (`ai/START-HERE.html`)** — a fully offline dashboard
   stamped into every target repo: a 5-step checklist (reusing `doctor`'s
   stage detection), `[verified]`/`[inferred]` row counts, open drift items,

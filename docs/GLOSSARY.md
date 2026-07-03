@@ -34,6 +34,13 @@ concept is explained in depth.
   teammates onboarding.
 - **`repo-profile.json`** — machine-readable stack facts produced deterministically by
   `orient` (languages, build/test commands, fork status). No guessing, no LLM.
+- **Work ledger (`WORKLOG.md`)** — the append-only table in `ai/lab/`: one row per
+  unit of work (feature or bug fix), linking its spec, review, evaluation, and
+  commits. The repo's memory of *what was done*, checked by `verify` like any
+  other claim.
+- **Engineering loop** — the steady-state method once the map is trusted: every
+  unit of work runs Spec → Decide → Implement → Review → Evaluate → Record
+  (`/add-feature` or `/fix-bug`, then `/review-change`, then a ledger row).
 
 ## The commands
 

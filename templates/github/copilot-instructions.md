@@ -17,6 +17,8 @@ type `/` in chat to see them:
 
 - `/cold-start` — bootstrap the `ai/guide` maps and diagrams (draft-only, `[inferred]`)
 - `/add-feature` — spec first, then implement using the knowledge layer
+- `/fix-bug` — reproduce first, failing regression test, root cause, surgical fix
+- `/review-change` — fresh-context review of a finished change against its spec
 - `/check-drift` — run the mechanical verify + drift checks
 - `/create-feature-catalog` — mine the code for a feature → files catalog
 - `/perform-feature-add-simulation` — dry-run a feature add without writing code
@@ -32,6 +34,7 @@ verification respectively.
 ## Agent Skills
 
 VS Code discovers Agent Skills from `.claude/skills/` and `.agents/skills/` in
-this repo automatically — the `add-feature` skill there (spec → locate → gate →
-implement → verify → update knowledge) applies to Copilot too; nothing
-Copilot-specific needed here.
+this repo automatically — the `add-feature` skill (spec → locate → gate →
+implement → verify → review & record) and the `fix-bug` skill (reproduce →
+failing test → locate → gate → root cause → fix → verify → review & record)
+apply to Copilot too; nothing Copilot-specific needed here.

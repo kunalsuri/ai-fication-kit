@@ -160,10 +160,16 @@ async function testInstaller(label, exec, script) {
     path.join("ai", "analysis", "FEATURE_CATALOG.md"),
     path.join("ai", "analysis", "FEATURE_CATALOG_BACKEND.md"),
     path.join("ai", "analysis", "FEATURE_CATALOG_FRONTEND.md"),
+    path.join("ai", "lab", "WORKLOG.md"),
+    path.join("ai", "lab", "reviews", "REVIEW_TEMPLATE.md"),
+    path.join("ai", "lab", "specs", "BUGFIX_TEMPLATE.md"),
     path.join(".claude", "commands", "cold-start.md"),
     path.join(".claude", "commands", "check-drift.md"),
+    path.join(".claude", "commands", "fix-bug.md"),
+    path.join(".claude", "commands", "review-change.md"),
     path.join(".claude", "agents", "repo-explorer.md"),
     path.join(".claude", "skills", "add-feature", "SKILL.md"),
+    path.join(".claude", "skills", "fix-bug", "SKILL.md"),
     path.join(".github", "workflows", "ai-check.yml"),
     path.join(".github", "copilot-instructions.md"),
     path.join(".github", "prompts", "cold-start.prompt.md"),
@@ -171,11 +177,18 @@ async function testInstaller(label, exec, script) {
     path.join(".github", "chatmodes", "repo-explorer.chatmode.md"),
     path.join(".github", "chatmodes", "feature-builder.chatmode.md"),
     path.join(".github", "chatmodes", "test-runner.chatmode.md"),
+    path.join(".github", "prompts", "fix-bug.prompt.md"),
+    path.join(".github", "prompts", "review-change.prompt.md"),
     path.join(".agents", "workflows", "cold-start.md"),
     path.join(".agents", "workflows", "add-feature.md"),
+    path.join(".agents", "workflows", "fix-bug.md"),
+    path.join(".agents", "workflows", "review-change.md"),
     path.join(".agents", "skills", "add-feature", "SKILL.md"),
+    path.join(".agents", "skills", "fix-bug", "SKILL.md"),
     path.join(".cursor", "rules", "cold-start.mdc"),
     path.join(".cursor", "rules", "add-feature.mdc"),
+    path.join(".cursor", "rules", "fix-bug.mdc"),
+    path.join(".cursor", "rules", "review-change.mdc"),
     path.join(".cursor", "rules", "ai-knowledge-layer.mdc"),
     path.join("ai", "START-HERE.html"),
     path.join("ai", "install-manifest.json")]) {
@@ -565,6 +578,32 @@ async function testInstaller(label, exec, script) {
     ok(r.code === 0 && dc?.status === "confirmed" && /2 matches/.test(dc?.note || ""),
       `filename claim with duplicate basenames confirmed with a "2 matches" note`);
     await fs.rm(dupe, { recursive: true, force: true });
+  }
+
+  // the work ledger is a claim source: a row whose artifacts vanished fails --strict
+  {
+    const lrepo = await makeBareFixture(`${label}-verify-worklog`, {
+      "app.ts": "export {};\n",
+      "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      "ai/lab/specs/SPEC_x.md": "# SPEC: x\n",
+      "ai/lab/WORKLOG.md": "# Work ledger\n\n| ID | Spec | Status |\n|---|---|---|\n" +
+        "| W-001 | `ai/lab/specs/SPEC_x.md` | shipped |\n",
+    });
+    r = run(exec, [script, "verify", lrepo, "--strict"]);
+    ok(r.code === 0, `verify --strict passes while every WORKLOG artifact link resolves`);
+    await fs.appendFile(path.join(lrepo, "ai", "lab", "WORKLOG.md"),
+      "| W-002 | `ai/lab/specs/SPEC_vanished.md` | in-review |\n");
+    r = run(exec, [script, "verify", lrepo, "--strict"]);
+    let lm = { sourcesScanned: [], claims: [] };
+    try {
+      lm = JSON.parse(await fs.readFile(path.join(lrepo, "ai", "analysis",
+        "audit-reports", "VERIFICATION_MANIFEST.json"), "utf8"));
+    } catch { /* missing manifest — caught by the assertion */ }
+    ok(r.code !== 0 && lm.sourcesScanned.includes("ai/lab/WORKLOG.md") &&
+      lm.claims.some(c => c.claim === "ai/lab/specs/SPEC_vanished.md" &&
+        c.status === "missing" && c.sourceFile === "ai/lab/WORKLOG.md"),
+      `a WORKLOG row whose spec vanished fails verify --strict, attributed to the ledger`);
+    await fs.rm(lrepo, { recursive: true, force: true });
   }
 
   // ---------- drift: structural detection (unmapped / vanished) ----------

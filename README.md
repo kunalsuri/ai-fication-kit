@@ -34,7 +34,7 @@ AI coding agents are context-blind on large or legacy repositories: every sessio
 
 * 🧠 **Context & memory for the agent.** A structured `ai/` knowledge layer — module map, architecture, feature map, conventions — that agents query *instead of* crawling raw source. Compact, provenance-tracked context in; token burn and context-window churn out.
 
-* 🏗️ **Harness engineering support.** The full agent harness, pre-built: agent instructions (`CLAUDE.md`, `AGENTS.md`), eight workflow commands (`/cold-start`, `/add-feature`, …), subagent personas (`repo-explorer`, `feature-builder`, `test-runner`), reusable skills, and a CI workflow (`ai-check.yml`) — stamped natively for **Claude Code** (`.claude/`), **GitHub Copilot** (`.github/`), **Google Antigravity** (`.agents/`), and **Cursor** (`.cursor/`) in one install.
+* 🏗️ **Harness engineering support.** The full agent harness, pre-built: agent instructions (`CLAUDE.md`, `AGENTS.md`), ten workflow commands (`/cold-start`, `/add-feature`, `/fix-bug`, `/review-change`, …), subagent personas (`repo-explorer`, `feature-builder`, `test-runner`), reusable skills, and a CI workflow (`ai-check.yml`) — stamped natively for **Claude Code** (`.claude/`), **GitHub Copilot** (`.github/`), **Google Antigravity** (`.agents/`), and **Cursor** (`.cursor/`) in one install.
 
 * 🤝 **Guided, human-verified Repo Intelligence.** The kit guides you through one linear path — scaffold → agent inference → **human audit** → mechanical verification. The result is **AI-Powered Repo Intelligence**: a knowledge-base where every agent-drafted claim starts as `[inferred]` and only *you* can flip it to `[verified]`. Deterministic `verify` and `drift` checks fail CI the moment the map and the code disagree.
 

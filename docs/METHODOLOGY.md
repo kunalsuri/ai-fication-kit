@@ -63,7 +63,7 @@ each value in the [Audit Guide](AUDIT-GUIDE.md).
 | **3. `/cold-start`** | Agent (~5 min) | Model inference. Process 2: Step 0.5 first extracts knowledge from the `*_bkp_*.md` backups. Then drafts `MODULE_MAP.md`, diagrams, and candidate features — every claim tagged `[inferred]`. |
 | **4. The audit** | **Human** (~30 min) | The trust verification the whole method hinges on. Set each module's Stability, flip confirmed rows to `[verified]`. See [AUDIT-GUIDE.md](AUDIT-GUIDE.md). |
 | **5. `verify` + `drift`** | Script (+ agent, optional) | Mechanical honesty. `verify` cross-checks every path claim in the docs against the tree; `drift` reports what the map stopped covering. Agent commands (`/post-cold-start-verification`, `/verify-ai-readiness`) add the semantic checks a script cannot judge. |
-| **6. `/add-feature`** | Agent | Safeguarded development. The agent specs, navigates by the verified maps, tests, and updates the knowledge layer — without touching `frozen` code. |
+| **6. `/add-feature`** | Agent | Safeguarded development. The agent specs, navigates by the verified maps, tests, and updates the knowledge layer — without touching `frozen` code. Step 6 is not a single command but the entry into the steady-state **engineering loop** (§7): `/add-feature` for features, `/fix-bug` for defects, `/review-change` before merge, one `WORKLOG.md` row per unit of work. |
 
 Steps 0–2 are one command in practice (`shazam` chains them); the full CLI
 behavior of every step is specified in [CLI-REFERENCE.md](CLI-REFERENCE.md).
@@ -134,7 +134,46 @@ The knowledge layer is deliberately **tool-agnostic**: every agent reads the
 same maps, and three tools additionally get native automation (see
 [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md)).
 
-## 7. Design pillars, summarized
+## 7. The engineering loop — the steady state after the map is trusted
+
+Steps 0–5 make a repo AI-native once; the engineering loop is what the method
+looks like *every day after that*. Each unit of work — a feature added or a bug
+fixed — runs the same closed loop, and each stage produces a durable artifact
+in `ai/lab/`:
+
+| Stage | Discipline | Artifact | Gate |
+|:---|:---|:---|:---|
+| **Spec** | specification-driven | `ai/lab/specs/SPEC_*.md` or `BUGFIX_*.md` | no code before the human OKs the spec; for bugs, no fix before a *failing* regression test reproduces the defect |
+| **Decide** | decision records | `ai/lab/decisions/ADR_*.md` | non-obvious choices are written down, not implied by the diff |
+| **Implement** | surgical diffs | the change itself (`/add-feature`, `/fix-bug`) | Stability gates apply; `frozen`/`?` requires recorded human approval |
+| **Review** | review-driven | `ai/lab/reviews/REVIEW_*.md` (`/review-change`) | fresh context — never the implementing session; blockers send the work back |
+| **Evaluate** | evaluation-driven | `ai/lab/evaluations/EVAL_*.md` | what the agent did well/poorly, audit cost, what to change next time |
+| **Record** | memory | one row in `ai/lab/WORKLOG.md` | the row links spec ↔ review ↔ eval ↔ commits; `verify` checks its paths |
+
+The loop deliberately mirrors how the rest of the kit thinks about knowledge
+(see `ai/lab/README.md`): the maps in `ai/guide/` are the repo's *semantic
+memory* (what is), `ai/lab/` is its *episodic memory* (what happened and why),
+and `WORKLOG.md` is the episodic **index** — the one place that answers "what
+was done to this repo, when, under which spec, and who checked it?". Agents
+consult it before touching an area ("was this just changed? is this 'bug'
+deliberate?"), and humans audit it like every other `[inferred]` claim.
+
+Three properties keep the loop honest, in the same spirit as §5:
+
+- **The reviewer never shares the implementer's context.** `/review-change`
+  runs in a fresh session and re-runs the suites instead of trusting the
+  implementer's report — a reviewer that read the implementation reasoning
+  inherits its blind spots. The review verdict is still `[inferred]`; the
+  human's merge decision is the real approval, the review document is its
+  evidence.
+- **Reproduction before fix.** `/fix-bug` refuses the shortcut that creates
+  phantom fixes: a failing regression test is the proof the bug is understood,
+  and it outlives the fix as a permanent guard.
+- **The ledger cannot silently rot.** Every artifact path in a `WORKLOG.md`
+  row is backtick-quoted, and `verify` checks those claims like any other —
+  a row whose spec or review vanished fails `--strict` CI.
+
+## 8. Design pillars, summarized
 
 | Pillar | Implementation |
 |:---|:---|
@@ -145,6 +184,7 @@ same maps, and three tools additionally get native automation (see
 | **Drift detection** | `drift` catches unmapped, vanished, and (with `--git`) stale entries as the code evolves |
 | **Dual-mode installation** | automatic Process 1/2 detection; prior config preserved via backups and mined as seed knowledge |
 | **Protected human work** | hash-verified incremental re-runs; the `[verified]` child-lock; typed-consent escape hatch |
+| **Closed-loop development** | spec → decide → implement → review → evaluate → record; one `ai/lab/WORKLOG.md` row per unit of work, its links checked by `verify` |
 
 ---
 

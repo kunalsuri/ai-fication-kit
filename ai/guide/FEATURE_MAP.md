@@ -140,7 +140,7 @@
 - **Business goal:** Give Cursor users the same native workflow-command surface Claude Code/Copilot/Antigravity users get, instead of manual prompt-pasting.
 - **Touches:** `templates/cursor/rules/*.mdc`, `lib/installer.mjs` (the `destinationFor` template-prefix mapping)
 - **Verify with:** `npm test` (installs a fixture repo and asserts `.cursor/rules/*.mdc` files, MDC frontmatter, and the child-lock/uninstall behavior)
-- **Gotchas:** Content is mirrored verbatim from `templates/github/prompts/*.prompt.md` (same 8 workflow commands) — only the frontmatter changes (`mode: agent` + `description:` → `description:` + `alwaysApply: false`). `ai-knowledge-layer.mdc` is the one `alwaysApply: true` rule; it exists specifically so Cursor always sees the `ai/INDEX.md` pointer and the provenance rule, even if a user never invokes a workflow rule. Codex needs nothing new — it reads `AGENTS.md` natively.
+- **Gotchas:** Content is mirrored verbatim from `templates/github/prompts/*.prompt.md` (same 10 workflow commands) — only the frontmatter changes (`mode: agent` + `description:` → `description:` + `alwaysApply: false`). `ai-knowledge-layer.mdc` is the one `alwaysApply: true` rule; it exists specifically so Cursor always sees the `ai/INDEX.md` pointer and the provenance rule, even if a user never invokes a workflow rule. Codex needs nothing new — it reads `AGENTS.md` natively.
 - **Related:** `install`, `ci-checks`
 
 ### check-drift (Claude command)  `[inferred]`
