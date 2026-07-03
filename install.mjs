@@ -34,6 +34,10 @@
 //               touching that area) and only writes a [verified] tag after an
 //               explicit per-row human confirmation. --yes does NOT unlock this
 //               command — automation must never manufacture a human signature.
+//   demo      — zero-risk playground: copies the bundled examples/legacy-calculator
+//               into a fresh directory under os.tmpdir() and runs the same pipeline
+//               shazam --yes runs there, so you can see it work without pointing the
+//               kit at any repo of your own. Takes no target path argument.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
 //   - It does NOT execute any code or open any network connection. (Two exceptions
@@ -62,6 +66,7 @@
 //   lib/doctor.mjs     — read-only stage detector ("what do I do next?")
 //   lib/status.mjs     — one-command health snapshot (TRUSTED/NEEDS AUDIT/DRIFTING)
 //   lib/audit.mjs      — interactive guided human audit of MODULE_MAP.md
+//   lib/demo.mjs       — zero-risk playground run (bundled example, temp dir)
 // You are encouraged to read them all before running this.
 //
 // USAGE:
@@ -76,6 +81,7 @@
 //   node install.mjs doctor   <path-to-your-repo>
 //   node install.mjs status   <path-to-your-repo> [--json]
 //   node install.mjs audit    <path-to-your-repo> [--dry-run] [--git]
+//   node install.mjs demo
 //
 // OPTIONS:
 //   --dry-run            show the plan, write nothing
@@ -110,6 +116,7 @@ import { runFirstRunWizard } from "./lib/intake.mjs";
 import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
 import { status } from "./lib/status.mjs";
 import { audit } from "./lib/audit.mjs";
+import { demo } from "./lib/demo.mjs";
 
 // ---------------------------------------------------------------- CLI parsing
 
@@ -118,7 +125,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit", "demo"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -150,6 +157,14 @@ for (let i = 0; i < argv.length; i++) {
 }
 const command = COMMANDS.has(positional[0]) ? positional.shift() : null;
 const target = positional.shift();
+
+// `demo` is the one command that takes no target path — it makes its own,
+// under os.tmpdir(). Handle it before the "target required" check below.
+if (command === "demo") {
+  banner();
+  await demo();
+  process.exit(0);
+}
 
 async function chooseAnalysisLevel(flags) {
   if (flags.analysisLevel) return flags.analysisLevel;
@@ -185,6 +200,9 @@ Usage:
                                                    (TRUSTED / NEEDS AUDIT / DRIFTING)
   node install.mjs audit     <path-to-your-repo>   guided human audit of MODULE_MAP.md
                                                    (interactive only — --yes refuses)
+  node install.mjs demo                            zero-risk playground: runs the whole
+                                                   pipeline on a bundled example, in a
+                                                   fresh temp dir (no path argument)
 
 Options: --dry-run --force --force-verified --yes --strict --git --suggest
          --github-summary --json --name --description --build --test --upstream

@@ -16,6 +16,7 @@
 import { promises as fs } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
@@ -1466,6 +1467,71 @@ console.log("\n— audit —");
     ok((await fs.readFile(mapPath, "utf8")) === newText, `writeAuditedMap writes the new content to MODULE_MAP.md`);
     await fs.rm(d, { recursive: true, force: true });
   }
+}
+
+// ---------- demo: zero-risk playground run ----------
+console.log("\n— demo —");
+{
+  const osTmpdir = os.tmpdir();
+  const kitProfilePath = path.join(kitRoot, "ai", "repo-profile.json");
+  const kitProfileBefore = await fs.readFile(kitProfilePath, "utf8").catch(() => null);
+
+  function parseCreatedDir(out) {
+    const m = out.match(/Demo repo created:\s*(\S+)/);
+    return m ? m[1] : null;
+  }
+
+  // first run: writes only under os.tmpdir(), with the expected files
+  const r1 = run(process.execPath, [path.join(kitRoot, "install.mjs"), "demo"]);
+  ok(r1.code === 0, `demo exits 0`);
+  const dir1 = parseCreatedDir(r1.out);
+  ok(Boolean(dir1), `demo prints the created temp dir path`);
+  ok(Boolean(dir1) && path.resolve(dir1).startsWith(path.resolve(osTmpdir)),
+    `demo dir is under the OS temp dir: ${dir1}`);
+  if (dir1) {
+    ok(await exists(path.join(dir1, "ai", "repo-profile.json")), `demo dir has ai/repo-profile.json`);
+    ok(await exists(path.join(dir1, "CLAUDE.md")), `demo dir has a stamped CLAUDE.md`);
+    ok(await exists(path.join(dir1, "ai", "install-manifest.json")), `demo dir has ai/install-manifest.json`);
+  }
+  ok(/cold-start/.test(r1.out), `demo prints the suggested next step (/cold-start)`);
+  ok(/rm -rf/.test(r1.out), `demo prints how to delete the temp dir`);
+
+  // the kit's own repo is untouched
+  const kitProfileAfter = await fs.readFile(kitProfilePath, "utf8").catch(() => null);
+  ok(kitProfileAfter === kitProfileBefore, `demo leaves the kit's own ai/repo-profile.json untouched`);
+
+  // second run creates an independent directory
+  const r2 = run(process.execPath, [path.join(kitRoot, "install.mjs"), "demo"]);
+  ok(r2.code === 0, `second demo run exits 0`);
+  const dir2 = parseCreatedDir(r2.out);
+  ok(Boolean(dir2) && dir2 !== dir1, `running demo twice creates two independent directories`);
+
+  for (const d of [dir1, dir2]) {
+    if (d) await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // missing example: a clear, actionable error — not a stack trace
+  {
+    const exampleAbs = path.join(kitRoot, "examples", "legacy-calculator");
+    const movedAbs = path.join(kitRoot, "examples", "legacy-calculator__test-moved-aside");
+    await fs.rename(exampleAbs, movedAbs);
+    try {
+      const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "demo"]);
+      ok(r.code !== 0 && /Demo example not found/.test(r.out) && !/at file:/.test(r.out),
+        `demo fails with a clear message (no stack trace) when the example is missing`);
+    } finally {
+      await fs.rename(movedAbs, exampleAbs);
+    }
+  }
+}
+
+// ---------- npm pack: examples/legacy-calculator/ must ship (the demo packaging trap) ----------
+console.log("\n— npm pack (demo packaging) —");
+{
+  const rr = spawnSync("npm", ["pack", "--dry-run"], { encoding: "utf8", cwd: kitRoot });
+  const packOut = (rr.stdout || "") + (rr.stderr || "");
+  ok(rr.status === 0 && /examples\/legacy-calculator\/calculator\.js/.test(packOut),
+    `npm pack --dry-run lists examples/legacy-calculator/ (the files[] packaging fix)`);
 }
 
 // ---------- unit tests: destinationFor ----------

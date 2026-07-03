@@ -100,6 +100,13 @@
 - **Gotchas:** Unlike every other command, `--yes` does **not** unlock this one — it refuses with a friendly message alongside the non-TTY case, by design (automation must never manufacture a human signature). Only rewrites rows that already have a 5-column Status cell; 4-column scaffolded rows (pre-`/cold-start`) are left alone. Row rewrites never insert/delete lines, so line numbers stay valid across the whole run. Takes exactly one timestamped `MODULE_MAP_bkp_*.md` backup, before the first write.
 - **Related:** `verify`, `drift`, `status`
 
+### demo  `[inferred]`
+- **Business goal:** Let a nervous first-timer watch the whole pipeline run before trusting it with their own code.
+- **Touches:** `install.mjs`, `lib/demo.mjs`, `examples/legacy-calculator/`, `package.json` (`files`)
+- **Verify with:** `node install.mjs demo`
+- **Gotchas:** The one command with no target path argument — dispatched before the "target required" check in `install.mjs`. Writes only under `os.tmpdir()` (documented exception, see `SECURITY.md`), never the cwd or the kit's own repo. `examples/` is not in `package.json`'s `files` by default — `examples/legacy-calculator/` was added specifically so `npx`/`npm install -g` installs still ship it; `demo` fails with a clear message rather than a stack trace if it's ever missing.
+- **Related:** `install`, `orient`, `shazam`
+
 ### deep-test  `[inferred]`
 - **Business goal:** Validate repository standards compliance, including smoke tests, verification, drift, license headers, and placeholders.
 - **Touches:** `test/run-deep-test.mjs`, `package.json`, `.agents/skills/deep-test/SKILL.md`

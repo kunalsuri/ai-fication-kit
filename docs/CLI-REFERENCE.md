@@ -39,6 +39,7 @@ any command**. Model inference only happens later, inside your agent, via
 | [`doctor`](#doctor) | "What do I do next?" — read-only workflow-stage detector | (nothing — read-only) |
 | [`status`](#status) | One-command health snapshot + verdict | (nothing unless `--json`: `STATUS.json`) |
 | [`audit`](#audit) | Guided human audit of MODULE_MAP.md (interactive only) | `MODULE_MAP.md` rows + one timestamped backup |
+| [`demo`](#demo) | Zero-risk playground run (no target argument) | a fresh dir under `os.tmpdir()` only |
 
 ---
 
@@ -377,6 +378,31 @@ byte-identical. Before the first write, takes one timestamped
 confirmed, without taking a backup or writing anything.
 
 **Options:** `--dry-run`, `--git`.
+
+---
+
+<a id="demo"></a>
+## `demo` — zero-risk playground run
+
+```bash
+node install.mjs demo
+```
+
+The one command that takes **no target path**. Copies the kit's bundled
+`examples/legacy-calculator/` into a fresh directory under `os.tmpdir()`
+(`ai-fication-demo-<timestamp>`), runs `orient` + `install` there in-process
+(no child processes, no network — the same guarantees as every other
+command, just against a throwaway copy), and prints the temp path, a short
+tour of what got created, the suggested next step (open it in your agent and
+run `/cold-start`), and how to delete it.
+
+This is a documented, sanctioned exception to "writes only inside the target
+you pass in" (see [SECURITY.md](../SECURITY.md)) precisely because there is
+no target here — it's always the OS temp dir, never your cwd or the kit's own
+repo. Running it twice creates two independent directories. Fails with a
+clear message (not a stack trace) if the bundled example is missing.
+
+**Options:** none.
 
 ---
 

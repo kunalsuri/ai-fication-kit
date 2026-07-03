@@ -7,6 +7,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **`demo` command** — zero-risk playground run, no target argument. Copies
+  the bundled `examples/legacy-calculator/` into a fresh directory under
+  `os.tmpdir()` and runs `orient` + `install` there in-process, then prints a
+  short tour and the suggested next step. `examples/legacy-calculator/` is
+  now listed in `package.json`'s `files`, fixing a packaging gap where the
+  example was silently absent under `npx`.
 - **`audit` command** — guided, interactive-only human audit of
   `ai/guide/MODULE_MAP.md`. Gathers deterministic evidence per row (file
   count, 3 largest/newest files via `fs.stat`; `--git` adds the last commit

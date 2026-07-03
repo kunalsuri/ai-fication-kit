@@ -11,6 +11,7 @@
     "install.mjs",
     "lib/",
     "templates/",
+    "examples/legacy-calculator/",
     "CHANGELOG.md",
     "NOTICE",
     "LICENSE"
