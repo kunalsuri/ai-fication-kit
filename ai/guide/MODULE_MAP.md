@@ -4,9 +4,12 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-06-25 @ commit 1fd11db (drift baseline re-anchored 2026-07-02: the
-> human-merged PRs #5–#7 changed `/`, `templates/`, and `docs/` after the previous baseline —
-> the per-row human audit dates below remain the authoritative signatures)
+> Last verified: 2026-07-03 @ commit f781261 (drift baseline re-anchored 2026-07-03: commit
+> f781261 "Verified before v0.2.0 release" is where the human re-audited and flipped `/`,
+> `lib/`, `templates/`, `templates/claude/`, `templates/github/`, `templates/agents/`,
+> `test/`, and `docs/` to `[verified]` — the previous 2026-06-25 anchor predated that pass
+> and made the `--git` drift check flag all of them as stale again; the per-row human audit
+> dates below remain the authoritative signatures)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`

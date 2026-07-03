@@ -948,7 +948,15 @@ console.log("\n— indepth git history —");
 {
   console.log("\n— release-check (release gate) —");
   const gate = path.join(kitRoot, "test", "release-check.mjs");
-  const runGate = (dir, ...extra) => run(process.execPath, [gate, dir, ...extra]);
+  // Fixture scenarios must control tag-vs-pre-tag mode purely via --tag: strip
+  // GITHUB_REF so a real v* tag push (which sets it for this whole CI job)
+  // can't silently force tag mode onto a fixture that's testing pre-tag mode.
+  const gateEnv = { ...process.env };
+  delete gateEnv.GITHUB_REF;
+  const runGate = (dir, ...extra) => {
+    const r = spawnSync(process.execPath, [gate, dir, ...extra], { encoding: "utf8", env: gateEnv });
+    return { code: r.status, out: (r.stdout || "") + (r.stderr || ""), error: r.error };
+  };
 
   // criterion 2: one desynchronized version source → exit 1 naming the file
   {
