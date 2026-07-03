@@ -36,6 +36,10 @@ any command**. Model inference only happens later, inside your agent, via
 | [`verify`](#verify) | Check every path claim in the docs against the tree | `VERIFICATION_MANIFEST.json` + report |
 | [`drift`](#drift) | Report where the code has outgrown the map | `DRIFT_MANIFEST.json` + report |
 | [`check-repo-maturity`](#check-repo-maturity) | Read-only AI-readiness diagnostic | `MATURITY_REPORT.json` |
+| [`doctor`](#doctor) | "What do I do next?" — read-only workflow-stage detector | (nothing — read-only) |
+| [`status`](#status) | One-command health snapshot + verdict | (nothing unless `--json`: `STATUS.json`) |
+| [`audit`](#audit) | Guided human audit of MODULE_MAP.md (interactive only) | `MODULE_MAP.md` rows + one timestamped backup |
+| [`demo`](#demo) | Zero-risk playground run (no target argument) | a fresh dir under `os.tmpdir()` only |
 
 ---
 
@@ -57,10 +61,15 @@ stops exactly where inference begins, handing the next steps to you and your age
    user-authored `CLAUDE.md`/`AGENTS.md`).
 3. **`orient`** — detects the stack and writes `ai/repo-profile.json` (with the
    maturity results embedded).
-4. **First-run wizard** — 4–5 short questions (your familiarity with the code, a
-   warning if you're on `main`/`master`, a chance to correct the detected stack).
-   Answers are stored under `humanContext` in the profile. Self-skips when the
-   profile already has a `humanContext`, when `--yes` is passed, or without a TTY.
+4. **First-run wizard** — a handful of short questions: your familiarity with the
+   code, a warning if you're on `main`/`master`, a chance to correct the detected
+   stack, and which AI coding tool you'll use (pre-selected via read-only
+   inspection of `~/.claude/`, `.cursor/`, and `~/.vscode/extensions/`). Answers
+   are stored under `humanContext` in the profile — the tool answer tailors step 1
+   of "Next steps" below to that tool alone (with a pointer to
+   `docs/MULTI-TOOL-SETUP.md` for the rest). Self-skips when the profile already
+   has a `humanContext`, when `--yes` is passed, or without a TTY — the "Next
+   steps" text then stays today's generic, Claude-Code-first output.
 5. **`install`** — stamps the templates (Process 2: timestamped backups first) and
    prints your next steps (`/cold-start` → audit → `verify`).
 
@@ -146,9 +155,18 @@ written file — with a SHA-256 content hash — is recorded in
 | `templates/claude/` | `.claude/` | Claude Code commands, subagents, skills |
 | `templates/github/` | `.github/` | Copilot instructions, prompts, chatmodes |
 | `templates/agents/` | `.agents/` | Antigravity workflows + shared Agent Skills |
+| `templates/cursor/` | `.cursor/` | native Cursor rules (`rules/*.mdc`) |
 | `templates/ai/`, root templates | `ai/`, `CLAUDE.md`, `AGENTS.md` | the knowledge layer + agent rules |
 
 (See [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md) for what each tool does with its tree.)
+
+**The living progress page.** `ai/START-HERE.html` is stamped alongside the
+rest of `ai/` and regenerated — via `refreshProgressPage()` in
+`lib/progress.mjs` — at the end of `install`, `verify`, `drift`, `status`, and
+`audit`. It's a fully offline dashboard (5-step checklist, `[verified]`/
+`[inferred]` counts, drift items, a small glossary): open it directly in a
+browser, no server needed. `uninstall` removes it; the other commands work
+fine if you delete it (they just won't recreate it).
 
 **Process 2 backups.** If a user-authored `CLAUDE.md`/`AGENTS.md` exists (detected
 by the absence of the kit's footer marker), it is copied to a timestamped backup
@@ -203,7 +221,7 @@ prior configuration.
 ## `verify` — mechanical claim verification
 
 ```bash
-node install.mjs verify /path/to/your/repo [--dry-run] [--strict]
+node install.mjs verify /path/to/your/repo [--dry-run] [--strict] [--github-summary]
 ```
 
 The mechanical half of "kept mechanically honest". Extracts every backtick-quoted
@@ -219,7 +237,14 @@ With `--strict`, the command exits `1` if any claim is unconfirmed — drop it i
 CI so a stale map fails the build (the kit's own
 `.github/workflows/ai-check.yml` template does exactly this).
 
-**Options:** `--dry-run`, `--strict`.
+With `--github-summary`, and only when the `$GITHUB_STEP_SUMMARY` env var is
+set (i.e. inside a GitHub Actions job), appends a short plain-English summary
+there instead of leaving a beginner to read raw console output: a ✅/❌
+headline, one line per unconfirmed claim naming the fix, or a confirmation
+line on success. A silent no-op anywhere else (no env var → nothing appended,
+no error); exit codes are unaffected.
+
+**Options:** `--dry-run`, `--strict`, `--github-summary`.
 
 ---
 
@@ -227,7 +252,7 @@ CI so a stale map fails the build (the kit's own
 ## `drift` — where the code outgrew the map
 
 ```bash
-node install.mjs drift /path/to/your/repo [--dry-run] [--strict] [--git]
+node install.mjs drift /path/to/your/repo [--dry-run] [--strict] [--git] [--suggest] [--github-summary]
 ```
 
 The reverse of `verify`: instead of checking what the docs quote, it checks what
@@ -249,7 +274,19 @@ Mechanical drift detection has known blind spots — read
 [dev/lessons-learnt/drift-blindspots-and-automation-bias.md](dev/lessons-learnt/drift-blindspots-and-automation-bias.md)
 before trusting a clean report too much.
 
-**Options:** `--dry-run`, `--strict`, `--git`.
+With `--suggest`, the report gains a "Suggested rows" section: a paste-ready
+`MODULE_MAP.md` row for every unmapped directory (entry point guessed as the
+first `index.*`/`main.*` file, else the largest source file — Stability always
+`?`, tag always `[inferred]`), and, for every vanished row, the exact
+`MODULE_MAP.md` line number to delete or fix. The same data is mirrored as a
+`suggestions` array in `DRIFT_MANIFEST.json`. Without `--suggest`, output is
+unchanged. It never edits `MODULE_MAP.md` itself.
+
+With `--github-summary` (same behavior as `verify`'s), appends a ✅/❌
+headline plus one plain-English line per unmapped/vanished/stale finding to
+`$GITHUB_STEP_SUMMARY` when set; silent no-op elsewhere.
+
+**Options:** `--dry-run`, `--strict`, `--git`, `--suggest`, `--github-summary`.
 
 ---
 
@@ -274,6 +311,115 @@ first step of `shazam`.
 
 ---
 
+<a id="doctor"></a>
+## `doctor` — "what do I do next?"
+
+```bash
+node install.mjs doctor /path/to/your/repo
+```
+
+Read-only, writes nothing, always exits `0`. The kit's workflow has 5 stages
+that are all mechanically detectable from files already on disk; `doctor`
+finds the first one whose condition holds and prints a plain-language block:
+which step you're on, a one-sentence diagnosis, and the exact next command.
+
+| Step | Condition | Next action |
+|---|---|---|
+| 1 | no `ai/repo-profile.json` | run `shazam` |
+| 2 | `MODULE_MAP.md` missing or still the scaffolded template | run `/cold-start` in your agent |
+| 3 | `MODULE_MAP.md` has `[inferred]` rows | do a human audit (`docs/AUDIT-GUIDE.md`) |
+| 4 | no verify/drift manifests, or the latest ones found problems | run `verify --strict` / `drift --strict` |
+| 5 | all rows `[verified]`, manifests clean | maintenance mode — re-run `drift` after big changes |
+
+**Options:** none (no `--dry-run` needed — this command never writes).
+
+---
+
+<a id="status"></a>
+## `status` — one-command health snapshot
+
+```bash
+node install.mjs status /path/to/your/repo [--json]
+```
+
+Answers "how trustworthy is my `ai/` layer right now?" in one command instead
+of three. Runs `verify`'s and `drift`'s core scans in-process for fresh
+results — structural drift only, **`drift`'s `--git` stale check never
+runs** — and reads `ai/guide/MODULE_MAP.md` for `[verified]`/`[inferred]` row
+counts and the newest audit date. Prints one block (row counts, broken
+claims, drift items, days since last audit) ending in a single verdict:
+
+| Verdict | Meaning |
+|---|---|
+| `TRUSTED` | no broken claims, no drift, every row `[verified]`, audit not stale (≤ 90 days) |
+| `NEEDS AUDIT` | no broken claims/drift, but `MODULE_MAP.md` is missing, has a non-`[verified]` row, or the audit is stale |
+| `DRIFTING` | any unconfirmed claim or any unmapped/vanished/stale item — trumps everything else |
+
+With `--json`, also writes `ai/analysis/audit-reports/STATUS.json`, including
+a `badge` object in shields.io endpoint schema
+(`{schemaVersion:1, label:"ai-ready", message, color}`) so you can wire up a
+repo badge yourself. Without `--json`, nothing is written.
+
+**Options:** `--json`.
+
+---
+
+<a id="audit"></a>
+## `audit` — guided human audit
+
+```bash
+node install.mjs audit /path/to/your/repo [--dry-run] [--git]
+```
+
+Interactive only. The kit's whole trust model rests on the human `[inferred]`
+→ `[verified]` flip being a real signature, so **`--yes` does not unlock this
+command** — unlike every other command in the kit — and a non-TTY run refuses
+immediately with a friendly message and writes nothing.
+
+Walks every `ai/guide/MODULE_MAP.md` row with a Status column, printing
+deterministic evidence for each — file count, the 3 largest and 3 newest
+files under that row's directory (`fs.stat` only) and, with `--git`, the last
+commit that touched it (local, read-only git, the same documented exception
+as `drift --git`). You then choose to audit the row now or leave it
+untouched, pick its Stability (`frozen`/`stable`/`ours`), and give a final
+confirmation before anything is written — that confirmation is your
+signature. Confirmed rows are rewritten in place to
+`[verified] (DD/MM/YYYY HH:mm)`; declining at any step leaves the row
+byte-identical. Before the first write, takes one timestamped
+`MODULE_MAP_bkp_<timestamp>.md` backup next to the file.
+
+`--dry-run` runs the same interactive walk and reports what would have been
+confirmed, without taking a backup or writing anything.
+
+**Options:** `--dry-run`, `--git`.
+
+---
+
+<a id="demo"></a>
+## `demo` — zero-risk playground run
+
+```bash
+node install.mjs demo
+```
+
+The one command that takes **no target path**. Copies the kit's bundled
+`examples/legacy-calculator/` into a fresh directory under `os.tmpdir()`
+(`ai-fication-demo-<timestamp>`), runs `orient` + `install` there in-process
+(no child processes, no network — the same guarantees as every other
+command, just against a throwaway copy), and prints the temp path, a short
+tour of what got created, the suggested next step (open it in your agent and
+run `/cold-start`), and how to delete it.
+
+This is a documented, sanctioned exception to "writes only inside the target
+you pass in" (see [SECURITY.md](../SECURITY.md)) precisely because there is
+no target here — it's always the OS temp dir, never your cwd or the kit's own
+repo. Running it twice creates two independent directories. Fails with a
+clear message (not a stack trace) if the bundled example is missing.
+
+**Options:** none.
+
+---
+
 ## Flags — the complete table
 
 | Flag | Applies to | Effect |
@@ -281,6 +427,10 @@ first step of `shazam`.
 | `--dry-run` | all commands | show the full plan, write nothing |
 | `--strict` | `verify`, `drift` | exit `1` if any claim is unconfirmed / any drift found (for CI) |
 | `--git` | `drift` | enable the *stale* check (local, read-only git) |
+| `--git` | `audit` | add the last commit touching each row's directory to its evidence (local, read-only git) |
+| `--suggest` | `drift` | append ready-to-paste MODULE_MAP fixes to the report/manifest |
+| `--github-summary` | `verify`, `drift` | append a plain-English summary to `$GITHUB_STEP_SUMMARY` if set (no-op otherwise) |
+| `--json` | `status` | also write `ai/analysis/audit-reports/STATUS.json` (with a shields.io `badge` object) |
 | `--force` | `install`, `shazam` | overwrite files you edited, after a timestamped `_bkp_` copy; `[verified]` files still kept |
 | `--force-verified` | `install`, `shazam` | implies `--force`; unlocks `[verified]` files after showing every signature to be lost and requiring you to type `overwrite` |
 | `--yes` | `shazam`, `install`, `uninstall` | skip confirmation prompts and the wizard (CI mode); warnings still printed |

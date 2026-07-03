@@ -21,6 +21,23 @@
 //               does not cover (unmapped), map entries that are gone (vanished), and —
 //               only with --git — [verified] rows whose code changed since the verified
 //               commit (stale). Writes a manifest + report into ai/analysis/audit-reports/.
+//   doctor    — read-only "what do I do next?": detects which of the 5 workflow stages
+//               the repo is at from files already on disk, and prints the next step
+//               in plain language. Writes nothing.
+//   status    — one-command health snapshot: runs verify's and drift's core scans
+//               in-process (structural only, never git), counts MODULE_MAP
+//               [verified]/[inferred] rows, and prints a single verdict (TRUSTED /
+//               NEEDS AUDIT / DRIFTING). Writes ai/analysis/audit-reports/STATUS.json
+//               only with --json.
+//   audit     — interactive-only guided human audit of MODULE_MAP.md: gathers
+//               deterministic evidence per row (fs stat; --git adds the last commit
+//               touching that area) and only writes a [verified] tag after an
+//               explicit per-row human confirmation. --yes does NOT unlock this
+//               command — automation must never manufacture a human signature.
+//   demo      — zero-risk playground: copies the bundled examples/legacy-calculator
+//               into a fresh directory under os.tmpdir() and runs the same pipeline
+//               shazam --yes runs there, so you can see it work without pointing the
+//               kit at any repo of your own. Takes no target path argument.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
 //   - It does NOT execute any code or open any network connection. (Two exceptions
@@ -46,6 +63,10 @@
 //   lib/installer.mjs  — template stamping (install) and manifest-based uninstall
 //   lib/verify.mjs     — mechanical claim verification
 //   lib/drift.mjs      — structural drift detection (unmapped/vanished/stale)
+//   lib/doctor.mjs     — read-only stage detector ("what do I do next?")
+//   lib/status.mjs     — one-command health snapshot (TRUSTED/NEEDS AUDIT/DRIFTING)
+//   lib/audit.mjs      — interactive guided human audit of MODULE_MAP.md
+//   lib/demo.mjs       — zero-risk playground run (bundled example, temp dir)
 // You are encouraged to read them all before running this.
 //
 // USAGE:
@@ -57,11 +78,19 @@
 //   node install.mjs verify   <path-to-your-repo> [--dry-run] [--strict]
 //   node install.mjs drift    <path-to-your-repo> [--dry-run] [--strict] [--git]
 //   node install.mjs check-repo-maturity <path-to-your-repo> [--dry-run]
+//   node install.mjs doctor   <path-to-your-repo>
+//   node install.mjs status   <path-to-your-repo> [--json]
+//   node install.mjs audit    <path-to-your-repo> [--dry-run] [--git]
+//   node install.mjs demo
 //
 // OPTIONS:
 //   --dry-run            show the plan, write nothing
 //   --strict             verify/drift only: exit 1 if any claim is unconfirmed / drifted
 //   --git                drift only: include the stale check (local, read-only git)
+//   --suggest            drift only: append ready-to-paste MODULE_MAP fixes to the report
+//   --github-summary     verify/drift only: append a plain-English summary to
+//                        $GITHUB_STEP_SUMMARY if set (silent no-op otherwise)
+//   --json               status only: also write ai/analysis/audit-reports/STATUS.json
 //   --force              overwrite files you edited (timestamped backup taken first);
 //                        files carrying a human [verified] tag are still kept
 //   --force-verified     implies --force AND unlocks [verified] files too — shows
@@ -83,7 +112,11 @@ import { orient, printProfile } from "./lib/orient.mjs";
 import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
 import { drift } from "./lib/drift.mjs";
-import { runFirstRunWizard } from "./lib/intake.mjs";
+import { runFirstRunWizard, coldStartInstructionFor } from "./lib/intake.mjs";
+import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
+import { status } from "./lib/status.mjs";
+import { audit } from "./lib/audit.mjs";
+import { demo } from "./lib/demo.mjs";
 
 // ---------------------------------------------------------------- CLI parsing
 
@@ -92,7 +125,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit", "demo"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -102,6 +135,9 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--force") flags.force = true;
   else if (a === "--force-verified") { flags.forceVerified = true; flags.force = true; }
   else if (a === "--git") flags.git = true;
+  else if (a === "--suggest") flags.suggest = true;
+  else if (a === "--github-summary") flags.githubSummary = true;
+  else if (a === "--json") flags.json = true;
   else if (a === "--yes") flags.yes = true;
   else if (a === "--skip-prompt") flags.skipPrompt = true;
   else if (a === "--interactive" || a === "-i") flags.interactive = true;
@@ -121,6 +157,14 @@ for (let i = 0; i < argv.length; i++) {
 }
 const command = COMMANDS.has(positional[0]) ? positional.shift() : null;
 const target = positional.shift();
+
+// `demo` is the one command that takes no target path — it makes its own,
+// under os.tmpdir(). Handle it before the "target required" check below.
+if (command === "demo") {
+  banner();
+  await demo();
+  process.exit(0);
+}
 
 async function chooseAnalysisLevel(flags) {
   if (flags.analysisLevel) return flags.analysisLevel;
@@ -146,12 +190,22 @@ Usage:
   node install.mjs verify    <path-to-your-repo>   mechanically check every path claim
                                                    in the knowledge docs against the tree
   node install.mjs drift     <path-to-your-repo>   report where the code has drifted from
-                                                   the map (unmapped/vanished; --git: stale)
+                                                   the map (unmapped/vanished; --git: stale;
+                                                   --suggest: ready-to-paste fixes)
   node install.mjs check-repo-maturity <path>      read-only AI readiness diagnostic
                                                    (no LLM, no writes, just a report)
+  node install.mjs doctor    <path-to-your-repo>   "what do I do next?" — read-only,
+                                                   writes nothing
+  node install.mjs status    <path-to-your-repo>   one-command health snapshot + verdict
+                                                   (TRUSTED / NEEDS AUDIT / DRIFTING)
+  node install.mjs audit     <path-to-your-repo>   guided human audit of MODULE_MAP.md
+                                                   (interactive only — --yes refuses)
+  node install.mjs demo                            zero-risk playground: runs the whole
+                                                   pipeline on a bundled example, in a
+                                                   fresh temp dir (no path argument)
 
-Options: --dry-run --force --force-verified --yes --strict --git
-         --name --description --build --test --upstream
+Options: --dry-run --force --force-verified --yes --strict --git --suggest
+         --github-summary --json --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 `);
@@ -273,14 +327,27 @@ if (command === "orient") {
   if (!flags.dryRun) {
     const isProcess2 = profile.maturity?.process === 2;
     const step = (n) => style.coral(`${n}.`);
+    const primaryTool = profile.humanContext?.primaryTool;
     info("\n" + style.bold("Next steps") + style.gray(" (the part that needs a brain):"));
-    info(`  ${step(1)} Open the repo in Claude Code and run  ${style.bold("/cold-start")}`);
-    info(`     The agent drafts ai/guide/MODULE_MAP.md and friends — everything tagged ${style.dim("[inferred]")}.`);
-    if (isProcess2) {
-      info(`     ${style.amber("↳")} Backup files exist — the agent will extract and reuse knowledge from`);
-      info(`       your prior CLAUDE.md / AGENTS.md to seed the ai/guide/ documents.`);
+
+    if (primaryTool === "None yet") {
+      info(`  ${step(1)} Pick an AI coding tool, then run the cold-start pass:`);
+      info(`     ${style.bold("Claude Code")}        — /cold-start`);
+      info(`     ${style.bold("GitHub Copilot")}      — /cold-start in Copilot Chat`);
+      info(`     ${style.bold("Cursor")}              — the cold-start rule in .cursor/rules/`);
+      info(`     ${style.bold("Google Antigravity")}  — the cold-start workflow in the Agent Manager`);
+      info(`     ${style.gray("See docs/MULTI-TOOL-SETUP.md for the full guide.")}`);
+    } else {
+      info(`  ${step(1)} ${coldStartInstructionFor(primaryTool)}`);
+      info(`     The agent drafts ai/guide/MODULE_MAP.md and friends — everything tagged ${style.dim("[inferred]")}.`);
+      if (isProcess2) {
+        info(`     ${style.amber("↳")} Backup files exist — the agent will extract and reuse knowledge from`);
+        info(`       your prior CLAUDE.md / AGENTS.md to seed the ai/guide/ documents.`);
+      }
+      info(`     ${style.gray(primaryTool && primaryTool !== "Several of these"
+        ? "(Using another tool too? See docs/MULTI-TOOL-SETUP.md for the rest.)"
+        : "(Not using Claude Code? See docs/FAQ.md#cursor-copilot-codex for other tools.)")}`);
     }
-    info(`     ${style.gray("(Not using Claude Code? See docs/FAQ.md#cursor-copilot-codex for other tools.)")}`);
     info(`  ${step(2)} Audit (~30 min): set each module's Stability (frozen / stable / ours),`);
     info(`     flip ${style.dim("[inferred]")} -> ${style.green("[verified]")} on rows you confirm.`);
     info(`  ${step(3)} Optional: node install.mjs verify <repo>  (mechanical claim check, no LLM),`);
@@ -294,4 +361,11 @@ if (command === "orient") {
   await verify(targetAbs, flags);
 } else if (command === "drift") {
   await drift(targetAbs, flags);
+} else if (command === "doctor") {
+  const result = await diagnose(targetAbs);
+  printDoctorReport(result);
+} else if (command === "status") {
+  await status(targetAbs, flags);
+} else if (command === "audit") {
+  await audit(targetAbs, flags);
 }

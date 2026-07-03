@@ -1,0 +1,17 @@
+---
+description: Always-on pointer to this repo's AI knowledge layer and provenance rule.
+alwaysApply: true
+---
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
+
+This repo has an AI knowledge layer under `ai/`. Read `ai/INDEX.md` first — it is
+the role → path manifest for finding the right map for your task — then
+`ai/guide/MODULE_MAP.md` to locate code by directory before you crawl the tree.
+
+**Provenance.** Anything written into `ai/` is `[inferred]` until a human flips it
+to `[verified]`. Never flip that tag yourself.
+
+See `AGENTS.md` (already read by Cursor) for the full rule set. The other rules in
+this directory (`.cursor/rules/*.mdc`) mirror the kit's slash commands for Claude
+Code and prompt files for GitHub Copilot — invoke them the same way you would any
+other Cursor rule.

@@ -1,0 +1,103 @@
+---
+description: Diagnostic gate that checks CLAUDE.md and AGENTS.md for completeness, consistency, and stale artifacts — run right after /cold-start and before /add-feature. Read-only; produces a findings report.
+alwaysApply: false
+---
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
+
+Run the **review-agent-config** diagnostic. Read-only. Produce a structured findings
+report; do NOT edit any file.
+
+## Inputs — read these files (and only these)
+1. `CLAUDE.md` (project root) — full read
+2. `AGENTS.md` (project root) — full read
+3. `package.json` (project root) — grep for `"build"` and `"test"` script keys only
+4. `pom.xml` (project root, if present) — grep `<build>` section only
+5. `ai/guide/MODULE_MAP.md` — check existence on disk; no deep read needed
+6. `ai/INDEX.md` — check existence on disk; no deep read needed
+7. Any `ai/guide/*.md` paths referenced in the knowledge-map sections — existence
+   check only via a file search
+
+## Checks
+
+### Section A — CLAUDE.md structure
+| ID | Check | Severity |
+|----|-------|----------|
+| C1 | Contains the literal `@AGENTS.md` directive (not just a comment or a markdown link `[AGENTS.md](AGENTS.md)`) | ❌ |
+| C2 | Has a "Hard rules" or equivalent section | ❌ |
+| C3 | Has a "Where to look" or knowledge-map section with explicit pointers into `ai/guide/` | ❌ |
+| C4 | Has a token-discipline or subagent-delegation section | ⚠️ |
+| C5 | No unfilled placeholders: regex `<[a-zA-Z ]{3,}>`, bare `TODO`, or the literal string `fill in` | ❌ |
+| C6 | Build command is present and not a placeholder | ❌ |
+| C7 | Test command is present and not a placeholder | ❌ |
+| C8 | Test locations are filled in (not `<fill in during cold start>` or equivalent) | ❌ |
+| C9 | No reference to `CLAUDE_bkp_*.md` files framed as active guidance (stale post-cold-start) | ⚠️ |
+| C10 | No Claude-specific directives duplicated wholesale from AGENTS.md | ⚠️ |
+
+### Section B — AGENTS.md structure
+| ID | Check | Severity |
+|----|-------|----------|
+| A1 | Contains no Claude Code-specific directives (`@import`, memory syntax, hook syntax) | ⚠️ |
+| A2 | Hard rule present: frozen upstream / don't touch inherited code | ❌ |
+| A3 | Hard rule present: test before done — with actual build and test commands | ❌ |
+| A4 | Hard rule present: surgical diffs | ❌ |
+| A5 | Hard rule present: provenance tagging (`[inferred]` / `[verified]`) | ❌ |
+| A6 | Hard rule present: no phantom bugs / config churn | ❌ |
+| A7 | Hard rule present: verify claims before declaring done | ❌ |
+| A8 | Hard rule present: license-header matching for new files | ⚠️ |
+| A9 | Has a knowledge-map section pointing to `ai/guide/` | ❌ |
+| A10 | No unfilled placeholders (same regex as C5) | ❌ |
+| A11 | No reference to `AGENTS_bkp_*.md` files framed as active guidance | ⚠️ |
+
+### Section C — Cross-file consistency
+| ID | Check | Severity |
+|----|-------|----------|
+| X1 | Build command in CLAUDE.md matches build command in AGENTS.md | ❌ |
+| X2 | Test command in CLAUDE.md matches test command in AGENTS.md | ❌ |
+| X3 | Build/test commands match what `package.json` scripts or `pom.xml` actually define | ⚠️ |
+| X4 | At least one `ai/guide/` path mentioned in any knowledge-map section resolves on disk | ❌ |
+| X5 | No rule in CLAUDE.md directly contradicts a rule in AGENTS.md | ❌ |
+| X6 | "Repo intelligence" / ai-layer description is not copy-pasted verbatim into both files | ⚠️ |
+
+## Output format
+
+Emit the report directly to the user (do NOT write a file). Use this structure exactly:
+
+```
+review-agent-config — findings
+══════════════════════════════════════════════════
+
+CLAUDE.md
+─────────
+✅/⚠️/❌  <check ID> <check name>
+           → <one-line concrete fix>   ← omit this line for ✅
+
+AGENTS.md
+─────────
+✅/⚠️/❌  <check ID> <check name>
+           → <one-line concrete fix>
+
+Cross-file
+──────────
+✅/⚠️/❌  <check ID> <check name>
+           → <one-line concrete fix>
+
+Summary
+───────
+X passed · Y warnings · Z errors
+Next step: <single highest-priority action — one sentence>
+```
+
+## Reporting discipline
+- Report **every** check, not just failures. Passing checks build confidence.
+- For every ❌ or ⚠️, always include a concrete one-line fix — never just
+  "this is wrong." Name the exact line or section to change.
+- The "Next step" must name only the single highest-priority action. Do not
+  list all failures again.
+- Severity governs the icon only; a ⚠️ warning is still reported and still
+  gets a fix suggestion.
+
+## What this skill does NOT do
+- Does not auto-edit CLAUDE.md or AGENTS.md.
+- Does not check `ai/guide/` content quality — that is `/post-cold-start-verification`.
+- Does not assess overall AI-layer maturity — that is `/verify-ai-readiness`.
+- Does not run builds or tests.

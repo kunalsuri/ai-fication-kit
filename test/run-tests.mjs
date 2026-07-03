@@ -16,6 +16,7 @@
 import { promises as fs } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 
@@ -173,6 +174,10 @@ async function testInstaller(label, exec, script) {
     path.join(".agents", "workflows", "cold-start.md"),
     path.join(".agents", "workflows", "add-feature.md"),
     path.join(".agents", "skills", "add-feature", "SKILL.md"),
+    path.join(".cursor", "rules", "cold-start.mdc"),
+    path.join(".cursor", "rules", "add-feature.mdc"),
+    path.join(".cursor", "rules", "ai-knowledge-layer.mdc"),
+    path.join("ai", "START-HERE.html"),
     path.join("ai", "install-manifest.json")]) {
     ok(await exists(path.join(repo, f)), `installed ${f}`);
   }
@@ -183,6 +188,30 @@ async function testInstaller(label, exec, script) {
     `no unresolved known placeholders in CLAUDE.md`);
   const indexMd = await fs.readFile(path.join(repo, "ai", "INDEX.md"), "utf8");
   ok(!indexMd.includes("{{"), `no unresolved placeholders in ai/INDEX.md`);
+  const cursorRule = await fs.readFile(path.join(repo, ".cursor", "rules", "cold-start.mdc"), "utf8");
+  ok(!cursorRule.includes("{{") && !cursorRule.includes(".mdc.tmpl"),
+    `no unresolved placeholders / leaked .tmpl suffixes in .cursor/rules/*.mdc`);
+  ok(/^---\ndescription: .+\nalwaysApply: false\n---/.test(cursorRule),
+    `.cursor/rules/cold-start.mdc carries MDC frontmatter (description, alwaysApply: false)`);
+  const cursorAlwaysRule = await fs.readFile(path.join(repo, ".cursor", "rules", "ai-knowledge-layer.mdc"), "utf8");
+  ok(/^---\ndescription: .+\nalwaysApply: true\n---/.test(cursorAlwaysRule),
+    `.cursor/rules/ai-knowledge-layer.mdc is the alwaysApply: true index rule`);
+  ok(cursorAlwaysRule.includes("ai/INDEX.md") && /\[inferred\]/.test(cursorAlwaysRule) && /\[verified\]/.test(cursorAlwaysRule),
+    `the always-on rule points at ai/INDEX.md and states the provenance rule`);
+
+  // ---------- ai/START-HERE.html: the living progress page ----------
+  const progressPath = path.join(repo, "ai", "START-HERE.html");
+  const progressHtml = await fs.readFile(progressPath, "utf8");
+  ok(progressHtml.startsWith("<!-- Copyright") && progressHtml.includes("<!doctype html>") &&
+    progressHtml.trim().endsWith("</html>"), `ai/START-HERE.html is a complete HTML document`);
+  ok(!progressHtml.includes("{{") && !/https?:\/\//i.test(progressHtml),
+    `ai/START-HERE.html has no unresolved placeholders and zero external requests`);
+  ok(progressHtml.includes(`${label}-saas`), `ai/START-HERE.html is stamped with the project name`);
+  const progressDataMatch = progressHtml.match(/<script id="progress-data"[^>]*>([\s\S]*?)<\/script>/);
+  ok(Boolean(progressDataMatch), `ai/START-HERE.html carries a progress-data script block`);
+  const progressDataAfterInstall = progressDataMatch ? JSON.parse(progressDataMatch[1]) : null;
+  ok(progressDataAfterInstall && typeof progressDataAfterInstall.doctorStep === "number",
+    `install() already refreshed the progress page with live data (not the bootstrap placeholder)`);
   ok(!(await exists(path.join(repo, "ai", "README.md"))) &&
     !(await exists(path.join(repo, "README.md.tmpl"))),
     `templates/README.md not installed; no .tmpl suffixes leaked`);
@@ -199,6 +228,15 @@ async function testInstaller(label, exec, script) {
   r = run(exec, [script, "verify", repo, "--strict"]);
   ok(r.code === 0,
     `fresh install passes verify --strict (no catalog/upstream placeholder false-positives): ${r.out.split("\n").filter(l => /missing|moved/.test(l)).join(" | ")}`);
+  // `verify` reruns refreshProgressPage — confirm the page reflects the fresh,
+  // all-claims-confirmed state (the state changed since the install()-time refresh).
+  {
+    const html = await fs.readFile(progressPath, "utf8");
+    const m = html.match(/<script id="progress-data"[^>]*>([\s\S]*?)<\/script>/);
+    const data = m ? JSON.parse(m[1]) : null;
+    ok(data && data.brokenClaims === 0,
+      `verify's refresh updates the progress page's brokenClaims to 0: ${JSON.stringify(data)}`);
+  }
   // verify writes report artifacts that install did not — remove them so the
   // later "uninstall leaves an empty ai/ tree" assertion still holds.
   for (const f of ["VERIFICATION_MANIFEST.json", "VERIFICATION_REPORT.md"]) {
@@ -221,6 +259,8 @@ async function testInstaller(label, exec, script) {
   // simulate a kit update shipping a new file: remove one so the re-run restores it
   const newFeatureFile = path.join(repo, ".agents", "workflows", "cold-start.md");
   await fs.rm(newFeatureFile);
+  const newCursorFile = path.join(repo, ".cursor", "rules", "cold-start.mdc");
+  await fs.rm(newCursorFile);
   // give shazam a humanContext to prove re-runs carry it forward
   const profileBefore = JSON.parse(await fs.readFile(profilePath, "utf8"));
   profileBefore.humanContext = { skill: "expert" };
@@ -233,6 +273,7 @@ async function testInstaller(label, exec, script) {
   ok((await fs.readFile(convPath, "utf8")) === "# my own conventions\n",
     `re-run keeps the edited CONVENTIONS.md`);
   ok(await exists(newFeatureFile), `re-run adds only the missing (new-feature) file`);
+  ok(await exists(newCursorFile), `re-run also restores a missing Cursor rule file`);
   ok(/keep \(/.test(r.out) && /write \(new\)/.test(r.out),
     `re-run reports kept and newly written files`);
   const profileAfterRerun = JSON.parse(await fs.readFile(profilePath, "utf8"));
@@ -249,6 +290,11 @@ async function testInstaller(label, exec, script) {
   const guideFiles = await fs.readdir(path.join(repo, "ai", "guide"));
   ok(guideFiles.some(n => /^CONVENTIONS_bkp_\d{8}_\d{6}\.md$/.test(n)),
     `--force leaves a timestamped backup of the file it overwrote`);
+  // regression: ai/START-HERE.html's content legitimately changes on every
+  // verify/drift/install run (refreshProgressPage) — --force must never treat
+  // that as a human edit and leave a pointless timestamped backup behind.
+  ok(!(await fs.readdir(path.join(repo, "ai"))).some(n => /^START-HERE_bkp_/.test(n)),
+    `--force never backs up ai/START-HERE.html (it's a live dashboard, not human prose)`);
 
   // --force-verified: the explicit escape hatch for [verified] files.
   // In a non-TTY shell without --yes, the typed "overwrite" confirmation cannot
@@ -284,6 +330,8 @@ async function testInstaller(label, exec, script) {
   ok(r.code === 0, `uninstall exits 0` + (r.code === 0 ? "" : ` (out: ${r.out})`));
   ok(!(await exists(path.join(repo, "CLAUDE.md"))), `uninstall removed CLAUDE.md`);
   ok(!(await exists(path.join(repo, "ai"))), `uninstall removed empty ai/ tree`);
+  ok(!(await exists(progressPath)), `uninstall removed ai/START-HERE.html (the progress page)`);
+  ok(!(await exists(path.join(repo, ".cursor"))), `uninstall removed the .cursor/ tree`);
   ok(await exists(path.join(repo, "package.json")) && await exists(path.join(repo, "app.ts")),
     `uninstall kept user files`);
 
@@ -563,6 +611,158 @@ async function testInstaller(label, exec, script) {
 
   await fs.rm(drepo, { recursive: true, force: true });
 
+  // ---------- drift --suggest: ready-to-paste fixes ----------
+  // A bare fixture (no tests/ or other base-fixture dirs) so unmapped/vanished
+  // counts are exact: one unmapped directory, one vanished row.
+  const srepo = await makeBareFixture(`${label}-suggest`, {
+    // a bigger, non-entry file plus a small index.ts — the picker must prefer
+    // index.* over a larger file, proving the entry-point priority (not "largest").
+    "widgets/helpers.ts": "export const big = " + "1".repeat(200) + ";\n",
+    "widgets/index.ts": "export const w = 1;\n",
+    "ai/guide/MODULE_MAP.md":
+      "# Module map\n" +
+      "> Last verified: 2026-06-01 @ commit <fill in sha>\n" +
+      "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+      "|---|---|---|---|---|\n" +
+      "| `gone/` | removed module | (unmapped) | stable | [inferred] |\n",
+  });
+
+  // without --suggest: byte-identical to today (no suggestions key, no report section)
+  r = run(exec, [script, "drift", srepo]);
+  ok(r.code === 0, `drift (no --suggest) exits 0`);
+  const sManifestPath = path.join(srepo, "ai", "analysis", "audit-reports", "DRIFT_MANIFEST.json");
+  const sReportPath = path.join(srepo, "ai", "analysis", "audit-reports", "DRIFT_REPORT.md");
+  const sManifestNoSuggest = JSON.parse(await fs.readFile(sManifestPath, "utf8"));
+  ok(!("suggestions" in sManifestNoSuggest), `no --suggest → manifest has no suggestions key`);
+  const sReportNoSuggest = await fs.readFile(sReportPath, "utf8");
+  ok(!/Suggested rows/.test(sReportNoSuggest), `no --suggest → report has no Suggested rows section`);
+  ok(sManifestNoSuggest.summary.unmapped === 1 && sManifestNoSuggest.summary.vanished === 1,
+    `--suggest fixture has exactly one unmapped dir and one vanished row`);
+
+  // --dry-run --suggest still writes nothing
+  r = run(exec, [script, "drift", srepo, "--suggest", "--dry-run"]);
+  ok(r.code === 0, `drift --suggest --dry-run exits 0`);
+
+  // real run with --suggest
+  r = run(exec, [script, "drift", srepo, "--suggest"]);
+  ok(r.code === 0, `drift --suggest exits 0`);
+  const sManifest = JSON.parse(await fs.readFile(sManifestPath, "utf8"));
+  ok(Array.isArray(sManifest.suggestions) && sManifest.suggestions.length === 2,
+    `--suggest manifest carries exactly 2 suggestion entries (1 unmapped-row + 1 vanished-fix)`);
+  const unmappedSuggestion = sManifest.suggestions.find(s => s.type === "unmapped-row");
+  ok(unmappedSuggestion?.directory === "widgets/" && unmappedSuggestion?.entry === "widgets/index.ts",
+    `suggested entry point prefers index.ts over the larger helpers.ts: ${unmappedSuggestion?.entry}`);
+  ok(/\[inferred\]/.test(unmappedSuggestion?.row) && / \? /.test(unmappedSuggestion?.row),
+    `suggested row carries Stability ? and tag [inferred], never a guess`);
+  const vanishedSuggestion = sManifest.suggestions.find(s => s.type === "vanished-fix");
+  ok(vanishedSuggestion?.claim === "gone/" && vanishedSuggestion?.line === 5,
+    `suggested vanished fix points at the exact MODULE_MAP.md line: ${JSON.stringify(vanishedSuggestion)}`);
+  const sReport = await fs.readFile(sReportPath, "utf8");
+  ok(sReport.includes("Suggested rows") && sReport.includes("widgets/index.ts"),
+    `report includes the Suggested rows section with the paste-ready row`);
+  ok(sReport.includes("Suggested fixes for vanished rows") && /`gone\/`\s*\|\s*5\s*\|/.test(sReport),
+    `report includes the vanished-row line-number pointer`);
+
+  await fs.rm(srepo, { recursive: true, force: true });
+
+  // ---------- --github-summary: friendly CI feedback ----------
+  {
+    const sumFile = path.join(here, `tmp-summary-${label}-${process.pid}.md`);
+    const runEnv = (extraEnv, args) => {
+      const rr = spawnSync(exec, [script, ...args], { encoding: "utf8", env: { ...process.env, ...extraEnv } });
+      return { code: rr.status, out: (rr.stdout || "") + (rr.stderr || "") };
+    };
+
+    // verify: failing claim + --github-summary + env set → ❌ headline naming the fix
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-fail`, {
+        "ai/guide/MODULE_MAP.md": "# map\nSee `missing/ghost.ts`.\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["verify", d, "--github-summary"]);
+      ok(rr.code === 0, `verify --github-summary exits 0 (no --strict) even with an unconfirmed claim`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/❌/.test(sum) && /missing\/ghost\.ts/.test(sum) && /check-drift/.test(sum),
+        `verify appends a ❌ summary naming the missing claim and the fix`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+
+    // verify: clean run + --github-summary + env set → ✅ headline + confirmation
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-ok`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["verify", d, "--github-summary"]);
+      ok(rr.code === 0, `verify --github-summary exits 0 on a clean run`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/✅/.test(sum) && /confirmed/.test(sum), `verify appends a ✅ confirmation summary`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+
+    // verify: --github-summary without the env var set → silent no-op, exit unaffected
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-noenv`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      });
+      const envNoSummary = { ...process.env };
+      delete envNoSummary.GITHUB_STEP_SUMMARY;
+      const rr = spawnSync(exec, [script, "verify", d, "--github-summary"], { encoding: "utf8", env: envNoSummary });
+      ok(rr.status === 0, `verify --github-summary without the env var still exits 0 (silent no-op)`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // verify: env var set but the flag absent → nothing appended (today's behavior)
+    {
+      const d = await makeBareFixture(`${label}-summary-verify-noflag`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md": "# map\nEntry point `app.ts`.\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["verify", d]);
+      ok(!(await exists(sumFile)), `verify without --github-summary appends nothing, even with the env var set`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // drift: unmapped directory + --github-summary + env set → ❌ headline naming the fix
+    {
+      const d = await makeBareFixture(`${label}-summary-drift-fail`, {
+        "widgets/widget.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md":
+          "# map\n| Directory | Responsibility | Entry point | Stability | Status |\n|---|---|---|---|---|\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["drift", d, "--github-summary"]);
+      ok(rr.code === 0, `drift --github-summary exits 0 (no --strict) even with drift found`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/❌/.test(sum) && /widgets\//.test(sum) && /check-drift/.test(sum),
+        `drift appends a ❌ summary naming the unmapped directory and the fix`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+
+    // drift: clean run + --github-summary + env set → ✅ headline + confirmation
+    {
+      const d = await makeBareFixture(`${label}-summary-drift-ok`, {
+        "app.ts": "export {};\n",
+        "ai/guide/MODULE_MAP.md":
+          "# map\n| Directory | Responsibility | Entry point | Stability | Status |\n|---|---|---|---|---|\n" +
+          "| `/` (root) | core | `app.ts` | ours | [verified] |\n",
+      });
+      await fs.rm(sumFile, { force: true });
+      const rr = runEnv({ GITHUB_STEP_SUMMARY: sumFile }, ["drift", d, "--github-summary"]);
+      ok(rr.code === 0, `drift --github-summary exits 0 on a clean run`);
+      const sum = await fs.readFile(sumFile, "utf8").catch(() => "");
+      ok(/✅/.test(sum) && /No drift/.test(sum), `drift appends a ✅ confirmation summary`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.rm(sumFile, { force: true });
+    }
+  }
+
   // ---------- error handling & CLI surface ----------
   r = run(exec, [script, "install", path.join(here, "definitely-not-here-xyz")]);
   ok(r.code !== 0, `missing target → non-zero exit`);
@@ -581,6 +781,79 @@ await testInstaller("node", process.execPath, path.join(kitRoot, "install.mjs"))
   const { runFirstRunWizard } = await import(pathToFileURL(path.join(kitRoot, "lib", "intake.mjs")).href);
   const r = await runFirstRunWizard(here, { languages: [] }, { yes: true });
   ok(r === null, `intake wizard self-skips under --yes (no humanContext, no prompt)`);
+}
+
+// ---------- intake: AI-tool detection + tailored next-steps text ----------
+console.log("\n— intake: tool detection —");
+{
+  const { detectPrimaryTool, coldStartInstructionFor, PRIMARY_TOOL_OPTIONS } =
+    await import(pathToFileURL(path.join(kitRoot, "lib", "intake.mjs")).href);
+
+  ok(PRIMARY_TOOL_OPTIONS.includes("Claude Code") && PRIMARY_TOOL_OPTIONS.includes("None yet"),
+    `PRIMARY_TOOL_OPTIONS lists the expected choices: ${PRIMARY_TOOL_OPTIONS.join(", ")}`);
+
+  // signals detected in isolation — each fixture "home" carries exactly one signal
+  {
+    const home = await makeBareFixture("tool-detect-claude", { ".claude/settings.json": "{}\n" });
+    const target = await makeBareFixture("tool-detect-claude-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === "Claude Code",
+      `detectPrimaryTool: <home>/.claude/ → "Claude Code"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-nohome", {});
+    const target = await makeBareFixture("tool-detect-cursor-target", { ".cursor/settings.json": "{}\n" });
+    ok((await detectPrimaryTool(target, home)) === "Cursor",
+      `detectPrimaryTool: .cursor/ in the TARGET repo → "Cursor"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-cursor-home", { ".cursor/settings.json": "{}\n" });
+    const target = await makeBareFixture("tool-detect-plain-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === "Cursor",
+      `detectPrimaryTool: .cursor/ in the HOME dir → "Cursor"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-copilot", {
+      ".vscode/extensions/github.copilot-1.2.3/package.json": "{}\n",
+    });
+    const target = await makeBareFixture("tool-detect-copilot-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === "GitHub Copilot",
+      `detectPrimaryTool: ~/.vscode/extensions/github.copilot* → "GitHub Copilot"`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    // no home dir at all (permissions, sandboxed container, …) — tolerated silently, no throw
+    const missingHome = path.join(here, `tmp-tool-detect-missing-${process.pid}`);
+    const target = await makeBareFixture("tool-detect-missing-target", { "app.ts": "export {};\n" });
+    let result, threw = false;
+    try { result = await detectPrimaryTool(target, missingHome); } catch { threw = true; }
+    ok(!threw && result === null, `detectPrimaryTool: missing home dir → null, no throw`);
+    await fs.rm(target, { recursive: true, force: true });
+  }
+  {
+    const home = await makeBareFixture("tool-detect-none", {});
+    const target = await makeBareFixture("tool-detect-none-target", { "app.ts": "export {};\n" });
+    ok((await detectPrimaryTool(target, home)) === null,
+      `detectPrimaryTool: no signal at all → null (asks with no default guess)`);
+    await fs.rm(home, { recursive: true, force: true });
+    await fs.rm(target, { recursive: true, force: true });
+  }
+
+  // coldStartInstructionFor: every named tool, plus the fallback cases
+  ok(/Claude Code/.test(coldStartInstructionFor("Claude Code")), `coldStartInstructionFor: Claude Code`);
+  ok(/Copilot Chat/.test(coldStartInstructionFor("GitHub Copilot")), `coldStartInstructionFor: GitHub Copilot`);
+  ok(/\.cursor\/rules\/cold-start\.mdc/.test(coldStartInstructionFor("Cursor")), `coldStartInstructionFor: Cursor`);
+  ok(/Agent Manager/.test(coldStartInstructionFor("Google Antigravity")), `coldStartInstructionFor: Google Antigravity`);
+  const fallback = coldStartInstructionFor("Claude Code");
+  ok(coldStartInstructionFor("Several of these") === fallback, `coldStartInstructionFor: "Several of these" falls back to Claude Code`);
+  ok(coldStartInstructionFor("something-unrecognized") === fallback, `coldStartInstructionFor: unrecognized value falls back to Claude Code`);
+  ok(coldStartInstructionFor(undefined) === fallback, `coldStartInstructionFor: undefined (no wizard ran) falls back to Claude Code`);
 }
 
 // ---------- check-repo-maturity: standalone command ----------
@@ -855,6 +1128,609 @@ console.log("\n— indepth git history —");
   }
 }
 
+// ---------- doctor: read-only workflow-stage detector ----------
+console.log("\n— doctor —");
+{
+  const { diagnose } = await import(pathToFileURL(path.join(kitRoot, "lib", "doctor.mjs")).href);
+
+  async function treeHash(dir) {
+    const parts = [];
+    async function walk(rel) {
+      let entries;
+      try { entries = await fs.readdir(path.join(dir, rel), { withFileTypes: true }); }
+      catch { return; }
+      entries.sort((a, b) => a.name.localeCompare(b.name));
+      for (const e of entries) {
+        const r = rel ? rel + "/" + e.name : e.name;
+        if (e.isDirectory()) await walk(r);
+        else parts.push(r);
+      }
+    }
+    await walk("");
+    return parts.join("|");
+  }
+
+  // Step 1: no ai/repo-profile.json at all.
+  {
+    const d = await makeBareFixture("doctor-step1", { "app.ts": "export {};\n" });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 1 && /shazam/.test(result.action), `step 1: no profile → run shazam`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 1)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 2: profile exists, MODULE_MAP.md missing entirely.
+  {
+    const d = await makeBareFixture("doctor-step2a", {
+      "ai/repo-profile.json": "{}\n",
+    });
+    const result = await diagnose(d);
+    ok(result.step === 2 && /cold-start/.test(result.action), `step 2: no MODULE_MAP.md → run /cold-start`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 2: profile exists, MODULE_MAP.md is still the scaffolded template.
+  {
+    const templateMap = await fs.readFile(
+      path.join(kitRoot, "templates", "ai", "guide", "MODULE_MAP.md.tmpl"), "utf8");
+    const d = await makeBareFixture("doctor-step2b", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md": templateMap.replace("{{TEST_DIRS}}", "test/"),
+    });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 2 && /cold-start/.test(result.action), `step 2: scaffolded template → run /cold-start`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 2)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 3: MODULE_MAP.md populated but rows still [inferred].
+  {
+    const d = await makeBareFixture("doctor-step3", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [inferred] |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const result = await diagnose(d);
+    ok(result.step === 3 && /audit/.test(result.action), `step 3: [inferred] rows → human audit`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 4: all rows [verified], but no verify/drift manifests yet.
+  {
+    const d = await makeBareFixture("doctor-step4", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 4 && /verify/.test(result.action) && /drift/.test(result.action),
+      `step 4: no manifests yet → run verify --strict / drift --strict`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 4)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 4: manifests exist but recorded failures.
+  {
+    const d = await makeBareFixture("doctor-step4b", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+      "ai/analysis/audit-reports/VERIFICATION_MANIFEST.json":
+        JSON.stringify({ summary: { confirmed: 1, moved: 0, missing: 1 } }),
+      "ai/analysis/audit-reports/DRIFT_MANIFEST.json":
+        JSON.stringify({ summary: { unmapped: 0, vanished: 0, stale: 0 } }),
+    });
+    const result = await diagnose(d);
+    ok(result.step === 4, `step 4: manifests present but verify found a missing claim`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 5: all rows [verified], manifests present and clean.
+  {
+    const d = await makeBareFixture("doctor-step5", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+      "ai/analysis/audit-reports/VERIFICATION_MANIFEST.json":
+        JSON.stringify({ summary: { confirmed: 1, moved: 0, missing: 0 } }),
+      "ai/analysis/audit-reports/DRIFT_MANIFEST.json":
+        JSON.stringify({ summary: { unmapped: 0, vanished: 0, stale: 0 } }),
+    });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 5 && /trusted|maintenance/.test(result.action),
+      `step 5: all verified + clean manifests → maintenance mode`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 5)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // CLI surface: `doctor` exits 0 and writes nothing on a real fixture.
+  {
+    const d = await makeFixture("doctor-cli", { fork: false });
+    const before = await treeHash(d);
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "doctor", d]);
+    ok(r.code === 0 && /step 1 of 5/.test(r.out), `doctor CLI exits 0 and reports step 1 of 5`);
+    ok(await treeHash(d) === before, `doctor CLI writes nothing`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
+// ---------- status: one-command health snapshot ----------
+console.log("\n— status —");
+{
+  const { computeStatus } = await import(pathToFileURL(path.join(kitRoot, "lib", "status.mjs")).href);
+
+  // DRIFTING: a broken claim, regardless of MODULE_MAP audit state.
+  {
+    const d = await makeBareFixture("status-drifting", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n" +
+        "See `missing/ghost.ts`.\n",
+      "src/app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "DRIFTING", `broken claim → DRIFTING verdict (got ${result.verdict})`);
+    ok(result.brokenClaims === 1, `brokenClaims counts the unconfirmed claim`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // DRIFTING: a structural drift item (unmapped dir), no broken claims.
+  {
+    const d = await makeBareFixture("status-drifting-drift", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/07/2026) |\n",
+      "app.ts": "export {};\n",
+      "widgets/widget.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "DRIFTING", `unmapped directory → DRIFTING verdict (got ${result.verdict})`);
+    ok(result.driftItems === 1, `driftItems counts the unmapped directory`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NEEDS AUDIT: no broken claims/drift, but an [inferred] row.
+  {
+    const d = await makeBareFixture("status-needs-audit", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [inferred] |\n",
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NEEDS AUDIT", `[inferred] row → NEEDS AUDIT verdict (got ${result.verdict})`);
+    ok(result.rows.inferred === 1 && result.rows.verified === 0, `row counts reflect the [inferred] row`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NEEDS AUDIT: no MODULE_MAP.md at all.
+  {
+    const d = await makeBareFixture("status-no-map", { "app.ts": "export {};\n" });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NEEDS AUDIT" && result.hasModuleMap === false,
+      `missing MODULE_MAP.md → NEEDS AUDIT verdict (got ${result.verdict})`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NEEDS AUDIT: every row [verified], but the audit is stale (> 90 days).
+  {
+    const d = await makeBareFixture("status-stale-audit", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/01/2020) |\n",
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NEEDS AUDIT" && result.daysSinceAudit > 90,
+      `audit older than 90 days → NEEDS AUDIT verdict (${result.daysSinceAudit} days)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // TRUSTED: no broken claims/drift, every row [verified], audit recent.
+  {
+    const today = new Date();
+    const dd = String(today.getUTCDate()).padStart(2, "0");
+    const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
+    const yyyy = today.getUTCFullYear();
+    const d = await makeBareFixture("status-trusted", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        `| \`/\` (root) | core | \`app.ts\` | ours | [verified] (${dd}/${mm}/${yyyy}) |\n`,
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "TRUSTED", `all-verified, clean, fresh audit → TRUSTED verdict (got ${result.verdict})`);
+    ok(result.badge.schemaVersion === 1 && result.badge.label === "ai-ready" && result.badge.color === "brightgreen",
+      `TRUSTED badge matches the shields.io endpoint schema: ${JSON.stringify(result.badge)}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // status never invokes git, even with real git history + a --git-worthy stale row.
+  {
+    const gitOk = run("git", ["--version"]).code === 0;
+    if (!gitOk) {
+      console.log("  — SKIPPED (no git on PATH)");
+    } else {
+      const d = path.join(here, `tmp-status-git-${process.pid}`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.mkdir(path.join(d, "billing"), { recursive: true });
+      await fs.writeFile(path.join(d, "billing", "invoice.ts"), "export const b = 1;\n");
+      const g = (...a) => run("git", ["-C", d, ...a]);
+      g("init", "-q"); g("config", "user.email", "t@t.t"); g("config", "user.name", "t");
+      g("config", "commit.gpgsign", "false");
+      g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "init");
+      const sha = run("git", ["-C", d, "rev-parse", "HEAD"]).out.trim();
+      await fs.mkdir(path.join(d, "ai", "guide"), { recursive: true });
+      const today = new Date();
+      const dd = String(today.getUTCDate()).padStart(2, "0");
+      const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
+      const yyyy = today.getUTCFullYear();
+      await fs.writeFile(path.join(d, "ai", "guide", "MODULE_MAP.md"),
+        "# map\n" +
+        `> Last verified: ${yyyy}-${mm}-${dd} @ commit ${sha}\n` +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        `| \`billing/\` | billing | \`billing/invoice.ts\` | stable | [verified] (${dd}/${mm}/${yyyy}) |\n`);
+      g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "map");
+      // change billing AFTER the verified commit — a real `drift --git` would flag this stale
+      await fs.writeFile(path.join(d, "billing", "invoice.ts"), "export const b = 2;\n");
+      g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "change");
+      const result = await computeStatus(d);
+      ok(result.verdict === "TRUSTED" && result.drift.stale === 0,
+        `status ignores the stale [verified] row (never invokes git), unlike drift --git would`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+  }
+
+  // --json: writes STATUS.json only when the flag is passed.
+  {
+    const d = await makeBareFixture("status-json", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [inferred] |\n",
+      "app.ts": "export {};\n",
+    });
+    const statusJsonPath = path.join(d, "ai", "analysis", "audit-reports", "STATUS.json");
+
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
+    ok(r.code === 0 && /Verdict:/.test(r.out), `status CLI exits 0 and prints a Verdict line`);
+    ok(!(await exists(statusJsonPath)), `status without --json writes nothing`);
+
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d, "--json"]);
+    ok(r.code === 0, `status --json exits 0`);
+    ok(await exists(statusJsonPath), `status --json writes ai/analysis/audit-reports/STATUS.json`);
+    const statusJson = JSON.parse(await fs.readFile(statusJsonPath, "utf8"));
+    ok(statusJson.verdict === "NEEDS AUDIT" && statusJson.badge?.schemaVersion === 1,
+      `STATUS.json carries the verdict and a shields.io-schema badge`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // own-repo sanity: row counts match a hand count of ai/guide/MODULE_MAP.md
+  // (table rows only — start with "| `"; prose mentions of the tags elsewhere
+  // in the file, e.g. the audit-protocol notes, must not be counted).
+  {
+    const mapText = await fs.readFile(path.join(kitRoot, "ai", "guide", "MODULE_MAP.md"), "utf8");
+    const tableLines = mapText.split("\n").filter(l => /^\|\s*`/.test(l));
+    const verifiedCount = tableLines.filter(l => l.includes("[verified]")).length;
+    const inferredCount = tableLines.filter(l => l.includes("[inferred]")).length;
+    const result = await computeStatus(kitRoot);
+    ok(result.rows.verified === verifiedCount && result.rows.inferred === inferredCount,
+      `own-repo row counts match a hand count: verified ${result.rows.verified}/${verifiedCount}, inferred ${result.rows.inferred}/${inferredCount}`);
+    await fs.rm(path.join(kitRoot, "ai", "analysis", "audit-reports", "STATUS.json"), { force: true });
+  }
+}
+
+// ---------- audit: guided human audit ----------
+// The CLI's interactive loop needs a real TTY (choose()/confirm() self-skip
+// otherwise), which this sandboxed test runner cannot allocate without a new
+// dependency — so the refusal path is exercised end-to-end via the CLI, and
+// every deterministic building block (evidence, row rewrite, edit application,
+// backup+write) is unit-tested directly against lib/audit.mjs.
+console.log("\n— audit —");
+{
+  const {
+    formatAuditTimestamp, targetDirFor, computeEvidence, rewriteRowLine,
+    applyEdits, writeAuditedMap,
+  } = await import(pathToFileURL(path.join(kitRoot, "lib", "audit.mjs")).href);
+
+  // ---- CLI refusal path: non-TTY and --yes both refuse, write nothing ----
+  {
+    const d = await makeBareFixture("audit-refuse", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [inferred] |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const before = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "audit", d]);
+    ok(r.code === 0 && /human activity/.test(r.out), `non-TTY audit refuses with the friendly message`);
+
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "audit", d, "--yes"]);
+    ok(r.code === 0 && /human activity/.test(r.out), `--yes does NOT unlock audit — still refuses`);
+
+    const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+    ok(after === before, `refused audit runs leave MODULE_MAP.md byte-identical`);
+    const files = await fs.readdir(path.join(d, "ai", "guide"));
+    ok(!files.some(f => /_bkp_/.test(f)), `refused audit runs take no backup`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---- formatAuditTimestamp ----
+  ok(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(formatAuditTimestamp(new Date(2026, 6, 3, 9, 5))),
+    `formatAuditTimestamp produces DD/MM/YYYY HH:mm: ${formatAuditTimestamp(new Date(2026, 6, 3, 9, 5))}`);
+
+  // ---- targetDirFor ----
+  // Minimal inline row shapes (mirroring parseModuleMap's output) — no need
+  // for a full MODULE_MAP.md fixture to unit-test this pure function.
+  {
+    ok(targetDirFor({ dirClaims: ["src/"], entryClaims: ["src/app.ts"] }) === "src",
+      `targetDirFor prefers a non-root directory claim`);
+    ok(targetDirFor({ dirClaims: ["/"], entryClaims: ["app.ts"] }) === "",
+      `targetDirFor treats the root marker as the repo root`);
+    ok(targetDirFor({ dirClaims: [], entryClaims: ["lib/util.mjs"] }) === "lib",
+      `targetDirFor falls back to the entry point's directory`);
+    ok(targetDirFor({ dirClaims: [], entryClaims: [] }) === "",
+      `targetDirFor falls back to root with no claims at all`);
+  }
+
+  // ---- computeEvidence ----
+  {
+    const d = await makeBareFixture("audit-evidence", {
+      "widgets/small.ts": "export const a = 1;\n",
+      "widgets/big.ts": "export const big = " + "1".repeat(500) + ";\n",
+      "widgets/sub/nested.ts": "export const n = 1;\n",
+    });
+    // make big.ts the newest by touching it after the others
+    await new Promise(res => setTimeout(res, 10));
+    await fs.utimes(path.join(d, "widgets", "big.ts"), new Date(), new Date());
+    const evidence = await computeEvidence(d, { dirClaims: ["widgets/"], entryClaims: [] }, { git: false });
+    ok(evidence.dirRel === "widgets", `computeEvidence resolves the row's directory`);
+    ok(evidence.fileCount === 3, `computeEvidence counts files recursively (incl. widgets/sub/)`);
+    ok(evidence.largest[0].rel === "widgets/big.ts", `computeEvidence ranks the largest file first`);
+    ok(evidence.newest[0].rel === "widgets/big.ts", `computeEvidence ranks the most recently modified file first`);
+    ok(evidence.lastCommit === null, `computeEvidence skips git evidence without --git`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---- rewriteRowLine ----
+  {
+    const line5col = "| `src/` | core logic | `src/app.ts` | ? | [inferred] |";
+    const rewritten = rewriteRowLine(line5col, "ours", "[verified] (03/07/2026 09:05)");
+    ok(rewritten === "| `src/` | core logic | `src/app.ts` | ours | [verified] (03/07/2026 09:05) |",
+      `rewriteRowLine replaces only Stability and Status, keeping other cells verbatim: ${rewritten}`);
+    const line4col = "| <fill in> | <fill in> | <fill in> | ? |";
+    ok(rewriteRowLine(line4col, "ours", "[verified] (x)") === null,
+      `rewriteRowLine returns null for a 4-column (scaffolded, no Status column) row`);
+  }
+
+  // ---- applyEdits: no line insertion/deletion, only listed+eligible rows change ----
+  {
+    const mapText =
+      "# Module map\n" +
+      "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+      "|---|---|---|---|---|\n" +
+      "| `src/` | core | `src/app.ts` | ? | [inferred] |\n" +
+      "| `lib/` | helpers | `lib/util.mjs` | ? | [inferred] |\n";
+    const edits = new Map([[4, { stability: "ours", timestamp: "03/07/2026 09:05" }]]);
+    const { text, appliedLines } = applyEdits(mapText, edits);
+    const lines = text.split("\n");
+    ok(lines.length === mapText.split("\n").length, `applyEdits never inserts/removes lines`);
+    ok(lines[3].includes("[verified] (03/07/2026 09:05)") && lines[3].includes("| ours |"),
+      `applyEdits rewrites the confirmed row (line 4)`);
+    ok(lines[4] === "| `lib/` | helpers | `lib/util.mjs` | ? | [inferred] |",
+      `applyEdits leaves the unconfirmed row byte-identical (line 5)`);
+    ok(appliedLines.length === 1 && appliedLines[0] === 4, `applyEdits reports exactly the applied line numbers`);
+
+    // the rewritten table must still parse cleanly (verify/drift can consume it)
+    const dTable = await makeBareFixture("audit-table-parses", {
+      "src/app.ts": "export {};\n",
+      "lib/util.mjs": "export {};\n",
+      "ai/guide/MODULE_MAP.md": text,
+    });
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "drift", dTable, "--strict"]);
+    ok(r.code === 0, `the rewritten table passes drift --strict`);
+    await fs.rm(dTable, { recursive: true, force: true });
+  }
+
+  // ---- writeAuditedMap: one backup, then the new content ----
+  {
+    const d = await makeBareFixture("audit-write", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ? | [inferred] |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const mapPath = path.join(d, "ai", "guide", "MODULE_MAP.md");
+    const before = await fs.readFile(mapPath, "utf8");
+    const newText = before.replace("| ? | [inferred] |", "| ours | [verified] (03/07/2026 09:05) |");
+    const { bkpPath } = await writeAuditedMap(mapPath, before, newText);
+    ok(await exists(bkpPath) && /MODULE_MAP_bkp_\d{8}_\d{6}\.md$/.test(bkpPath),
+      `writeAuditedMap leaves a timestamped MODULE_MAP_bkp_*.md backup`);
+    ok((await fs.readFile(bkpPath, "utf8")) === before, `the backup preserves the pre-audit content byte-for-byte`);
+    ok((await fs.readFile(mapPath, "utf8")) === newText, `writeAuditedMap writes the new content to MODULE_MAP.md`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
+// ---------- progress: the living progress page ----------
+console.log("\n— progress (ai/START-HERE.html) —");
+{
+  const { refreshProgressPage } = await import(pathToFileURL(path.join(kitRoot, "lib", "progress.mjs")).href);
+  const bootstrapPage =
+    "<!doctype html><html><body>" +
+    '<script id="progress-data" type="application/json">' +
+    '{"doctorStep":1,"rows":{"verified":0,"inferred":0,"unknown":0},"brokenClaims":null,"driftItems":null,"verdict":"NEEDS AUDIT"}' +
+    "</script></body></html>";
+
+  // refreshProgressPage populates real data over the bootstrap placeholder
+  {
+    const d = await makeBareFixture("progress-refresh", {
+      "ai/START-HERE.html": bootstrapPage,
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/07/2026) |\n",
+      "app.ts": "export {};\n",
+    });
+    await refreshProgressPage(d);
+    const html = await fs.readFile(path.join(d, "ai", "START-HERE.html"), "utf8");
+    const m = html.match(/<script id="progress-data"[^>]*>([\s\S]*?)<\/script>/);
+    const data = JSON.parse(m[1]);
+    ok(data.rows.verified === 1 && data.rows.inferred === 0, `refreshProgressPage picks up MODULE_MAP row counts`);
+    ok(data.verdict === "TRUSTED", `refreshProgressPage computes the same verdict status would: ${data.verdict}`);
+    ok(html.startsWith("<!doctype html>"), `refreshProgressPage only rewrites the data block, not the shell`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // no-op when the page doesn't exist — never recreates it, never throws
+  {
+    const d = await makeBareFixture("progress-absent", {
+      "ai/guide/MODULE_MAP.md": "# map\n",
+    });
+    let threw = false;
+    try { await refreshProgressPage(d); } catch { threw = true; }
+    ok(!threw, `refreshProgressPage does not throw when ai/START-HERE.html is absent`);
+    ok(!(await exists(path.join(d, "ai", "START-HERE.html"))), `refreshProgressPage does not recreate a deleted page`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // no-op when the file exists but isn't a progress page we recognize (no data block)
+  {
+    const d = await makeBareFixture("progress-not-ours", {
+      "ai/START-HERE.html": "<!doctype html><html><body>hand-written page</body></html>",
+    });
+    await refreshProgressPage(d);
+    const html = await fs.readFile(path.join(d, "ai", "START-HERE.html"), "utf8");
+    ok(html === "<!doctype html><html><body>hand-written page</body></html>",
+      `refreshProgressPage leaves an unrecognized ai/START-HERE.html untouched`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // commands still work when the page is absent (user deleted it) — no crash
+  {
+    const d = await makeBareFixture("progress-cmds-no-page", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/07/2026) |\n",
+      "app.ts": "export {};\n",
+    });
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "verify", d]);
+    ok(r.code === 0, `verify still works with no ai/START-HERE.html present`);
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "drift", d]);
+    ok(r.code === 0, `drift still works with no ai/START-HERE.html present`);
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
+    ok(r.code === 0, `status still works with no ai/START-HERE.html present`);
+    ok(!(await exists(path.join(d, "ai", "START-HERE.html"))),
+      `none of verify/drift/status recreate ai/START-HERE.html on their own`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
+// ---------- demo: zero-risk playground run ----------
+console.log("\n— demo —");
+{
+  const osTmpdir = os.tmpdir();
+  const kitProfilePath = path.join(kitRoot, "ai", "repo-profile.json");
+  const kitProfileBefore = await fs.readFile(kitProfilePath, "utf8").catch(() => null);
+
+  function parseCreatedDir(out) {
+    const m = out.match(/Demo repo created:\s*(\S+)/);
+    return m ? m[1] : null;
+  }
+
+  // first run: writes only under os.tmpdir(), with the expected files
+  const r1 = run(process.execPath, [path.join(kitRoot, "install.mjs"), "demo"]);
+  ok(r1.code === 0, `demo exits 0`);
+  const dir1 = parseCreatedDir(r1.out);
+  ok(Boolean(dir1), `demo prints the created temp dir path`);
+  ok(Boolean(dir1) && path.resolve(dir1).startsWith(path.resolve(osTmpdir)),
+    `demo dir is under the OS temp dir: ${dir1}`);
+  if (dir1) {
+    ok(await exists(path.join(dir1, "ai", "repo-profile.json")), `demo dir has ai/repo-profile.json`);
+    ok(await exists(path.join(dir1, "CLAUDE.md")), `demo dir has a stamped CLAUDE.md`);
+    ok(await exists(path.join(dir1, "ai", "install-manifest.json")), `demo dir has ai/install-manifest.json`);
+  }
+  ok(/cold-start/.test(r1.out), `demo prints the suggested next step (/cold-start)`);
+  ok(/rm -rf/.test(r1.out), `demo prints how to delete the temp dir`);
+
+  // the kit's own repo is untouched
+  const kitProfileAfter = await fs.readFile(kitProfilePath, "utf8").catch(() => null);
+  ok(kitProfileAfter === kitProfileBefore, `demo leaves the kit's own ai/repo-profile.json untouched`);
+
+  // second run creates an independent directory
+  const r2 = run(process.execPath, [path.join(kitRoot, "install.mjs"), "demo"]);
+  ok(r2.code === 0, `second demo run exits 0`);
+  const dir2 = parseCreatedDir(r2.out);
+  ok(Boolean(dir2) && dir2 !== dir1, `running demo twice creates two independent directories`);
+
+  for (const d of [dir1, dir2]) {
+    if (d) await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // missing example: a clear, actionable error — not a stack trace
+  {
+    const exampleAbs = path.join(kitRoot, "examples", "legacy-calculator");
+    const movedAbs = path.join(kitRoot, "examples", "legacy-calculator__test-moved-aside");
+    await fs.rename(exampleAbs, movedAbs);
+    try {
+      const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "demo"]);
+      ok(r.code !== 0 && /Demo example not found/.test(r.out) && !/at file:/.test(r.out),
+        `demo fails with a clear message (no stack trace) when the example is missing`);
+    } finally {
+      await fs.rename(movedAbs, exampleAbs);
+    }
+  }
+}
+
+// ---------- npm pack: examples/legacy-calculator/ must ship (the demo packaging trap) ----------
+console.log("\n— npm pack (demo packaging) —");
+{
+  const rr = spawnSync("npm", ["pack", "--dry-run"], { encoding: "utf8", cwd: kitRoot });
+  const packOut = (rr.stdout || "") + (rr.stderr || "");
+  ok(rr.status === 0 && /examples\/legacy-calculator\/calculator\.js/.test(packOut),
+    `npm pack --dry-run lists examples/legacy-calculator/ (the files[] packaging fix)`);
+}
+
 // ---------- unit tests: destinationFor ----------
 {
   console.log("\n— destinationFor unit tests —");
@@ -877,6 +1753,9 @@ console.log("\n— indepth git history —");
   ok(destinationFor(path.join("agents", "skills", "add-feature", "SKILL.md")) ===
     path.join(".agents", "skills", "add-feature", "SKILL.md"),
     `agents/skills/ → .agents/skills/ mapping (Antigravity)`);
+  ok(destinationFor(path.join("cursor", "rules", "cold-start.mdc")) ===
+    path.join(".cursor", "rules", "cold-start.mdc"),
+    `cursor/rules/ → .cursor/rules/ mapping (Cursor)`);
   ok(destinationFor(path.join("ai", "INDEX.md.tmpl")) ===
     path.join("ai", "INDEX.md"),
     `non-prefixed .tmpl strip`);

@@ -18,6 +18,12 @@ Rules:
   Antigravity and Copilot both discover `SKILL.md` from `.agents/skills/` natively,
   so it is not duplicated per tool). Antigravity reads the tool-agnostic
   `AGENTS.md` at the repo root natively, so no separate rules files are shipped here.
+- `templates/cursor/**` installs to `.cursor/**`: native Cursor rules —
+  `rules/*.mdc` mirroring the 8 files in `templates/github/prompts/` (same
+  content, MDC frontmatter, `alwaysApply: false`), plus one
+  `alwaysApply: true` rule (`ai-knowledge-layer.mdc`) pointing at
+  `ai/INDEX.md` and the provenance rule. Codex needs nothing new here — it
+  reads `AGENTS.md` natively too.
 - This README is documentation for kit developers and is **not** installed.
 
 Placeholders (filled by the `orient` step; confirm them in your audit):

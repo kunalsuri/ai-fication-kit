@@ -22,6 +22,8 @@ jobs:
       - name: Install ai-fication-kit
         run: npm install -g ai-fication-kit
       - name: Verify Path Claims
-        run: ai-fication-kit verify . --strict
+        if: always()
+        run: ai-fication-kit verify . --strict --github-summary
       - name: Check for Code Drift
-        run: ai-fication-kit drift . --git --strict
+        if: always()
+        run: ai-fication-kit drift . --git --strict --github-summary

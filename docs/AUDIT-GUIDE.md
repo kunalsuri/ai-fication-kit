@@ -19,6 +19,11 @@ After `/cold-start`, three kinds of claims carry `[inferred]` tags:
 
 Work them in that order. If you only have ten minutes, audit the module map.
 
+For the MODULE_MAP.md rows specifically, `node install.mjs audit <path>` can do the
+walking and evidence-gathering for you — it's interactive only and never writes
+`[verified]` without your explicit per-row confirmation (see
+[CLI-REFERENCE.md#audit](CLI-REFERENCE.md#audit)).
+
 ## Deciding Stability — the questions to ask per row
 
 **`frozen` — hands off.** Say `frozen` when any of these is true:
