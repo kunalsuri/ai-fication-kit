@@ -86,6 +86,13 @@
 - **Gotchas:** Enforces license headers (Apache-2.0) on all `.js`, `.mjs`, `.md` source files and checks for leaked template placeholders (`{{...}}`).
 - **Related:** `verify`, `drift`
 
+### release-check  `[inferred]`
+- **Business goal:** Deterministic release-readiness gate: version-sync across every file stating a version, changelog gate, changed-files-vs-changelog coverage report, and CLI-docs sync (per `ai/lab/specs/SPEC_release-check.md`).
+- **Touches:** `test/release-check.mjs`, `package.json`, `.github/workflows/release-check.yml`, `docs/RELEASE-CHECKLIST.md`
+- **Verify with:** `npm run release-check`
+- **Gotchas:** Maintainer tooling for the kit repo itself — not stamped into target repos. Tag mode is auto-detected from `GITHUB_REF` (or forced with `--tag vX.Y.Z`) and additionally requires the dated changelog section and an emptied `[Unreleased]`. The coverage check is an informational keyword heuristic (exit 0) — a human judges its warnings.
+- **Related:** `deep-test`, `verify`
+
 ### ci-checks  `[inferred]`
 - **Business goal:** Provide a GitHub Actions workflow template that runs `verify --strict` and `drift --git --strict` automatically on push/PR for target repos.
 - **Touches:** `templates/github/workflows/ai-check.yml.tmpl`, `.github/workflows/ai-check.yml`, `lib/installer.mjs`

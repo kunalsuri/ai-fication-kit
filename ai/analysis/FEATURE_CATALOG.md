@@ -29,7 +29,7 @@ The kit's layers, used in the touch lists below:
 - **CLI** — `install.mjs` (arg parsing + dispatch only)
 - **Core** — the `lib/<name>.mjs` modules
 - **Payload** — `templates/` (what gets stamped into a target repo)
-- **Tests** — `test/run-tests.mjs` (smoke) and `test/run-deep-test.mjs` (standards)
+- **Tests** — `test/run-tests.mjs` (smoke), `test/run-deep-test.mjs` (standards), and `test/release-check.mjs` (release gate)
 
 ---
 
@@ -49,6 +49,7 @@ The kit's layers, used in the touch lists below:
 | F10 | **Claude Code workflow assets** | slash commands, subagents, add-feature skill stamped to `.claude/` | `templates/claude/commands/cold-start.md` `[inferred]` | `?` |
 | F11 | **CI knowledge-base check** | GitHub Actions template running `verify --strict` + `drift --git --strict` | `templates/github/workflows/ai-check.yml.tmpl` `[inferred]` | `?` |
 | F12 | **deep-test (kit standards gate)** | smoke + verify + drift + license headers + placeholder leaks | `test/run-deep-test.mjs` `[inferred]` | `?` |
+| F13 | **release-check (release gate)** | version-sync + changelog gate + coverage report + cli-docs-sync, on `v*` tags and on demand | `test/release-check.mjs` `[inferred]` | `?` |
 
 ---
 
@@ -118,6 +119,13 @@ F9 → `ai/analysis/audit-reports/DRIFT_REPORT.md` (+ gitignored manifest). `[in
 | Layer | Files | Confidence |
 |---|---|---|
 | Tests | `test/run-deep-test.mjs` · trigger docs in `.agents/skills/deep-test/SKILL.md` · `package.json` script `deep-test` | `[inferred]` |
+
+### F13 — release-check
+| Layer | Files | Confidence |
+|---|---|---|
+| Tests | `test/release-check.mjs` · `package.json` script `release-check` · fixture scenarios in `test/run-tests.mjs` | `[inferred]` |
+| CI | `.github/workflows/release-check.yml` (runs on `v*` tags + `workflow_dispatch`) | `[inferred]` |
+| Docs | `docs/RELEASE-CHECKLIST.md` step 0 · spec `ai/lab/specs/SPEC_release-check.md` | `[inferred]` |
 
 ---
 

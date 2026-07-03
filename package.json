@@ -1,6 +1,6 @@
 {
   "name": "ai-fication-kit",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Make any legacy repository AI-native, with a human in the loop",
   "type": "module",
   "main": "install.mjs",
@@ -23,6 +23,7 @@
     "remove": "node install.mjs uninstall",
     "test": "node test/run-tests.mjs",
     "deep-test": "node test/run-deep-test.mjs",
+    "release-check": "node test/release-check.mjs",
     "coverage": "npx --yes c8 --include \"lib/**/*.mjs\" --include install.mjs --reporter=text node test/run-tests.mjs"
   },
   "repository": {

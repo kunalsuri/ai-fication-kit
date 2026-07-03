@@ -6,76 +6,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-07-03
+
+Node-only runtime, hash-verified incremental re-runs with a child-lock protecting human-verified work, native GitHub Copilot and Google Antigravity support, a major test-suite hardening pass, a docs overhaul, and a deterministic release gate.
+
 ### Removed
-- **Python installer removed — the kit is now Node.js-only.** `install.py` and the
-  parallel Python modules (`lib/*.py`) are gone; `install.mjs` + `lib/*.mjs`
-  (Node.js ≥ 18, stdlib only, zero dependencies) is the single implementation.
-  Maintaining two feature-identical runtimes doubled the cost of every change and
-  risked silent behavior drift between them. Nothing changes for target repos:
-  Python projects are still fully supported by stack detection (`orient`),
-  `indepth` analysis, and all knowledge-layer features — only the runtime that
-  executes the kit itself now requires Node. CI and the smoke-test suite run
-  Node-only accordingly.
+- **Python installer** (`install.py`, `lib/*.py`) — the kit is now Node.js-only (`install.mjs` + `lib/*.mjs`, Node ≥ 18, stdlib, zero dependencies); Python **target** repos remain fully supported by `orient`/`indepth` and all knowledge-layer features.
 
 ### Added
-- **Incremental, hash-verified re-runs with a "child-lock" for human work.**
-  `install`/`shazam` re-runs are now safe by construction: the install manifest
-  records a SHA-256 content hash for every file the kit writes (`fileHashes` in
-  `ai/install-manifest.json`), and a three-way compare (recorded hash / disk /
-  freshly stamped template) classifies each file deterministically — no LLM, no guessing:
-  - files missing from disk are **written** (how new kit features, e.g. new tool
-    integrations, arrive on upgrade);
-  - kit-owned files never edited by a human are **refreshed** to the new template;
-  - files edited since install are **kept** untouched by default;
-  - with `--force`, edited files are overwritten only after a timestamped `_bkp_`
-    copy is written next to them — and files carrying a human `[verified]` tag are
-    **never** overwritten, even with `--force` (the child-lock protecting audit work);
-  - `--force-verified` (implies `--force`) is the explicit escape hatch through the
-    child-lock: it prints a per-file warning quoting the exact `[verified]` signature
-    lines that will be lost and what the file becomes afterwards, then requires the
-    word `overwrite` to be typed (backups still taken; `--yes` skips the prompt for
-    automation but the warning is always printed; non-interactive runs without
-    `--yes` abort safely);
-  - `ai/repo-profile.json` re-writes now carry the intake wizard's `humanContext`
-    forward, so onboarding answers survive re-runs.
-  Implemented in `lib/installer.mjs` (`classifyAction`); covered by new smoke
-  tests. Manifests written by older kit versions have no hashes, so their
-  existing files classify as "keep" — exactly the old skip behavior, nothing regresses.
-- **Native GitHub Copilot and Google Antigravity assets**, extending the kit beyond Claude Code:
-  - `templates/github/copilot-instructions.md`, `templates/github/prompts/*.prompt.md` (8 files),
-    and `templates/github/chatmodes/*.chatmode.md` (3 files) — installed to `.github/`, giving
-    Copilot Chat native `/cold-start`, `/add-feature`, etc. and chat-mode equivalents of the
-    `repo-explorer`/`feature-builder`/`test-runner` subagents.
-  - `templates/agents/workflows/*.md` (8 files) and `templates/agents/skills/add-feature/` —
-    installed to `.agents/`, giving Google Antigravity native workflow equivalents of the same
-    commands, plus the `add-feature` skill in the shared Agent Skills (`SKILL.md`) format that
-    Antigravity and Copilot both discover natively (no per-tool duplication).
-  - New `agents/` → `.agents/` destination mapping in `lib/installer.mjs`
-    (the `github/` → `.github/` mapping already covered the Copilot assets).
-  - No new rules files were added for Antigravity: it already reads the tool-agnostic
-    `AGENTS.md` at the repo root natively.
-- **Coverage-driven test-suite hardening.** The smoke suite grows substantially
-  (Node installer coverage: 78.6 % → 85.8 % lines, 66.6 % → 76.4 % branches):
-  - table-driven `orient` detector tests across every supported stack (Gradle both
-    variants, Go, Rust, Ruby, PHP, CMake, the bare-Makefile fallback and its
-    suppression, pip, yarn/bun/Pipenv lockfiles, Turborepo, `package.json` without
-    a `build` script, malformed `package.json`, empty repo, multi-stack note) plus
-    `--name`/`--description`/`--build`/`--test`/`--upstream` overrides and README
-    description-extraction edge cases (badge/HTML skipping, 160-char truncation,
-    fill-in fallback);
-  - per-ecosystem `indepth` dependency-parsing tests (pip, Poetry, Go, Cargo,
-    Bundler, Composer) and a real-git-repo fixture exercising the git-history
-    analyzer (commit/contributor/tag counts);
-  - unit tests for `classifyAction` pinning the full re-run matrix — including the
-    kit-upgrade `"update"` path that end-to-end tests cannot reach — and for the
-    intake wizard's `detectBranch` (normal / detached HEAD / no `.git`; exported
-    from `lib/intake.mjs` for testing);
-  - `verify` edge cases (no knowledge docs → clear error; duplicate basenames →
-    `2 matches` note) and CLI surface checks (usage text, unknown option);
-  - `npm run coverage` (c8, fetched via `npx`) and a CI `coverage` job in
-    `test.yml` enforcing a floor (83 % lines / 73 % branches).
-  (The suite briefly also carried a Node ↔ Python orient-parity gate; it was
-  retired in the same cycle when the Python runtime was removed.)
+- **Incremental re-runs with hash provenance** — the install manifest records a SHA-256 per written file; `install`/`shazam` re-runs deterministically write / refresh / keep each file, so new kit assets arrive on upgrade and human edits are never overwritten by default.
+- **Child-lock for audited work** — files carrying a human `[verified]` tag are never overwritten, even with `--force`.
+- **`--force-verified` escape hatch** — prints a per-signature warning and requires typed `overwrite` consent (backups always taken; safe non-interactive behavior).
+- **Intake answers survive re-runs** — `ai/repo-profile.json` re-writes carry `humanContext` forward.
+- **Native GitHub Copilot assets** — `copilot-instructions.md`, 8 prompt files, and 3 chat modes, stamped from `templates/github/` to `.github/`.
+- **Native Google Antigravity assets** — 8 workflows plus the `add-feature` skill in the shared Agent Skills format, stamped from `templates/agents/` to `.agents/` (new destination mapping).
+- **Deterministic release gate** — `npm run release-check` (version-sync, changelog gate, changed-files coverage report, CLI-docs sync per `ai/lab/specs/SPEC_release-check.md`), enforced on every `v*` tag by `.github/workflows/release-check.yml`.
+- **Coverage-driven test hardening** — orient detector matrix across every supported stack, per-ecosystem `indepth` dependency tests, `classifyAction`/`detectBranch` unit tests, verify/CLI edge cases; installer coverage 78.6 → 85.8 % lines, with `npm run coverage` and a CI floor (83 % lines / 73 % branches).
+
+### Fixed
+- **Windows CI tag counts** — `indepth` git-history analysis ran git through a shell, letting `cmd.exe` mangle the tag-format string; switched to `execFile` (no shell).
+- **`ai-check.yml` failing on every push** — `npm ci` had no committed lockfile; `package-lock.json` added.
+- **Drift baseline** re-anchored to main's tip after squash merges; stale `templates/claude/` map row resolved.
+
+### Docs
+- **New guides** — `docs/CLI-REFERENCE.md` (every command and flag), `docs/METHODOLOGY.md`, `docs/MULTI-TOOL-SETUP.md`; docs hub (`docs/README.md`) rebuilt.
+- **README** — defects fixed, previously undocumented capabilities surfaced, status badges and workflow diagram added.
+- **Release checklist** generalized for any `vX.Y.Z` release (was hardcoded to v0.1.0), with the release gate as step 0.
+- **Lessons-learnt series** extended and consolidated under `docs/dev/lessons-learnt/` (knowledge kinds / memory / context-harness stack; model tiering: plan heavy, implement light).
+- **Upcoming-features backlog** turned into an implementation-ready spec sheet (`docs/dev/upcoming-features.md`).
+- **Knowledge layer** — post-cold-start verification report, Mermaid architecture diagrams (`ai/analysis/diagrams/`), and a 360° pre-release maturity audit (`ai/analysis/audit-reports/`).
 
 ## [0.1.2] — 2026-06-30
 
@@ -159,6 +118,8 @@ First public release of the `ai-fication-kit` — a tool to create a knowledge l
 - **Uninstall Command**: Removes exactly what the installer wrote using the manifest record without touching any other files.
 - **Smoke Test Suite**: Cross-runtime test suite (`test/run-tests.mjs`) to verify Node and Python installers, stack detection, and verify operations.
 
+[Unreleased]: https://github.com/kunalsuri/ai-fication-kit/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.2.0
 [0.1.2]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.2
 [0.1.1]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.1
 [0.1.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.0

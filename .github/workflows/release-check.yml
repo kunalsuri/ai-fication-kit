@@ -1,0 +1,32 @@
+name: Release gate — version sync · changelog · CLI docs
+
+# Deterministic release-readiness gate (see ai/lab/specs/SPEC_release-check.md).
+# Runs on every v* tag push (tag mode: the script reads GITHUB_REF and requires
+# tag == package.json version, a dated changelog section, and an emptied
+# [Unreleased]) and on demand via workflow_dispatch (pre-tag mode).
+# Zero third-party actions; the script itself is dependency-free Node.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the coverage report diffs HEAD against the previous tag
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Release checks (version-sync · changelog-gate · coverage · cli-docs-sync)
+        run: node test/release-check.mjs
+      - name: Smoke tests
+        run: node test/run-tests.mjs
+      - name: Verify knowledge-layer path claims
+        run: node install.mjs verify . --strict
