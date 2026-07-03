@@ -11,5 +11,3 @@
 | stale | 0 | `[verified]` row whose code changed since the verified commit |
 
 No drift detected. The map matches the tree.
-
-> Stale check: stale check is opt-in — re-run with --git to compare against the last verified commit (local, read-only git).
