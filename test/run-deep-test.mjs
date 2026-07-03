@@ -85,11 +85,9 @@ ok(verifyRes.code === 0, `claim verification passes (--strict)`);
 
 // 3. Run Drift Verification (node install.mjs drift . --strict --git / --strict)
 console.log("\n3. Running drift verification...");
-let driftRes = run("node", ["install.mjs", "drift", ".", "--strict", "--git"]);
-if (driftRes.code !== 0 && driftRes.out.includes("SKIPPED")) {
-  // If git fails or skipped, retry without --git
-  driftRes = run("node", ["install.mjs", "drift", ".", "--strict"]);
-}
+// No fallback without --git: drift already exits 0 with a stated note when git
+// is unavailable, and retrying without --git would discard stale findings.
+const driftRes = run("node", ["install.mjs", "drift", ".", "--strict", "--git"]);
 if (driftRes.out) {
   console.log(driftRes.out.trim().split("\n").map(line => "    " + line).join("\n"));
 }

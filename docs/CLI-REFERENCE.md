@@ -15,9 +15,12 @@ any command**. Model inference only happens later, inside your agent, via
 
 **Safety guarantees shared by every command** (see [SECURITY.md](../SECURITY.md)):
 
-- Nothing is executed and no network connection is opened. Two documented
-  exceptions run **local, read-only git**: `drift --git` and `indepth`.
-- Nothing is written outside the target directory you pass in.
+- Nothing is executed and no network connection is opened. Three documented
+  exceptions run **local, read-only git**: `drift --git`, `audit --git`, and `indepth`.
+- Nothing is written outside the target directory you pass in, with two
+  documented exceptions: `demo` creates its playground under the OS temp
+  directory, and `--github-summary` appends to the file CI names in
+  `$GITHUB_STEP_SUMMARY`.
 - A file you have edited is never silently overwritten (see `install` below for
   the exact re-run rules and the `[verified]` child-lock).
 - `--dry-run` previews any command's plan without writing.

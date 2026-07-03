@@ -20,7 +20,10 @@ jobs:
         with:
           node-version: 20
       - name: Install ai-fication-kit
-        run: npm install -g ai-fication-kit
+        # The kit is not published to the npm registry yet — install straight
+        # from GitHub (same source the docs' npx one-liner uses). Pin to a tag
+        # (…#vX.Y.Z) once releases are tagged.
+        run: npm install -g github:kunalsuri/ai-fication-kit
       - name: Verify Path Claims
         if: always()
         run: ai-fication-kit verify . --strict --github-summary

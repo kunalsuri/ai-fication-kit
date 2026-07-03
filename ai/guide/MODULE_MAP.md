@@ -4,13 +4,11 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-07-03 @ commit e28482e (drift baseline re-anchored 2026-07-03: PR #19
-> (9 backlog features — `doctor`, `drift --suggest`, `--github-summary`, `status`, `audit`,
-> `demo`, native Cursor rules, AI-tool detection in the wizard, the living progress page) and
-> PR #20 (fixes for GitHub Copilot's review of #19) touched `/`, `lib/`, `templates/`,
-> `templates/ai/`, `templates/github/`, `test/`, and `docs/` after the previous dd99400
-> baseline — the human (kunalsuri) reviewed and merged both PRs; the per-row human audit
-> dates below remain the authoritative signatures)
+> Last verified: 2026-07-03 @ commit 4bbf46c (drift baseline re-anchored 2026-07-03: the
+> adversarial-audit fix commits c8a0fd7 and 4bbf46c (PR #22 review fix, AUD-R2-28)
+> touched `/`, `lib/`, `templates/github/`, `test/`, and `docs/` after the previous
+> e28482e baseline — this re-anchor accompanies that PR for human review at merge time;
+> the per-row human audit dates below remain the authoritative signatures)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
