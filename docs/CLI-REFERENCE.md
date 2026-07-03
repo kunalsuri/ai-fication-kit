@@ -358,7 +358,9 @@ claims, drift items, days since last audit) ending in a single verdict:
 With `--json`, also writes `ai/analysis/audit-reports/STATUS.json`, including
 a `badge` object in shields.io endpoint schema
 (`{schemaVersion:1, label:"ai-ready", message, color}`) so you can wire up a
-repo badge yourself. Without `--json`, nothing is written.
+repo badge yourself. Without `--json`, nothing new is written — though the
+living progress page (`ai/START-HERE.html`, see `install` above), if it
+already exists, is still refreshed with the current snapshot.
 
 **Options:** `--json`.
 

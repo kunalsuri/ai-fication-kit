@@ -1156,6 +1156,7 @@ console.log("\n— doctor —");
     const before = await treeHash(d);
     const result = await diagnose(d);
     ok(result.step === 1 && /shazam/.test(result.action), `step 1: no profile → run shazam`);
+    ok(result.action.includes(`"${d}"`), `step 1 action quotes the target path (regression: spaces-safe)`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 1)`);
     await fs.rm(d, { recursive: true, force: true });
   }
@@ -1198,6 +1199,10 @@ console.log("\n— doctor —");
     });
     const result = await diagnose(d);
     ok(result.step === 3 && /audit/.test(result.action), `step 3: [inferred] rows → human audit`);
+    // regression (Copilot PR review): must point at the real `audit` command,
+    // not the stale "once available" placeholder from before A1 shipped.
+    ok(result.action.includes("install.mjs audit") && !/once available/.test(result.action),
+      `step 3 action names the real audit command, not "once available": ${result.action}`);
     await fs.rm(d, { recursive: true, force: true });
   }
 
@@ -1216,6 +1221,11 @@ console.log("\n— doctor —");
     const result = await diagnose(d);
     ok(result.step === 4 && /verify/.test(result.action) && /drift/.test(result.action),
       `step 4: no manifests yet → run verify --strict / drift --strict`);
+    // regression (Copilot PR review): the action must be one shell-safe,
+    // copy/paste-able command, with the target path quoted (spaces-safe).
+    ok(!result.action.includes("(then)") && result.action.includes("&&") &&
+      result.action.includes(`"${d}"`),
+      `step 4 action is a single copy/paste-safe command with the path quoted: ${result.action}`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 4)`);
     await fs.rm(d, { recursive: true, force: true });
   }
@@ -1335,6 +1345,12 @@ console.log("\n— status —");
     const result = await computeStatus(d);
     ok(result.verdict === "NEEDS AUDIT" && result.hasModuleMap === false,
       `missing MODULE_MAP.md → NEEDS AUDIT verdict (got ${result.verdict})`);
+    // regression (Copilot PR review): with no knowledge docs at all (so
+    // computeVerification returns null), the printed line must not claim
+    // "verify has never run" — that's not what null means here.
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
+    ok(r.code === 0 && /no knowledge docs to check/.test(r.out) && !/verify has never run/.test(r.out),
+      `status wording reflects "no knowledge docs", not "verify has never run": ${r.out}`);
     await fs.rm(d, { recursive: true, force: true });
   }
 
