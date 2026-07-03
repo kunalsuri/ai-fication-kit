@@ -7,6 +7,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **`audit` command** — guided, interactive-only human audit of
+  `ai/guide/MODULE_MAP.md`. Gathers deterministic evidence per row (file
+  count, 3 largest/newest files via `fs.stat`; `--git` adds the last commit
+  touching that area) but only ever writes `[verified] (DD/MM/YYYY HH:mm)`
+  after an explicit per-row human confirmation — `--yes` does **not** unlock
+  this command, unlike every other command in the kit, since automation must
+  never manufacture a human signature. Takes one timestamped backup before
+  the first write; `--dry-run` supported.
 - **`status` command** — one-command health snapshot. Runs `verify`'s and
   `drift`'s core scans in-process (structural only, never git), counts
   MODULE_MAP `[verified]`/`[inferred]` rows and the newest audit date, and

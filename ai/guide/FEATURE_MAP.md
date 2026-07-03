@@ -93,6 +93,13 @@
 - **Gotchas:** Always calls `computeDrift` with `git: false` — the stale check never runs from `status`, even if the repo has git history. Verdict thresholds (broken claims/drift trump everything; unaudited or `> 90` days since last audit blocks `TRUSTED`) are documented as constants in `lib/status.mjs`, not buried in the logic. Writes nothing without `--json`.
 - **Related:** `verify`, `drift`, `doctor`
 
+### audit  `[inferred]`
+- **Business goal:** Do the drudgery of the human audit (walking rows, gathering evidence) while keeping the `[inferred]` → `[verified]` flip a genuine, per-row human signature.
+- **Touches:** `install.mjs`, `lib/audit.mjs`, `lib/drift.mjs` (`DRIFT_IGNORED_DIRS`, `parseModuleMap`), `lib/installer.mjs` (`VERIFIED_TAG`)
+- **Verify with:** `node install.mjs audit .` from a real interactive terminal
+- **Gotchas:** Unlike every other command, `--yes` does **not** unlock this one — it refuses with a friendly message alongside the non-TTY case, by design (automation must never manufacture a human signature). Only rewrites rows that already have a 5-column Status cell; 4-column scaffolded rows (pre-`/cold-start`) are left alone. Row rewrites never insert/delete lines, so line numbers stay valid across the whole run. Takes exactly one timestamped `MODULE_MAP_bkp_*.md` backup, before the first write.
+- **Related:** `verify`, `drift`, `status`
+
 ### deep-test  `[inferred]`
 - **Business goal:** Validate repository standards compliance, including smoke tests, verification, drift, license headers, and placeholders.
 - **Touches:** `test/run-deep-test.mjs`, `package.json`, `.agents/skills/deep-test/SKILL.md`

@@ -7,10 +7,10 @@
 
 | Status | Count | Meaning |
 |---|---|---|
-| confirmed | 160 | claim found on disk |
+| confirmed | 161 | claim found on disk |
 | moved | 0 | path is stale; a file with that name exists elsewhere |
 | missing | 0 | nothing on disk matches the claim |
 
 All claims confirmed. The knowledge docs match the tree.
 
-160 confirmed claim(s) — full list in VERIFICATION_MANIFEST.json.
+161 confirmed claim(s) — full list in VERIFICATION_MANIFEST.json.

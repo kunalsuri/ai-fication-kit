@@ -29,6 +29,11 @@
 //               [verified]/[inferred] rows, and prints a single verdict (TRUSTED /
 //               NEEDS AUDIT / DRIFTING). Writes ai/analysis/audit-reports/STATUS.json
 //               only with --json.
+//   audit     — interactive-only guided human audit of MODULE_MAP.md: gathers
+//               deterministic evidence per row (fs stat; --git adds the last commit
+//               touching that area) and only writes a [verified] tag after an
+//               explicit per-row human confirmation. --yes does NOT unlock this
+//               command — automation must never manufacture a human signature.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
 //   - It does NOT execute any code or open any network connection. (Two exceptions
@@ -56,6 +61,7 @@
 //   lib/drift.mjs      — structural drift detection (unmapped/vanished/stale)
 //   lib/doctor.mjs     — read-only stage detector ("what do I do next?")
 //   lib/status.mjs     — one-command health snapshot (TRUSTED/NEEDS AUDIT/DRIFTING)
+//   lib/audit.mjs      — interactive guided human audit of MODULE_MAP.md
 // You are encouraged to read them all before running this.
 //
 // USAGE:
@@ -69,6 +75,7 @@
 //   node install.mjs check-repo-maturity <path-to-your-repo> [--dry-run]
 //   node install.mjs doctor   <path-to-your-repo>
 //   node install.mjs status   <path-to-your-repo> [--json]
+//   node install.mjs audit    <path-to-your-repo> [--dry-run] [--git]
 //
 // OPTIONS:
 //   --dry-run            show the plan, write nothing
@@ -102,6 +109,7 @@ import { drift } from "./lib/drift.mjs";
 import { runFirstRunWizard } from "./lib/intake.mjs";
 import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
 import { status } from "./lib/status.mjs";
+import { audit } from "./lib/audit.mjs";
 
 // ---------------------------------------------------------------- CLI parsing
 
@@ -110,7 +118,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -175,6 +183,8 @@ Usage:
                                                    writes nothing
   node install.mjs status    <path-to-your-repo>   one-command health snapshot + verdict
                                                    (TRUSTED / NEEDS AUDIT / DRIFTING)
+  node install.mjs audit     <path-to-your-repo>   guided human audit of MODULE_MAP.md
+                                                   (interactive only — --yes refuses)
 
 Options: --dry-run --force --force-verified --yes --strict --git --suggest
          --github-summary --json --name --description --build --test --upstream
@@ -325,4 +335,6 @@ if (command === "orient") {
   printDoctorReport(result);
 } else if (command === "status") {
   await status(targetAbs, flags);
+} else if (command === "audit") {
+  await audit(targetAbs, flags);
 }

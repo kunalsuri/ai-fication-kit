@@ -1331,6 +1331,143 @@ console.log("\n— status —");
   }
 }
 
+// ---------- audit: guided human audit ----------
+// The CLI's interactive loop needs a real TTY (choose()/confirm() self-skip
+// otherwise), which this sandboxed test runner cannot allocate without a new
+// dependency — so the refusal path is exercised end-to-end via the CLI, and
+// every deterministic building block (evidence, row rewrite, edit application,
+// backup+write) is unit-tested directly against lib/audit.mjs.
+console.log("\n— audit —");
+{
+  const {
+    formatAuditTimestamp, targetDirFor, computeEvidence, rewriteRowLine,
+    applyEdits, writeAuditedMap,
+  } = await import(pathToFileURL(path.join(kitRoot, "lib", "audit.mjs")).href);
+
+  // ---- CLI refusal path: non-TTY and --yes both refuse, write nothing ----
+  {
+    const d = await makeBareFixture("audit-refuse", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [inferred] |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const before = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "audit", d]);
+    ok(r.code === 0 && /human activity/.test(r.out), `non-TTY audit refuses with the friendly message`);
+
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "audit", d, "--yes"]);
+    ok(r.code === 0 && /human activity/.test(r.out), `--yes does NOT unlock audit — still refuses`);
+
+    const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+    ok(after === before, `refused audit runs leave MODULE_MAP.md byte-identical`);
+    const files = await fs.readdir(path.join(d, "ai", "guide"));
+    ok(!files.some(f => /_bkp_/.test(f)), `refused audit runs take no backup`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---- formatAuditTimestamp ----
+  ok(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(formatAuditTimestamp(new Date(2026, 6, 3, 9, 5))),
+    `formatAuditTimestamp produces DD/MM/YYYY HH:mm: ${formatAuditTimestamp(new Date(2026, 6, 3, 9, 5))}`);
+
+  // ---- targetDirFor ----
+  // Minimal inline row shapes (mirroring parseModuleMap's output) — no need
+  // for a full MODULE_MAP.md fixture to unit-test this pure function.
+  {
+    ok(targetDirFor({ dirClaims: ["src/"], entryClaims: ["src/app.ts"] }) === "src",
+      `targetDirFor prefers a non-root directory claim`);
+    ok(targetDirFor({ dirClaims: ["/"], entryClaims: ["app.ts"] }) === "",
+      `targetDirFor treats the root marker as the repo root`);
+    ok(targetDirFor({ dirClaims: [], entryClaims: ["lib/util.mjs"] }) === "lib",
+      `targetDirFor falls back to the entry point's directory`);
+    ok(targetDirFor({ dirClaims: [], entryClaims: [] }) === "",
+      `targetDirFor falls back to root with no claims at all`);
+  }
+
+  // ---- computeEvidence ----
+  {
+    const d = await makeBareFixture("audit-evidence", {
+      "widgets/small.ts": "export const a = 1;\n",
+      "widgets/big.ts": "export const big = " + "1".repeat(500) + ";\n",
+      "widgets/sub/nested.ts": "export const n = 1;\n",
+    });
+    // make big.ts the newest by touching it after the others
+    await new Promise(res => setTimeout(res, 10));
+    await fs.utimes(path.join(d, "widgets", "big.ts"), new Date(), new Date());
+    const evidence = await computeEvidence(d, { dirClaims: ["widgets/"], entryClaims: [] }, { git: false });
+    ok(evidence.dirRel === "widgets", `computeEvidence resolves the row's directory`);
+    ok(evidence.fileCount === 3, `computeEvidence counts files recursively (incl. widgets/sub/)`);
+    ok(evidence.largest[0].rel === "widgets/big.ts", `computeEvidence ranks the largest file first`);
+    ok(evidence.newest[0].rel === "widgets/big.ts", `computeEvidence ranks the most recently modified file first`);
+    ok(evidence.lastCommit === null, `computeEvidence skips git evidence without --git`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---- rewriteRowLine ----
+  {
+    const line5col = "| `src/` | core logic | `src/app.ts` | ? | [inferred] |";
+    const rewritten = rewriteRowLine(line5col, "ours", "[verified] (03/07/2026 09:05)");
+    ok(rewritten === "| `src/` | core logic | `src/app.ts` | ours | [verified] (03/07/2026 09:05) |",
+      `rewriteRowLine replaces only Stability and Status, keeping other cells verbatim: ${rewritten}`);
+    const line4col = "| <fill in> | <fill in> | <fill in> | ? |";
+    ok(rewriteRowLine(line4col, "ours", "[verified] (x)") === null,
+      `rewriteRowLine returns null for a 4-column (scaffolded, no Status column) row`);
+  }
+
+  // ---- applyEdits: no line insertion/deletion, only listed+eligible rows change ----
+  {
+    const mapText =
+      "# Module map\n" +
+      "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+      "|---|---|---|---|---|\n" +
+      "| `src/` | core | `src/app.ts` | ? | [inferred] |\n" +
+      "| `lib/` | helpers | `lib/util.mjs` | ? | [inferred] |\n";
+    const edits = new Map([[4, { stability: "ours", timestamp: "03/07/2026 09:05" }]]);
+    const { text, appliedLines } = applyEdits(mapText, edits);
+    const lines = text.split("\n");
+    ok(lines.length === mapText.split("\n").length, `applyEdits never inserts/removes lines`);
+    ok(lines[3].includes("[verified] (03/07/2026 09:05)") && lines[3].includes("| ours |"),
+      `applyEdits rewrites the confirmed row (line 4)`);
+    ok(lines[4] === "| `lib/` | helpers | `lib/util.mjs` | ? | [inferred] |",
+      `applyEdits leaves the unconfirmed row byte-identical (line 5)`);
+    ok(appliedLines.length === 1 && appliedLines[0] === 4, `applyEdits reports exactly the applied line numbers`);
+
+    // the rewritten table must still parse cleanly (verify/drift can consume it)
+    const dTable = await makeBareFixture("audit-table-parses", {
+      "src/app.ts": "export {};\n",
+      "lib/util.mjs": "export {};\n",
+      "ai/guide/MODULE_MAP.md": text,
+    });
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "drift", dTable, "--strict"]);
+    ok(r.code === 0, `the rewritten table passes drift --strict`);
+    await fs.rm(dTable, { recursive: true, force: true });
+  }
+
+  // ---- writeAuditedMap: one backup, then the new content ----
+  {
+    const d = await makeBareFixture("audit-write", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ? | [inferred] |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const mapPath = path.join(d, "ai", "guide", "MODULE_MAP.md");
+    const before = await fs.readFile(mapPath, "utf8");
+    const newText = before.replace("| ? | [inferred] |", "| ours | [verified] (03/07/2026 09:05) |");
+    const { bkpPath } = await writeAuditedMap(mapPath, before, newText);
+    ok(await exists(bkpPath) && /MODULE_MAP_bkp_\d{8}_\d{6}\.md$/.test(bkpPath),
+      `writeAuditedMap leaves a timestamped MODULE_MAP_bkp_*.md backup`);
+    ok((await fs.readFile(bkpPath, "utf8")) === before, `the backup preserves the pre-audit content byte-for-byte`);
+    ok((await fs.readFile(mapPath, "utf8")) === newText, `writeAuditedMap writes the new content to MODULE_MAP.md`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 // ---------- unit tests: destinationFor ----------
 {
   console.log("\n— destinationFor unit tests —");

@@ -29,7 +29,7 @@
 | A3 | `drift --suggest` — ready-to-paste fixes | P1 | S | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | B4 | Friendly CI feedback (step summary) | P1 | S | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | A2 | `status` — health snapshot + badge | P2 | M | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
-| A1 | `audit` — guided human audit | P2 | M | A3 helpful | idea | ☐ | 2026-07-03 | — | — |
+| A1 | `audit` — guided human audit | P2 | M | A3 helpful | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | B3 | `demo` — zero-risk playground | P2 | S–M | — | idea | ☐ | 2026-07-03 | — | — |
 | A5 | Native Cursor rules assets | P3 | S | — | idea | ☐ | 2026-07-03 | — | — |
 | B2 | AI-tool detection in wizard | P3 | M | — | idea | ☐ | 2026-07-03 | — | — |

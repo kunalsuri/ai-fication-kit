@@ -38,6 +38,7 @@ any command**. Model inference only happens later, inside your agent, via
 | [`check-repo-maturity`](#check-repo-maturity) | Read-only AI-readiness diagnostic | `MATURITY_REPORT.json` |
 | [`doctor`](#doctor) | "What do I do next?" — read-only workflow-stage detector | (nothing — read-only) |
 | [`status`](#status) | One-command health snapshot + verdict | (nothing unless `--json`: `STATUS.json`) |
+| [`audit`](#audit) | Guided human audit of MODULE_MAP.md (interactive only) | `MODULE_MAP.md` rows + one timestamped backup |
 
 ---
 
@@ -348,6 +349,37 @@ repo badge yourself. Without `--json`, nothing is written.
 
 ---
 
+<a id="audit"></a>
+## `audit` — guided human audit
+
+```bash
+node install.mjs audit /path/to/your/repo [--dry-run] [--git]
+```
+
+Interactive only. The kit's whole trust model rests on the human `[inferred]`
+→ `[verified]` flip being a real signature, so **`--yes` does not unlock this
+command** — unlike every other command in the kit — and a non-TTY run refuses
+immediately with a friendly message and writes nothing.
+
+Walks every `ai/guide/MODULE_MAP.md` row with a Status column, printing
+deterministic evidence for each — file count, the 3 largest and 3 newest
+files under that row's directory (`fs.stat` only) and, with `--git`, the last
+commit that touched it (local, read-only git, the same documented exception
+as `drift --git`). You then choose to audit the row now or leave it
+untouched, pick its Stability (`frozen`/`stable`/`ours`), and give a final
+confirmation before anything is written — that confirmation is your
+signature. Confirmed rows are rewritten in place to
+`[verified] (DD/MM/YYYY HH:mm)`; declining at any step leaves the row
+byte-identical. Before the first write, takes one timestamped
+`MODULE_MAP_bkp_<timestamp>.md` backup next to the file.
+
+`--dry-run` runs the same interactive walk and reports what would have been
+confirmed, without taking a backup or writing anything.
+
+**Options:** `--dry-run`, `--git`.
+
+---
+
 ## Flags — the complete table
 
 | Flag | Applies to | Effect |
@@ -355,6 +387,7 @@ repo badge yourself. Without `--json`, nothing is written.
 | `--dry-run` | all commands | show the full plan, write nothing |
 | `--strict` | `verify`, `drift` | exit `1` if any claim is unconfirmed / any drift found (for CI) |
 | `--git` | `drift` | enable the *stale* check (local, read-only git) |
+| `--git` | `audit` | add the last commit touching each row's directory to its evidence (local, read-only git) |
 | `--suggest` | `drift` | append ready-to-paste MODULE_MAP fixes to the report/manifest |
 | `--github-summary` | `verify`, `drift` | append a plain-English summary to `$GITHUB_STEP_SUMMARY` if set (no-op otherwise) |
 | `--json` | `status` | also write `ai/analysis/audit-reports/STATUS.json` (with a shields.io `badge` object) |
