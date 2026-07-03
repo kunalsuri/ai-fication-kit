@@ -28,7 +28,7 @@ change, update this one file.
 | Feature specs | `ai/lab/specs/` | human + AI draft | per feature |
 | Evaluations | `ai/lab/evaluations/` | human | post-ship |
 | Experiments | `ai/lab/experiments/` | human + AI | when trying new agent approaches |
-| Lessons learned | `ai/lab/LESSONS_LEARNED.md` | human + AI draft | when questioning the ai/ design |
+| Lessons learnt | `ai/lab/lessons-learnt/` | human + AI draft | when questioning the ai/ design |
 | Install manifest | `ai/install-manifest.json` | installer | uninstall only |
 | Maturity report | `ai/analysis/audit-reports/MATURITY_REPORT.json` | `check-repo-maturity` | on demand |
 | Drift report | `ai/analysis/audit-reports/DRIFT_REPORT.md` | `drift` | on demand |
