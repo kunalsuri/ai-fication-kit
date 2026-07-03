@@ -17,9 +17,9 @@
 [![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-why-the-agent-context-tax)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
-<h2>Make any codebase AI-native — with human-verified Repo Intelligence that AI coding agents can trust.</h2>
+<h2>Make any Codebase AI-native with Human-Verified Repo Intelligence that AI Coding Agents can Trust.</h2>
 
-<h3>Context engineering + harness engineering for AI coding agents, with a human in the loop.</h3>
+<h3>Context Engineering + Harness Engineering for AI Coding Agents, with a Human-in-the-Loop.</h3>
 
 </div>
 
