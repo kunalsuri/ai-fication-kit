@@ -26,7 +26,7 @@
 | ID | Feature | Priority | Effort | Depends on | Status | Implemented | Added | Completed | Commit / PR |
 |---|---|---|---|---|---|---|---|---|---|
 | B1 | `doctor` — state-aware next step | P1 | S–M | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
-| A3 | `drift --suggest` — ready-to-paste fixes | P1 | S | — | idea | ☐ | 2026-07-03 | — | — |
+| A3 | `drift --suggest` — ready-to-paste fixes | P1 | S | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | B4 | Friendly CI feedback (step summary) | P1 | S | — | idea | ☐ | 2026-07-03 | — | — |
 | A2 | `status` — health snapshot + badge | P2 | M | — | idea | ☐ | 2026-07-03 | — | — |
 | A1 | `audit` — guided human audit | P2 | M | A3 helpful | idea | ☐ | 2026-07-03 | — | — |

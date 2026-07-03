@@ -563,6 +563,60 @@ async function testInstaller(label, exec, script) {
 
   await fs.rm(drepo, { recursive: true, force: true });
 
+  // ---------- drift --suggest: ready-to-paste fixes ----------
+  // A bare fixture (no tests/ or other base-fixture dirs) so unmapped/vanished
+  // counts are exact: one unmapped directory, one vanished row.
+  const srepo = await makeBareFixture(`${label}-suggest`, {
+    // a bigger, non-entry file plus a small index.ts — the picker must prefer
+    // index.* over a larger file, proving the entry-point priority (not "largest").
+    "widgets/helpers.ts": "export const big = " + "1".repeat(200) + ";\n",
+    "widgets/index.ts": "export const w = 1;\n",
+    "ai/guide/MODULE_MAP.md":
+      "# Module map\n" +
+      "> Last verified: 2026-06-01 @ commit <fill in sha>\n" +
+      "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+      "|---|---|---|---|---|\n" +
+      "| `gone/` | removed module | (unmapped) | stable | [inferred] |\n",
+  });
+
+  // without --suggest: byte-identical to today (no suggestions key, no report section)
+  r = run(exec, [script, "drift", srepo]);
+  ok(r.code === 0, `drift (no --suggest) exits 0`);
+  const sManifestPath = path.join(srepo, "ai", "analysis", "audit-reports", "DRIFT_MANIFEST.json");
+  const sReportPath = path.join(srepo, "ai", "analysis", "audit-reports", "DRIFT_REPORT.md");
+  const sManifestNoSuggest = JSON.parse(await fs.readFile(sManifestPath, "utf8"));
+  ok(!("suggestions" in sManifestNoSuggest), `no --suggest → manifest has no suggestions key`);
+  const sReportNoSuggest = await fs.readFile(sReportPath, "utf8");
+  ok(!/Suggested rows/.test(sReportNoSuggest), `no --suggest → report has no Suggested rows section`);
+  ok(sManifestNoSuggest.summary.unmapped === 1 && sManifestNoSuggest.summary.vanished === 1,
+    `--suggest fixture has exactly one unmapped dir and one vanished row`);
+
+  // --dry-run --suggest still writes nothing
+  r = run(exec, [script, "drift", srepo, "--suggest", "--dry-run"]);
+  ok(r.code === 0, `drift --suggest --dry-run exits 0`);
+
+  // real run with --suggest
+  r = run(exec, [script, "drift", srepo, "--suggest"]);
+  ok(r.code === 0, `drift --suggest exits 0`);
+  const sManifest = JSON.parse(await fs.readFile(sManifestPath, "utf8"));
+  ok(Array.isArray(sManifest.suggestions) && sManifest.suggestions.length === 2,
+    `--suggest manifest carries exactly 2 suggestion entries (1 unmapped-row + 1 vanished-fix)`);
+  const unmappedSuggestion = sManifest.suggestions.find(s => s.type === "unmapped-row");
+  ok(unmappedSuggestion?.directory === "widgets/" && unmappedSuggestion?.entry === "widgets/index.ts",
+    `suggested entry point prefers index.ts over the larger helpers.ts: ${unmappedSuggestion?.entry}`);
+  ok(/\[inferred\]/.test(unmappedSuggestion?.row) && / \? /.test(unmappedSuggestion?.row),
+    `suggested row carries Stability ? and tag [inferred], never a guess`);
+  const vanishedSuggestion = sManifest.suggestions.find(s => s.type === "vanished-fix");
+  ok(vanishedSuggestion?.claim === "gone/" && vanishedSuggestion?.line === 5,
+    `suggested vanished fix points at the exact MODULE_MAP.md line: ${JSON.stringify(vanishedSuggestion)}`);
+  const sReport = await fs.readFile(sReportPath, "utf8");
+  ok(sReport.includes("Suggested rows") && sReport.includes("widgets/index.ts"),
+    `report includes the Suggested rows section with the paste-ready row`);
+  ok(sReport.includes("Suggested fixes for vanished rows") && /`gone\/`\s*\|\s*5\s*\|/.test(sReport),
+    `report includes the vanished-row line-number pointer`);
+
+  await fs.rm(srepo, { recursive: true, force: true });
+
   // ---------- error handling & CLI surface ----------
   r = run(exec, [script, "install", path.join(here, "definitely-not-here-xyz")]);
   ok(r.code !== 0, `missing target → non-zero exit`);

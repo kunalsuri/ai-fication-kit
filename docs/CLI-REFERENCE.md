@@ -228,7 +228,7 @@ CI so a stale map fails the build (the kit's own
 ## `drift` — where the code outgrew the map
 
 ```bash
-node install.mjs drift /path/to/your/repo [--dry-run] [--strict] [--git]
+node install.mjs drift /path/to/your/repo [--dry-run] [--strict] [--git] [--suggest]
 ```
 
 The reverse of `verify`: instead of checking what the docs quote, it checks what
@@ -250,7 +250,15 @@ Mechanical drift detection has known blind spots — read
 [dev/lessons-learnt/drift-blindspots-and-automation-bias.md](dev/lessons-learnt/drift-blindspots-and-automation-bias.md)
 before trusting a clean report too much.
 
-**Options:** `--dry-run`, `--strict`, `--git`.
+With `--suggest`, the report gains a "Suggested rows" section: a paste-ready
+`MODULE_MAP.md` row for every unmapped directory (entry point guessed as the
+first `index.*`/`main.*` file, else the largest source file — Stability always
+`?`, tag always `[inferred]`), and, for every vanished row, the exact
+`MODULE_MAP.md` line number to delete or fix. The same data is mirrored as a
+`suggestions` array in `DRIFT_MANIFEST.json`. Without `--suggest`, output is
+unchanged. It never edits `MODULE_MAP.md` itself.
+
+**Options:** `--dry-run`, `--strict`, `--git`, `--suggest`.
 
 ---
 
@@ -306,6 +314,7 @@ which step you're on, a one-sentence diagnosis, and the exact next command.
 | `--dry-run` | all commands | show the full plan, write nothing |
 | `--strict` | `verify`, `drift` | exit `1` if any claim is unconfirmed / any drift found (for CI) |
 | `--git` | `drift` | enable the *stale* check (local, read-only git) |
+| `--suggest` | `drift` | append ready-to-paste MODULE_MAP fixes to the report/manifest |
 | `--force` | `install`, `shazam` | overwrite files you edited, after a timestamped `_bkp_` copy; `[verified]` files still kept |
 | `--force-verified` | `install`, `shazam` | implies `--force`; unlocks `[verified]` files after showing every signature to be lost and requiring you to type `overwrite` |
 | `--yes` | `shazam`, `install`, `uninstall` | skip confirmation prompts and the wizard (CI mode); warnings still printed |

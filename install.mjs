@@ -67,6 +67,7 @@
 //   --dry-run            show the plan, write nothing
 //   --strict             verify/drift only: exit 1 if any claim is unconfirmed / drifted
 //   --git                drift only: include the stale check (local, read-only git)
+//   --suggest            drift only: append ready-to-paste MODULE_MAP fixes to the report
 //   --force              overwrite files you edited (timestamped backup taken first);
 //                        files carrying a human [verified] tag are still kept
 //   --force-verified     implies --force AND unlocks [verified] files too — shows
@@ -108,6 +109,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--force") flags.force = true;
   else if (a === "--force-verified") { flags.forceVerified = true; flags.force = true; }
   else if (a === "--git") flags.git = true;
+  else if (a === "--suggest") flags.suggest = true;
   else if (a === "--yes") flags.yes = true;
   else if (a === "--skip-prompt") flags.skipPrompt = true;
   else if (a === "--interactive" || a === "-i") flags.interactive = true;
@@ -152,13 +154,14 @@ Usage:
   node install.mjs verify    <path-to-your-repo>   mechanically check every path claim
                                                    in the knowledge docs against the tree
   node install.mjs drift     <path-to-your-repo>   report where the code has drifted from
-                                                   the map (unmapped/vanished; --git: stale)
+                                                   the map (unmapped/vanished; --git: stale;
+                                                   --suggest: ready-to-paste fixes)
   node install.mjs check-repo-maturity <path>      read-only AI readiness diagnostic
                                                    (no LLM, no writes, just a report)
   node install.mjs doctor    <path-to-your-repo>   "what do I do next?" — read-only,
                                                    writes nothing
 
-Options: --dry-run --force --force-verified --yes --strict --git
+Options: --dry-run --force --force-verified --yes --strict --git --suggest
          --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit

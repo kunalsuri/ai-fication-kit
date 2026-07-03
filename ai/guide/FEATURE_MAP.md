@@ -69,7 +69,7 @@
 - **Business goal:** Analyze codebase to identify unmapped active source directories, vanished map entries, and stale verified modules.
 - **Touches:** `install.mjs`, `lib/drift.mjs`
 - **Verify with:** `node install.mjs drift . --strict` (or `--git` for stale checks)
-- **Gotchas:** The stale check runs a read-only git command to detect modified files; it requires a valid git history and will be skipped in shallow clones.
+- **Gotchas:** The stale check runs a read-only git command to detect modified files; it requires a valid git history and will be skipped in shallow clones. `--suggest` appends ready-to-paste MODULE_MAP rows/line pointers to the report and a `suggestions` array to the manifest — it never edits `MODULE_MAP.md` itself, and the entry-point guess is deterministic (`index.*`/`main.*`, else largest source file).
 - **Related:** `verify`, `deep-test`
 
 ### maturity  `[inferred]`

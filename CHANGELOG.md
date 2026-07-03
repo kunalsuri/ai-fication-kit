@@ -7,6 +7,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **`drift --suggest`** — appends ready-to-paste `MODULE_MAP.md` rows for every
+  unmapped directory (deterministic entry-point guess: `index.*`/`main.*`, else
+  largest source file) and the exact line number to delete or fix for every
+  vanished row, mirrored as a `suggestions` array in `DRIFT_MANIFEST.json`.
+  Never edits `MODULE_MAP.md`; without the flag, output is unchanged.
 - **`doctor` command** — read-only "what do I do next?" diagnostic. Detects which
   of the 5 workflow stages a repo is at (no scan yet / no MODULE_MAP / unaudited
   `[inferred]` rows / no or failing verify-drift manifests / fully verified) and
