@@ -7,6 +7,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **Native Cursor rules assets** — `templates/cursor/rules/*.mdc`, stamped to
+  `.cursor/rules/` in the target: one rule per workflow command (same content
+  as the Copilot prompts, MDC frontmatter, `alwaysApply: false`), plus one
+  `alwaysApply: true` rule (`ai-knowledge-layer.mdc`) pointing at
+  `ai/INDEX.md` and the provenance rule. `lib/installer.mjs`'s
+  `destinationFor` gained the `cursor/` → `.cursor/` mapping — install,
+  uninstall, and incremental re-runs (including the child-lock) treat it
+  exactly like `templates/github/` and `templates/agents/`.
+  `templates/README.md`, `docs/MULTI-TOOL-SETUP.md`, `docs/FAQ.md`, and the
+  README badges/diagrams updated accordingly.
 - **`demo` command** — zero-risk playground run, no target argument. Copies
   the bundled `examples/legacy-calculator/` into a fresh directory under
   `os.tmpdir()` and runs `orient` + `install` there in-process, then prints a

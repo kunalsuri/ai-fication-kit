@@ -128,6 +128,13 @@
 - **Gotchas:** The template uses `npm install -g ai-fication-kit` to fetch the kit in CI; requires the package to be published to npm. The kit's own self-hosted workflow uses `node install.mjs` directly.
 - **Related:** `verify`, `drift`, `install`
 
+### cursor-rules  `[inferred]`
+- **Business goal:** Give Cursor users the same native workflow-command surface Claude Code/Copilot/Antigravity users get, instead of manual prompt-pasting.
+- **Touches:** `templates/cursor/rules/*.mdc`, `lib/installer.mjs` (`destinationFor`'s `cursor/` → `.cursor/` mapping)
+- **Verify with:** `npm test` (installs a fixture repo and asserts `.cursor/rules/*.mdc` files, MDC frontmatter, and the child-lock/uninstall behavior)
+- **Gotchas:** Content is mirrored verbatim from `templates/github/prompts/*.prompt.md` (same 8 workflow commands) — only the frontmatter changes (`mode: agent` + `description:` → `description:` + `alwaysApply: false`). `ai-knowledge-layer.mdc` is the one `alwaysApply: true` rule; it exists specifically so Cursor always sees the `ai/INDEX.md` pointer and the provenance rule, even if a user never invokes a workflow rule. Codex needs nothing new — it reads `AGENTS.md` natively.
+- **Related:** `install`, `ci-checks`
+
 ### check-drift (Claude command)  `[inferred]`
 - **Business goal:** Provide a Claude Code slash command (`/check-drift`) for interactive verification and drift analysis of the `ai/` knowledge-base.
 - **Touches:** `templates/claude/commands/check-drift.md`, `.claude/commands/check-drift.md`

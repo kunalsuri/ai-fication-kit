@@ -174,6 +174,9 @@ async function testInstaller(label, exec, script) {
     path.join(".agents", "workflows", "cold-start.md"),
     path.join(".agents", "workflows", "add-feature.md"),
     path.join(".agents", "skills", "add-feature", "SKILL.md"),
+    path.join(".cursor", "rules", "cold-start.mdc"),
+    path.join(".cursor", "rules", "add-feature.mdc"),
+    path.join(".cursor", "rules", "ai-knowledge-layer.mdc"),
     path.join("ai", "install-manifest.json")]) {
     ok(await exists(path.join(repo, f)), `installed ${f}`);
   }
@@ -184,6 +187,16 @@ async function testInstaller(label, exec, script) {
     `no unresolved known placeholders in CLAUDE.md`);
   const indexMd = await fs.readFile(path.join(repo, "ai", "INDEX.md"), "utf8");
   ok(!indexMd.includes("{{"), `no unresolved placeholders in ai/INDEX.md`);
+  const cursorRule = await fs.readFile(path.join(repo, ".cursor", "rules", "cold-start.mdc"), "utf8");
+  ok(!cursorRule.includes("{{") && !cursorRule.includes(".mdc.tmpl"),
+    `no unresolved placeholders / leaked .tmpl suffixes in .cursor/rules/*.mdc`);
+  ok(/^---\ndescription: .+\nalwaysApply: false\n---/.test(cursorRule),
+    `.cursor/rules/cold-start.mdc carries MDC frontmatter (description, alwaysApply: false)`);
+  const cursorAlwaysRule = await fs.readFile(path.join(repo, ".cursor", "rules", "ai-knowledge-layer.mdc"), "utf8");
+  ok(/^---\ndescription: .+\nalwaysApply: true\n---/.test(cursorAlwaysRule),
+    `.cursor/rules/ai-knowledge-layer.mdc is the alwaysApply: true index rule`);
+  ok(cursorAlwaysRule.includes("ai/INDEX.md") && /\[inferred\]/.test(cursorAlwaysRule) && /\[verified\]/.test(cursorAlwaysRule),
+    `the always-on rule points at ai/INDEX.md and states the provenance rule`);
   ok(!(await exists(path.join(repo, "ai", "README.md"))) &&
     !(await exists(path.join(repo, "README.md.tmpl"))),
     `templates/README.md not installed; no .tmpl suffixes leaked`);
@@ -222,6 +235,8 @@ async function testInstaller(label, exec, script) {
   // simulate a kit update shipping a new file: remove one so the re-run restores it
   const newFeatureFile = path.join(repo, ".agents", "workflows", "cold-start.md");
   await fs.rm(newFeatureFile);
+  const newCursorFile = path.join(repo, ".cursor", "rules", "cold-start.mdc");
+  await fs.rm(newCursorFile);
   // give shazam a humanContext to prove re-runs carry it forward
   const profileBefore = JSON.parse(await fs.readFile(profilePath, "utf8"));
   profileBefore.humanContext = { skill: "expert" };
@@ -234,6 +249,7 @@ async function testInstaller(label, exec, script) {
   ok((await fs.readFile(convPath, "utf8")) === "# my own conventions\n",
     `re-run keeps the edited CONVENTIONS.md`);
   ok(await exists(newFeatureFile), `re-run adds only the missing (new-feature) file`);
+  ok(await exists(newCursorFile), `re-run also restores a missing Cursor rule file`);
   ok(/keep \(/.test(r.out) && /write \(new\)/.test(r.out),
     `re-run reports kept and newly written files`);
   const profileAfterRerun = JSON.parse(await fs.readFile(profilePath, "utf8"));
@@ -285,6 +301,7 @@ async function testInstaller(label, exec, script) {
   ok(r.code === 0, `uninstall exits 0` + (r.code === 0 ? "" : ` (out: ${r.out})`));
   ok(!(await exists(path.join(repo, "CLAUDE.md"))), `uninstall removed CLAUDE.md`);
   ok(!(await exists(path.join(repo, "ai"))), `uninstall removed empty ai/ tree`);
+  ok(!(await exists(path.join(repo, ".cursor"))), `uninstall removed the .cursor/ tree`);
   ok(await exists(path.join(repo, "package.json")) && await exists(path.join(repo, "app.ts")),
     `uninstall kept user files`);
 
@@ -1556,6 +1573,9 @@ console.log("\n— npm pack (demo packaging) —");
   ok(destinationFor(path.join("agents", "skills", "add-feature", "SKILL.md")) ===
     path.join(".agents", "skills", "add-feature", "SKILL.md"),
     `agents/skills/ → .agents/skills/ mapping (Antigravity)`);
+  ok(destinationFor(path.join("cursor", "rules", "cold-start.mdc")) ===
+    path.join(".cursor", "rules", "cold-start.mdc"),
+    `cursor/rules/ → .cursor/rules/ mapping (Cursor)`);
   ok(destinationFor(path.join("ai", "INDEX.md.tmpl")) ===
     path.join("ai", "INDEX.md"),
     `non-prefixed .tmpl strip`);
