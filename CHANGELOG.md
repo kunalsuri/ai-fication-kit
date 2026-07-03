@@ -7,6 +7,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **`status` command** — one-command health snapshot. Runs `verify`'s and
+  `drift`'s core scans in-process (structural only, never git), counts
+  MODULE_MAP `[verified]`/`[inferred]` rows and the newest audit date, and
+  prints a single verdict (`TRUSTED` / `NEEDS AUDIT` / `DRIFTING`). `--json`
+  additionally writes `ai/analysis/audit-reports/STATUS.json` with a
+  shields.io-schema `badge` object. `verify`/`drift` now export pure
+  `computeVerification`/`computeDrift` functions for this (their CLI
+  behavior is unchanged).
 - **`--github-summary`** on `verify`/`drift` — appends a short plain-English
   ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set (one line per problem, a
   confirmation line on success), so CI failures read like guidance instead of

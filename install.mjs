@@ -24,6 +24,11 @@
 //   doctor    — read-only "what do I do next?": detects which of the 5 workflow stages
 //               the repo is at from files already on disk, and prints the next step
 //               in plain language. Writes nothing.
+//   status    — one-command health snapshot: runs verify's and drift's core scans
+//               in-process (structural only, never git), counts MODULE_MAP
+//               [verified]/[inferred] rows, and prints a single verdict (TRUSTED /
+//               NEEDS AUDIT / DRIFTING). Writes ai/analysis/audit-reports/STATUS.json
+//               only with --json.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
 //   - It does NOT execute any code or open any network connection. (Two exceptions
@@ -50,6 +55,7 @@
 //   lib/verify.mjs     — mechanical claim verification
 //   lib/drift.mjs      — structural drift detection (unmapped/vanished/stale)
 //   lib/doctor.mjs     — read-only stage detector ("what do I do next?")
+//   lib/status.mjs     — one-command health snapshot (TRUSTED/NEEDS AUDIT/DRIFTING)
 // You are encouraged to read them all before running this.
 //
 // USAGE:
@@ -62,6 +68,7 @@
 //   node install.mjs drift    <path-to-your-repo> [--dry-run] [--strict] [--git]
 //   node install.mjs check-repo-maturity <path-to-your-repo> [--dry-run]
 //   node install.mjs doctor   <path-to-your-repo>
+//   node install.mjs status   <path-to-your-repo> [--json]
 //
 // OPTIONS:
 //   --dry-run            show the plan, write nothing
@@ -70,6 +77,7 @@
 //   --suggest            drift only: append ready-to-paste MODULE_MAP fixes to the report
 //   --github-summary     verify/drift only: append a plain-English summary to
 //                        $GITHUB_STEP_SUMMARY if set (silent no-op otherwise)
+//   --json               status only: also write ai/analysis/audit-reports/STATUS.json
 //   --force              overwrite files you edited (timestamped backup taken first);
 //                        files carrying a human [verified] tag are still kept
 //   --force-verified     implies --force AND unlocks [verified] files too — shows
@@ -93,6 +101,7 @@ import { verify } from "./lib/verify.mjs";
 import { drift } from "./lib/drift.mjs";
 import { runFirstRunWizard } from "./lib/intake.mjs";
 import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
+import { status } from "./lib/status.mjs";
 
 // ---------------------------------------------------------------- CLI parsing
 
@@ -101,7 +110,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -113,6 +122,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--git") flags.git = true;
   else if (a === "--suggest") flags.suggest = true;
   else if (a === "--github-summary") flags.githubSummary = true;
+  else if (a === "--json") flags.json = true;
   else if (a === "--yes") flags.yes = true;
   else if (a === "--skip-prompt") flags.skipPrompt = true;
   else if (a === "--interactive" || a === "-i") flags.interactive = true;
@@ -163,9 +173,11 @@ Usage:
                                                    (no LLM, no writes, just a report)
   node install.mjs doctor    <path-to-your-repo>   "what do I do next?" — read-only,
                                                    writes nothing
+  node install.mjs status    <path-to-your-repo>   one-command health snapshot + verdict
+                                                   (TRUSTED / NEEDS AUDIT / DRIFTING)
 
 Options: --dry-run --force --force-verified --yes --strict --git --suggest
-         --github-summary --name --description --build --test --upstream
+         --github-summary --json --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
          --version, -v   print the kit version and exit
 `);
@@ -311,4 +323,6 @@ if (command === "orient") {
 } else if (command === "doctor") {
   const result = await diagnose(targetAbs);
   printDoctorReport(result);
+} else if (command === "status") {
+  await status(targetAbs, flags);
 }

@@ -62,14 +62,14 @@
 - **Business goal:** Mechanically extract and check every backtick-quoted path claim in the knowledge documents against the active directory tree.
 - **Touches:** `install.mjs`, `lib/verify.mjs`
 - **Verify with:** `node install.mjs verify . --strict`
-- **Gotchas:** Claim matching is case-INSENSITIVE by design on every platform (both index and lookup are lowercased in `lib/verify.mjs`), so a claim can stay confirmed even if its casing no longer matches the file on disk. Claims containing whitespace, globs, or `<placeholders>` are ignored. `--github-summary` appends a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set — silent no-op otherwise, no effect on `--strict` exit codes.
+- **Gotchas:** Claim matching is case-INSENSITIVE by design on every platform (both index and lookup are lowercased in `lib/verify.mjs`), so a claim can stay confirmed even if its casing no longer matches the file on disk. Claims containing whitespace, globs, or `<placeholders>` are ignored. `--github-summary` appends a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set — silent no-op otherwise, no effect on `--strict` exit codes. The pure scan is exported as `computeVerification(targetAbs)` (returns `null` if there are no knowledge docs) — `status` calls it directly; the CLI's own behavior (including the "Nothing to verify" exit) is unchanged.
 - **Related:** `drift`, `deep-test`
 
 ### drift  `[inferred]`
 - **Business goal:** Analyze codebase to identify unmapped active source directories, vanished map entries, and stale verified modules.
 - **Touches:** `install.mjs`, `lib/drift.mjs`
 - **Verify with:** `node install.mjs drift . --strict` (or `--git` for stale checks)
-- **Gotchas:** The stale check runs a read-only git command to detect modified files; it requires a valid git history and will be skipped in shallow clones. `--suggest` appends ready-to-paste MODULE_MAP rows/line pointers to the report and a `suggestions` array to the manifest — it never edits `MODULE_MAP.md` itself, and the entry-point guess is deterministic (`index.*`/`main.*`, else largest source file). `--github-summary` appends a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set — silent no-op otherwise.
+- **Gotchas:** The stale check runs a read-only git command to detect modified files; it requires a valid git history and will be skipped in shallow clones. `--suggest` appends ready-to-paste MODULE_MAP rows/line pointers to the report and a `suggestions` array to the manifest — it never edits `MODULE_MAP.md` itself, and the entry-point guess is deterministic (`index.*`/`main.*`, else largest source file). `--github-summary` appends a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` when set — silent no-op otherwise. The pure scan is exported as `computeDrift(targetAbs, { git })` (returns `null` if there's no MODULE_MAP.md) — `status` always calls it with `git: false`.
 - **Related:** `verify`, `deep-test`
 
 ### maturity  `[inferred]`
@@ -85,6 +85,13 @@
 - **Verify with:** `node install.mjs doctor .`
 - **Gotchas:** Read-only by design — never writes a file, so it's always safe to run. Placeholder detection matches the exact `<fill in>` text from `templates/ai/guide/MODULE_MAP.md.tmpl`; step 4 treats missing verify/drift manifests the same as manifests recording failures.
 - **Related:** `verify`, `drift`
+
+### status  `[inferred]`
+- **Business goal:** Answer "how trustworthy is my ai/ layer right now?" in one command instead of three, ending in a single verdict a human or a badge can act on.
+- **Touches:** `install.mjs`, `lib/status.mjs`, `lib/verify.mjs` (`computeVerification`), `lib/drift.mjs` (`computeDrift`)
+- **Verify with:** `node install.mjs status .` and `node install.mjs status . --json`
+- **Gotchas:** Always calls `computeDrift` with `git: false` — the stale check never runs from `status`, even if the repo has git history. Verdict thresholds (broken claims/drift trump everything; unaudited or `> 90` days since last audit blocks `TRUSTED`) are documented as constants in `lib/status.mjs`, not buried in the logic. Writes nothing without `--json`.
+- **Related:** `verify`, `drift`, `doctor`
 
 ### deep-test  `[inferred]`
 - **Business goal:** Validate repository standards compliance, including smoke tests, verification, drift, license headers, and placeholders.

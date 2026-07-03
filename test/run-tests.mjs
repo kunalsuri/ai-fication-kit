@@ -1153,6 +1153,184 @@ console.log("\n— doctor —");
   }
 }
 
+// ---------- status: one-command health snapshot ----------
+console.log("\n— status —");
+{
+  const { computeStatus } = await import(pathToFileURL(path.join(kitRoot, "lib", "status.mjs")).href);
+
+  // DRIFTING: a broken claim, regardless of MODULE_MAP audit state.
+  {
+    const d = await makeBareFixture("status-drifting", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n" +
+        "See `missing/ghost.ts`.\n",
+      "src/app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "DRIFTING", `broken claim → DRIFTING verdict (got ${result.verdict})`);
+    ok(result.brokenClaims === 1, `brokenClaims counts the unconfirmed claim`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // DRIFTING: a structural drift item (unmapped dir), no broken claims.
+  {
+    const d = await makeBareFixture("status-drifting-drift", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/07/2026) |\n",
+      "app.ts": "export {};\n",
+      "widgets/widget.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "DRIFTING", `unmapped directory → DRIFTING verdict (got ${result.verdict})`);
+    ok(result.driftItems === 1, `driftItems counts the unmapped directory`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NEEDS AUDIT: no broken claims/drift, but an [inferred] row.
+  {
+    const d = await makeBareFixture("status-needs-audit", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [inferred] |\n",
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NEEDS AUDIT", `[inferred] row → NEEDS AUDIT verdict (got ${result.verdict})`);
+    ok(result.rows.inferred === 1 && result.rows.verified === 0, `row counts reflect the [inferred] row`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NEEDS AUDIT: no MODULE_MAP.md at all.
+  {
+    const d = await makeBareFixture("status-no-map", { "app.ts": "export {};\n" });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NEEDS AUDIT" && result.hasModuleMap === false,
+      `missing MODULE_MAP.md → NEEDS AUDIT verdict (got ${result.verdict})`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NEEDS AUDIT: every row [verified], but the audit is stale (> 90 days).
+  {
+    const d = await makeBareFixture("status-stale-audit", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/01/2020) |\n",
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NEEDS AUDIT" && result.daysSinceAudit > 90,
+      `audit older than 90 days → NEEDS AUDIT verdict (${result.daysSinceAudit} days)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // TRUSTED: no broken claims/drift, every row [verified], audit recent.
+  {
+    const today = new Date();
+    const dd = String(today.getUTCDate()).padStart(2, "0");
+    const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
+    const yyyy = today.getUTCFullYear();
+    const d = await makeBareFixture("status-trusted", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        `| \`/\` (root) | core | \`app.ts\` | ours | [verified] (${dd}/${mm}/${yyyy}) |\n`,
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "TRUSTED", `all-verified, clean, fresh audit → TRUSTED verdict (got ${result.verdict})`);
+    ok(result.badge.schemaVersion === 1 && result.badge.label === "ai-ready" && result.badge.color === "brightgreen",
+      `TRUSTED badge matches the shields.io endpoint schema: ${JSON.stringify(result.badge)}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // status never invokes git, even with real git history + a --git-worthy stale row.
+  {
+    const gitOk = run("git", ["--version"]).code === 0;
+    if (!gitOk) {
+      console.log("  — SKIPPED (no git on PATH)");
+    } else {
+      const d = path.join(here, `tmp-status-git-${process.pid}`);
+      await fs.rm(d, { recursive: true, force: true });
+      await fs.mkdir(path.join(d, "billing"), { recursive: true });
+      await fs.writeFile(path.join(d, "billing", "invoice.ts"), "export const b = 1;\n");
+      const g = (...a) => run("git", ["-C", d, ...a]);
+      g("init", "-q"); g("config", "user.email", "t@t.t"); g("config", "user.name", "t");
+      g("config", "commit.gpgsign", "false");
+      g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "init");
+      const sha = run("git", ["-C", d, "rev-parse", "HEAD"]).out.trim();
+      await fs.mkdir(path.join(d, "ai", "guide"), { recursive: true });
+      const today = new Date();
+      const dd = String(today.getUTCDate()).padStart(2, "0");
+      const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
+      const yyyy = today.getUTCFullYear();
+      await fs.writeFile(path.join(d, "ai", "guide", "MODULE_MAP.md"),
+        "# map\n" +
+        `> Last verified: ${yyyy}-${mm}-${dd} @ commit ${sha}\n` +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        `| \`billing/\` | billing | \`billing/invoice.ts\` | stable | [verified] (${dd}/${mm}/${yyyy}) |\n`);
+      g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "map");
+      // change billing AFTER the verified commit — a real `drift --git` would flag this stale
+      await fs.writeFile(path.join(d, "billing", "invoice.ts"), "export const b = 2;\n");
+      g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "change");
+      const result = await computeStatus(d);
+      ok(result.verdict === "TRUSTED" && result.drift.stale === 0,
+        `status ignores the stale [verified] row (never invokes git), unlike drift --git would`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+  }
+
+  // --json: writes STATUS.json only when the flag is passed.
+  {
+    const d = await makeBareFixture("status-json", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [inferred] |\n",
+      "app.ts": "export {};\n",
+    });
+    const statusJsonPath = path.join(d, "ai", "analysis", "audit-reports", "STATUS.json");
+
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
+    ok(r.code === 0 && /Verdict:/.test(r.out), `status CLI exits 0 and prints a Verdict line`);
+    ok(!(await exists(statusJsonPath)), `status without --json writes nothing`);
+
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d, "--json"]);
+    ok(r.code === 0, `status --json exits 0`);
+    ok(await exists(statusJsonPath), `status --json writes ai/analysis/audit-reports/STATUS.json`);
+    const statusJson = JSON.parse(await fs.readFile(statusJsonPath, "utf8"));
+    ok(statusJson.verdict === "NEEDS AUDIT" && statusJson.badge?.schemaVersion === 1,
+      `STATUS.json carries the verdict and a shields.io-schema badge`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // own-repo sanity: row counts match a hand count of ai/guide/MODULE_MAP.md
+  // (table rows only — start with "| `"; prose mentions of the tags elsewhere
+  // in the file, e.g. the audit-protocol notes, must not be counted).
+  {
+    const mapText = await fs.readFile(path.join(kitRoot, "ai", "guide", "MODULE_MAP.md"), "utf8");
+    const tableLines = mapText.split("\n").filter(l => /^\|\s*`/.test(l));
+    const verifiedCount = tableLines.filter(l => l.includes("[verified]")).length;
+    const inferredCount = tableLines.filter(l => l.includes("[inferred]")).length;
+    const result = await computeStatus(kitRoot);
+    ok(result.rows.verified === verifiedCount && result.rows.inferred === inferredCount,
+      `own-repo row counts match a hand count: verified ${result.rows.verified}/${verifiedCount}, inferred ${result.rows.inferred}/${inferredCount}`);
+    await fs.rm(path.join(kitRoot, "ai", "analysis", "audit-reports", "STATUS.json"), { force: true });
+  }
+}
+
 // ---------- unit tests: destinationFor ----------
 {
   console.log("\n— destinationFor unit tests —");

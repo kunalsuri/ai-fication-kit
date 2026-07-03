@@ -37,6 +37,7 @@ any command**. Model inference only happens later, inside your agent, via
 | [`drift`](#drift) | Report where the code has outgrown the map | `DRIFT_MANIFEST.json` + report |
 | [`check-repo-maturity`](#check-repo-maturity) | Read-only AI-readiness diagnostic | `MATURITY_REPORT.json` |
 | [`doctor`](#doctor) | "What do I do next?" — read-only workflow-stage detector | (nothing — read-only) |
+| [`status`](#status) | One-command health snapshot + verdict | (nothing unless `--json`: `STATUS.json`) |
 
 ---
 
@@ -318,6 +319,35 @@ which step you're on, a one-sentence diagnosis, and the exact next command.
 
 ---
 
+<a id="status"></a>
+## `status` — one-command health snapshot
+
+```bash
+node install.mjs status /path/to/your/repo [--json]
+```
+
+Answers "how trustworthy is my `ai/` layer right now?" in one command instead
+of three. Runs `verify`'s and `drift`'s core scans in-process for fresh
+results — structural drift only, **`drift`'s `--git` stale check never
+runs** — and reads `ai/guide/MODULE_MAP.md` for `[verified]`/`[inferred]` row
+counts and the newest audit date. Prints one block (row counts, broken
+claims, drift items, days since last audit) ending in a single verdict:
+
+| Verdict | Meaning |
+|---|---|
+| `TRUSTED` | no broken claims, no drift, every row `[verified]`, audit not stale (≤ 90 days) |
+| `NEEDS AUDIT` | no broken claims/drift, but `MODULE_MAP.md` is missing, has a non-`[verified]` row, or the audit is stale |
+| `DRIFTING` | any unconfirmed claim or any unmapped/vanished/stale item — trumps everything else |
+
+With `--json`, also writes `ai/analysis/audit-reports/STATUS.json`, including
+a `badge` object in shields.io endpoint schema
+(`{schemaVersion:1, label:"ai-ready", message, color}`) so you can wire up a
+repo badge yourself. Without `--json`, nothing is written.
+
+**Options:** `--json`.
+
+---
+
 ## Flags — the complete table
 
 | Flag | Applies to | Effect |
@@ -327,6 +357,7 @@ which step you're on, a one-sentence diagnosis, and the exact next command.
 | `--git` | `drift` | enable the *stale* check (local, read-only git) |
 | `--suggest` | `drift` | append ready-to-paste MODULE_MAP fixes to the report/manifest |
 | `--github-summary` | `verify`, `drift` | append a plain-English summary to `$GITHUB_STEP_SUMMARY` if set (no-op otherwise) |
+| `--json` | `status` | also write `ai/analysis/audit-reports/STATUS.json` (with a shields.io `badge` object) |
 | `--force` | `install`, `shazam` | overwrite files you edited, after a timestamped `_bkp_` copy; `[verified]` files still kept |
 | `--force-verified` | `install`, `shazam` | implies `--force`; unlocks `[verified]` files after showing every signature to be lost and requiring you to type `overwrite` |
 | `--yes` | `shazam`, `install`, `uninstall` | skip confirmation prompts and the wizard (CI mode); warnings still printed |
