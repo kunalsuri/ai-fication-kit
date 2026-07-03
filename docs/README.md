@@ -38,7 +38,7 @@ Everything about *using* the kit and *understanding* the method lives here.
 - [METHODOLOGY.md](METHODOLOGY.md) — the trust model (`[inferred]` → `[verified]`), Process 1 vs 2, the 7-step workflow, how the map stays honest over time.
 - [PROBLEM-SOLUTION-STATEMENT.md](PROBLEM-SOLUTION-STATEMENT.md) — the one-page problem framing.
 - [reports/technical-report-draft.md](reports/technical-report-draft.md) — the academic treatment (draft).
-- [dev/lessons-learnt/](dev/lessons-learnt/drift-blindspots-and-automation-bias.md) — recorded lessons, e.g. drift blind spots and automation bias.
+- [dev/lessons-learnt/](dev/lessons-learnt/drift-blindspots-and-automation-bias.md) — recorded lessons, e.g. drift blind spots and automation bias, and [model tiering](dev/lessons-learnt/model-tiering-plan-heavy-implement-light.md) (plan with a heavy model, implement with a light one).
 
 **Maintain:**
 - [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md) — release-day procedure (tagging, Zenodo, post-release).
