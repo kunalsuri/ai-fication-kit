@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+### Added
+- **`doctor` command** — read-only "what do I do next?" diagnostic. Detects which
+  of the 5 workflow stages a repo is at (no scan yet / no MODULE_MAP / unaudited
+  `[inferred]` rows / no or failing verify-drift manifests / fully verified) and
+  prints the exact next command in plain language. Writes nothing, ever.
+
 ## [0.2.0] — 2026-07-03
 
 Node-only runtime, hash-verified incremental re-runs with a child-lock protecting human-verified work, native GitHub Copilot and Google Antigravity support, a major test-suite hardening pass, a docs overhaul, and a deterministic release gate.

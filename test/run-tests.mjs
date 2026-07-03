@@ -855,6 +855,152 @@ console.log("\n— indepth git history —");
   }
 }
 
+// ---------- doctor: read-only workflow-stage detector ----------
+console.log("\n— doctor —");
+{
+  const { diagnose } = await import(pathToFileURL(path.join(kitRoot, "lib", "doctor.mjs")).href);
+
+  async function treeHash(dir) {
+    const parts = [];
+    async function walk(rel) {
+      let entries;
+      try { entries = await fs.readdir(path.join(dir, rel), { withFileTypes: true }); }
+      catch { return; }
+      entries.sort((a, b) => a.name.localeCompare(b.name));
+      for (const e of entries) {
+        const r = rel ? rel + "/" + e.name : e.name;
+        if (e.isDirectory()) await walk(r);
+        else parts.push(r);
+      }
+    }
+    await walk("");
+    return parts.join("|");
+  }
+
+  // Step 1: no ai/repo-profile.json at all.
+  {
+    const d = await makeBareFixture("doctor-step1", { "app.ts": "export {};\n" });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 1 && /shazam/.test(result.action), `step 1: no profile → run shazam`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 1)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 2: profile exists, MODULE_MAP.md missing entirely.
+  {
+    const d = await makeBareFixture("doctor-step2a", {
+      "ai/repo-profile.json": "{}\n",
+    });
+    const result = await diagnose(d);
+    ok(result.step === 2 && /cold-start/.test(result.action), `step 2: no MODULE_MAP.md → run /cold-start`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 2: profile exists, MODULE_MAP.md is still the scaffolded template.
+  {
+    const templateMap = await fs.readFile(
+      path.join(kitRoot, "templates", "ai", "guide", "MODULE_MAP.md.tmpl"), "utf8");
+    const d = await makeBareFixture("doctor-step2b", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md": templateMap.replace("{{TEST_DIRS}}", "test/"),
+    });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 2 && /cold-start/.test(result.action), `step 2: scaffolded template → run /cold-start`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 2)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 3: MODULE_MAP.md populated but rows still [inferred].
+  {
+    const d = await makeBareFixture("doctor-step3", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [inferred] |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const result = await diagnose(d);
+    ok(result.step === 3 && /audit/.test(result.action), `step 3: [inferred] rows → human audit`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 4: all rows [verified], but no verify/drift manifests yet.
+  {
+    const d = await makeBareFixture("doctor-step4", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+    });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 4 && /verify/.test(result.action) && /drift/.test(result.action),
+      `step 4: no manifests yet → run verify --strict / drift --strict`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 4)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 4: manifests exist but recorded failures.
+  {
+    const d = await makeBareFixture("doctor-step4b", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+      "ai/analysis/audit-reports/VERIFICATION_MANIFEST.json":
+        JSON.stringify({ summary: { confirmed: 1, moved: 0, missing: 1 } }),
+      "ai/analysis/audit-reports/DRIFT_MANIFEST.json":
+        JSON.stringify({ summary: { unmapped: 0, vanished: 0, stale: 0 } }),
+    });
+    const result = await diagnose(d);
+    ok(result.step === 4, `step 4: manifests present but verify found a missing claim`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 5: all rows [verified], manifests present and clean.
+  {
+    const d = await makeBareFixture("doctor-step5", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+      "ai/analysis/audit-reports/VERIFICATION_MANIFEST.json":
+        JSON.stringify({ summary: { confirmed: 1, moved: 0, missing: 0 } }),
+      "ai/analysis/audit-reports/DRIFT_MANIFEST.json":
+        JSON.stringify({ summary: { unmapped: 0, vanished: 0, stale: 0 } }),
+    });
+    const before = await treeHash(d);
+    const result = await diagnose(d);
+    ok(result.step === 5 && /trusted|maintenance/.test(result.action),
+      `step 5: all verified + clean manifests → maintenance mode`);
+    ok(await treeHash(d) === before, `doctor never writes a file (step 5)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // CLI surface: `doctor` exits 0 and writes nothing on a real fixture.
+  {
+    const d = await makeFixture("doctor-cli", { fork: false });
+    const before = await treeHash(d);
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "doctor", d]);
+    ok(r.code === 0 && /step 1 of 5/.test(r.out), `doctor CLI exits 0 and reports step 1 of 5`);
+    ok(await treeHash(d) === before, `doctor CLI writes nothing`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 // ---------- unit tests: destinationFor ----------
 {
   console.log("\n— destinationFor unit tests —");

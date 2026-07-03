@@ -21,6 +21,9 @@
 //               does not cover (unmapped), map entries that are gone (vanished), and —
 //               only with --git — [verified] rows whose code changed since the verified
 //               commit (stale). Writes a manifest + report into ai/analysis/audit-reports/.
+//   doctor    — read-only "what do I do next?": detects which of the 5 workflow stages
+//               the repo is at from files already on disk, and prints the next step
+//               in plain language. Writes nothing.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
 //   - It does NOT execute any code or open any network connection. (Two exceptions
@@ -46,6 +49,7 @@
 //   lib/installer.mjs  — template stamping (install) and manifest-based uninstall
 //   lib/verify.mjs     — mechanical claim verification
 //   lib/drift.mjs      — structural drift detection (unmapped/vanished/stale)
+//   lib/doctor.mjs     — read-only stage detector ("what do I do next?")
 // You are encouraged to read them all before running this.
 //
 // USAGE:
@@ -57,6 +61,7 @@
 //   node install.mjs verify   <path-to-your-repo> [--dry-run] [--strict]
 //   node install.mjs drift    <path-to-your-repo> [--dry-run] [--strict] [--git]
 //   node install.mjs check-repo-maturity <path-to-your-repo> [--dry-run]
+//   node install.mjs doctor   <path-to-your-repo>
 //
 // OPTIONS:
 //   --dry-run            show the plan, write nothing
@@ -84,6 +89,7 @@ import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
 import { drift } from "./lib/drift.mjs";
 import { runFirstRunWizard } from "./lib/intake.mjs";
+import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
 
 // ---------------------------------------------------------------- CLI parsing
 
@@ -92,7 +98,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -149,6 +155,8 @@ Usage:
                                                    the map (unmapped/vanished; --git: stale)
   node install.mjs check-repo-maturity <path>      read-only AI readiness diagnostic
                                                    (no LLM, no writes, just a report)
+  node install.mjs doctor    <path-to-your-repo>   "what do I do next?" — read-only,
+                                                   writes nothing
 
 Options: --dry-run --force --force-verified --yes --strict --git
          --name --description --build --test --upstream
@@ -294,4 +302,7 @@ if (command === "orient") {
   await verify(targetAbs, flags);
 } else if (command === "drift") {
   await drift(targetAbs, flags);
+} else if (command === "doctor") {
+  const result = await diagnose(targetAbs);
+  printDoctorReport(result);
 }

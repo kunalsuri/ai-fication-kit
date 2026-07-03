@@ -36,6 +36,7 @@ any command**. Model inference only happens later, inside your agent, via
 | [`verify`](#verify) | Check every path claim in the docs against the tree | `VERIFICATION_MANIFEST.json` + report |
 | [`drift`](#drift) | Report where the code has outgrown the map | `DRIFT_MANIFEST.json` + report |
 | [`check-repo-maturity`](#check-repo-maturity) | Read-only AI-readiness diagnostic | `MATURITY_REPORT.json` |
+| [`doctor`](#doctor) | "What do I do next?" — read-only workflow-stage detector | (nothing — read-only) |
 
 ---
 
@@ -271,6 +272,30 @@ kit's footer marker). Prints a rich console report and writes
 first step of `shazam`.
 
 **Options:** `--dry-run`.
+
+---
+
+<a id="doctor"></a>
+## `doctor` — "what do I do next?"
+
+```bash
+node install.mjs doctor /path/to/your/repo
+```
+
+Read-only, writes nothing, always exits `0`. The kit's workflow has 5 stages
+that are all mechanically detectable from files already on disk; `doctor`
+finds the first one whose condition holds and prints a plain-language block:
+which step you're on, a one-sentence diagnosis, and the exact next command.
+
+| Step | Condition | Next action |
+|---|---|---|
+| 1 | no `ai/repo-profile.json` | run `shazam` |
+| 2 | `MODULE_MAP.md` missing or still the scaffolded template | run `/cold-start` in your agent |
+| 3 | `MODULE_MAP.md` has `[inferred]` rows | do a human audit (`docs/AUDIT-GUIDE.md`) |
+| 4 | no verify/drift manifests, or the latest ones found problems | run `verify --strict` / `drift --strict` |
+| 5 | all rows `[verified]`, manifests clean | maintenance mode — re-run `drift` after big changes |
+
+**Options:** none (no `--dry-run` needed — this command never writes).
 
 ---
 

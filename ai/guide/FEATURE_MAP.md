@@ -79,6 +79,13 @@
 - **Gotchas:** Outputs a JSON maturity report and does not perform any file writes.
 - **Related:** `orient`, `indepth`
 
+### doctor  `[inferred]`
+- **Business goal:** Tell a beginner exactly which of the 5 workflow stages they're on and what to run next, without them piecing it together from three other commands.
+- **Touches:** `install.mjs`, `lib/doctor.mjs`, `lib/drift.mjs` (reuses the exported `parseModuleMap`)
+- **Verify with:** `node install.mjs doctor .`
+- **Gotchas:** Read-only by design — never writes a file, so it's always safe to run. Placeholder detection matches the exact `<fill in>` text from `templates/ai/guide/MODULE_MAP.md.tmpl`; step 4 treats missing verify/drift manifests the same as manifests recording failures.
+- **Related:** `verify`, `drift`
+
 ### deep-test  `[inferred]`
 - **Business goal:** Validate repository standards compliance, including smoke tests, verification, drift, license headers, and placeholders.
 - **Touches:** `test/run-deep-test.mjs`, `package.json`, `.agents/skills/deep-test/SKILL.md`
