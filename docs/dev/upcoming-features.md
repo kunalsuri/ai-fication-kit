@@ -1,10 +1,12 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
-# Upcoming features — idea backlog
+# Upcoming features — the developer's idea backlog
 
-> Status: `[inferred]` — drafted by an AI agent from a codebase review on 2026-07-03,
-> to be triaged by a human. This is the top of the feature funnel described in
-> `ai/lab/README.md`: when an idea is picked, it graduates to a spec in
-> `ai/lab/specs/` (copy `ai/lab/specs/SPEC_TEMPLATE.md`) before implementation.
+> Developer-facing planning notes for the kit itself — what *may* come next, so a
+> reader can see where this tool is headed. (What the repo *is* lives in `ai/`;
+> this page is deliberately outside it.) Drafted with AI assistance from a codebase
+> review on 2026-07-03; triage and final say rest with the maintainer. When an idea
+> is picked, it graduates to a spec (copy `ai/lab/specs/SPEC_TEMPLATE.md`) before
+> implementation, per the lifecycle in `ai/lab/README.md`.
 
 Two batches of five. Batch A targets overall end-user impact; Batch B targets the
 first-time, not-yet-AI-native user. "Effort" is a rough relative guess, not a promise.
@@ -125,6 +127,6 @@ no server, no dependencies.
 
 - Suggested first picks for a beginner-focused release: B1, then B3, then B4.
 - A3 and A5 are the smallest items in Batch A; A4 is the largest overall.
-- When picking an idea, create `ai/lab/specs/SPEC_<name>.md` and mark the row's
-  Status here as `spec drafted` → `in progress` → `shipped` (then it lands in the
-  feature catalog per the lifecycle in `ai/lab/README.md`).
+- When picking an idea, draft its spec from `ai/lab/specs/SPEC_TEMPLATE.md` and mark
+  the row's Status here as `spec drafted` → `in progress` → `shipped` (then it lands
+  in the feature catalog per the lifecycle in `ai/lab/README.md`).
