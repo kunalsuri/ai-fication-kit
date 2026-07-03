@@ -14,24 +14,30 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/kunalsuri/ai-fication-kit/test.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=CI%20%E2%80%94%20Linux%20%C2%B7%20macOS%20%C2%B7%20Windows)](https://github.com/kunalsuri/ai-fication-kit/actions/workflows/test.yml)
 
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)](LICENSE)
-[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-the-experiment)
+[![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-why-the-agent-context-tax)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
-<h2> A Simple & Elegant Way to Make any Codebase / Repo AI-native while keeping it Trustworthy.</h2>
+<h2>Make any codebase AI-native — with human-verified Repo Intelligence that AI coding agents can trust.</h2>
 
-<h3> Giving AI Tools / Coding Agents Context & Creating a Knowledge layer to optimize Token utilization.
+<h3>Context engineering + harness engineering for AI coding agents, with a human in the loop.</h3>
 
 </div>
 
 ---
 
-**A Toolkit to Give AI Coding Agents a Trusted Map of Any Existing/Legacy Repo**
+## 🎯 The Goal
 
-* Drafted by AI Agents, **verified by Humans**, and kept mechanically honest.
+**Give AI coding agents — and new human teammates — a compact, human-verified map of your repository, so they spend their context window and tokens on your task instead of re-discovering your codebase every session.**
 
-* One command scaffolds it, and depending on the complexity of the codebase, it can be made trustworthy in **30 minutes to a few hours**.
+AI coding agents are context-blind on large or legacy repositories: every session they re-crawl the tree, burn tokens and memory re-learning what your team already knows, and guess at what is safe to touch. `ai-fication-kit` fixes this at the repository level — it makes the repo itself **AI-native** by installing three things that work together:
 
-* Two outcomes from one workflow: it makes your codebase **AI-native**, *and* it produces **AI-Powered Repo Intelligence** — a human-approved knowledge-base (`ai/`) that lets a new teammate onboard instantly.
+* 🧠 **Context & memory for the agent.** A structured `ai/` knowledge layer — module map, architecture, feature map, conventions — that agents query *instead of* crawling raw source. Compact, provenance-tracked context in; token burn and context-window churn out.
+
+* 🏗️ **Harness engineering support.** The full agent harness, pre-built: agent instructions (`CLAUDE.md`, `AGENTS.md`), eight workflow commands (`/cold-start`, `/add-feature`, …), subagent personas (`repo-explorer`, `feature-builder`, `test-runner`), reusable skills, and a CI workflow (`ai-check.yml`) — stamped natively for **Claude Code** (`.claude/`), **GitHub Copilot** (`.github/`), and **Google Antigravity** (`.agents/`) in one install.
+
+* 🤝 **Guided, human-verified Repo Intelligence.** The kit guides you through one linear path — scaffold → agent inference → **human audit** → mechanical verification. The result is **AI-Powered Repo Intelligence**: a knowledge-base where every agent-drafted claim starts as `[inferred]` and only *you* can flip it to `[verified]`. Deterministic `verify` and `drift` checks fail CI the moment the map and the code disagree.
+
+One command scaffolds it. Depending on the complexity of the codebase, the map becomes trustworthy in **30 minutes to a few hours** — and the same human-verified knowledge-base doubles as the fastest onboarding doc a new teammate will ever read.
 
 <br>
 
@@ -39,12 +45,13 @@
 
 ### 📑 Table of Contents
 
-* [The Three Pillars](#-the-three-pillars)
+* [The Goal](#-the-goal)
+* [Why: The Agent Context Tax](#-why-the-agent-context-tax)
+* [How: What Using This Kit Does](#-how-what-using-this-kit-does)
 * [Quick Start](#-quick-start)
-* [How It Works](#-how-it-works-overview)
 * [What You Get](#-what-you-get-the-ai-native-repo-intelligence)
+* [Detailed Overview of the Methodology](#detailed-overview-of-the-methodology)
 * [The Bridge to AI-Native Onboarding](#-the-bridge-to-ai-native-onboarding)
-* [The Problem & The Solution](#-the-problem--the-solution)
 * [New to AI Coding Agents? Start Here](#-new-to-ai-coding-agents-start-here)
 * [Security & Trust Guarantees](#for-more-details-on-toolkit--security)
 * [How This Toolkit Differs](#for-more-details-on-toolkit--security)
@@ -57,15 +64,47 @@
 
 ---
 
-### 🔑 The Three Pillars
+## 🛑 Why: The Agent Context Tax
 
-Transforming a legacy repository into a trusted AI-native environment rests on three mechanisms:
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/problem_solution.png" alt="Side-by-side comparison: left panel shows a chaotic legacy repo with scattered files and no context, right panel shows the same repo with structured ai/ knowledge maps providing clear navigation" width="85%">
+</p>
 
-* 🏗️ **Agent Scaffolding:** Stamps agent instructions (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent personas (`repo-explorer`, `feature-builder`), and reusable skills into `.claude/` — plus native GitHub Copilot equivalents in `.github/` and Google Antigravity equivalents in `.agents/`.
-* 🧠 **Repository Context:** Generates a structured `ai/` folder — a centralized, human-readable map of conventions, architecture, modules, and features that agents query instead of crawling raw source.
-* 🤝 **Human-in-the-Loop Trust:** Every agent-drafted claim starts as `[inferred]` and is promoted to `[verified]` only by a human. Deterministic `verify` and `drift` checks fail CI when the docs no longer match the file tree — a ready-made GitHub Actions workflow (`ai-check.yml`) ships with the kit — so the maps cannot silently fall out of sync.
+AI coding agents (Claude Code, Cursor, Copilot, …) are highly capable, but on a large or legacy repository every one of them pays the same hidden tax:
+
+* **Token burn:** they re-read the directory tree every session, filling the context window with rediscovery instead of your task.
+* **Guesswork:** with no trusted memory of the repo, they guess which files are safe to modify.
+* **Dangerous hallucinations:** an agent-hallucinated map is worse than no map — the agent will confidently edit the wrong module.
+* **Humans pay it too:** a new engineer joining the same codebase spends days or weeks reverse-engineering tribal knowledge that lives in a few people's heads.
+
+### ✅ The Answer: A Provenance-Tracked Map
+
+The answer isn't to rewrite your code. It's to give the agent (and the new teammate) a **provenance-tracked map** where every claim must be validated by you:
+
+* **`[inferred]`** ➔ Scaffolds and maps drafted by the AI agent or installer.
+* **`[verified]`** ➔ Human-checked and confirmed repository facts.
+* 🚫 **Strict Security:** AI agents are forbidden from marking their own drafts as `[verified]`. The flip is your signature.
 
 <br>
+
+---
+
+## 🔧 How: What Using This Kit Does
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
+</p>
+
+One workflow, and each step has a clear owner — deterministic script, AI agent, or **you**:
+
+| Step | Owner | Using this tool does… |
+|:---- |:----- |:--------------------- |
+| **1. `shazam`** (= maturity check + `orient` + `install`) | Script (seconds, no LLM) | Scans your repo deterministically, writes machine-readable facts to `ai/repo-profile.json`, and stamps the whole harness: `CLAUDE.md`/`AGENTS.md`, the `ai/` knowledge tree, commands, subagents, skills, and the CI check — natively for Claude Code, Copilot, and Antigravity. |
+| **2. `/cold-start`** | Agent (~5 min) | The agent reads the code once and drafts the maps — `MODULE_MAP.md`, architecture, features, conventions, diagrams — every claim tagged `[inferred]`. |
+| **3. Human audit** | **You** (~30 min) | You set each module's Stability (`frozen` / `stable` / `ours` / `?`) and flip confirmed rows to `[verified]`. This step is what makes everything else trustworthy. |
+| **4. `verify` + `drift`** | Script + CI (no LLM) | Mechanically cross-checks every file-path claim against the real tree, and flags code the map no longer covers — on every push, so the map can't silently rot. |
+| **5. `/add-feature`** | Agent | Safeguarded development: spec first, navigate via the maps, surgical diffs, tests before done, knowledge layer updated after — without touching `frozen` code. |
+
 <br>
 
 > [!TIP]
@@ -80,16 +119,6 @@ Transforming a legacy repository into a trusted AI-native environment rests on t
 Get up and running in under five minutes.
 
 > **Prerequisites:** Node.js ≥ 18. The installer is zero-dependency (Node stdlib only, no packages to install).
-
-<br>
-
-### 🔄 How It Works [Overview]
-
-<br>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/workflow_excalidraw.png" alt="Flowchart showing the ai-fication-kit workflow: maturity check, orient scan, install scaffolding, cold-start inference, human audit, verify checks, and add-feature development" width="85%">
-</p>
 
 <br>
 
@@ -411,30 +440,6 @@ The same human-verified map that keeps AI agents honest becomes the fastest onbo
 
 <br>
 
-## 🛡️ The Problem & The Solution
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/kunalsuri/ai-fication-kit/main/docs/images/problem_solution.png" alt="Side-by-side comparison: left panel shows a chaotic legacy repo with scattered files and no context, right panel shows the same repo with structured ai/ knowledge maps providing clear navigation" width="85%">
-</p>
-
-### 🛑 The Problem: The Agent Context Tax
-
-AI coding agents (such as Claude Code, Cursor, Copilot) are highly capable, but they are **context-blind** on large or legacy repositories.
-
-* **Token Burn:** They re-read the directory tree every session.
-* **Guesswork:** They guess which files are safe to modify, burning through your context windows.
-* **Dangerous Hallucinations:** An agent-hallucinated map is worse than no map: the agent will confidently edit the wrong module.
-
-### ✅ The Solution: A Provenance-Tracked Map
-
-The answer isn't to rewrite your code. It's to give the agent a **provenance-tracked map** where every claim must be validated by you:
-
-* **`[inferred]`** ➔ Scaffolds and maps drafted by the AI agent or installer.
-* **`[verified]`** ➔ Human-checked and confirmed repository facts.
-* 🚫 **Strict Security:** AI agents are forbidden from marking their own drafts as `[verified]`. The flip is your signature.
-
-<br>
-
 ## 🤖 New to AI Coding Agents? Start Here
 
 <p align="center">
@@ -508,7 +513,7 @@ We designed the installer to be lightweight and safe:
 * 🧹 **Clean Removal** – The installer writes `ai/install-manifest.json`. The `uninstall` command reads it to remove exactly what was written, leaving no trace.
 * 🔁 **Safe Re-Runs & Upgrades** – The manifest records a SHA-256 hash for every stamped file. Re-running the installer keeps your edits, and a file carrying a human `[verified]` tag is never overwritten — even with `--force`. The only way through that child-lock is the explicit `--force-verified` flag, which quotes exactly what would be lost and requires typed consent (backups are still taken).
 
-*For more details, read both installers or refer to [SECURITY.md](SECURITY.md).*
+*For more details, read the installer (`install.mjs` + `lib/`) or refer to [SECURITY.md](SECURITY.md).*
 
 </details>
 
