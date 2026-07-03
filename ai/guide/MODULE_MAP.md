@@ -4,9 +4,15 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-06-25 @ commit 1fd11db (drift baseline re-anchored 2026-07-02: the
-> human-merged PRs #5–#7 changed `/`, `templates/`, and `docs/` after the previous baseline —
-> the per-row human audit dates below remain the authoritative signatures)
+> Last verified: 2026-07-03 @ commit dd99400 (drift baseline re-anchored 2026-07-03, twice:
+> first to commit f781261 "Verified before v0.2.0 release", where the human re-audited and
+> flipped `/`, `lib/`, `templates/`, `templates/claude/`, `templates/github/`,
+> `templates/agents/`, `test/`, and `docs/` to `[verified]` — the previous 2026-06-25 anchor
+> predated that pass and made the `--git` drift check flag all of them as stale again. Then
+> commit dd99400 edited `test/run-tests.mjs` (env-isolation fix for the release-check
+> fixtures), which the human reviewed and re-verified the same day — re-anchored again so
+> only `test/` carries the newer timestamp below; the per-row human audit dates remain the
+> authoritative signatures)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
@@ -31,7 +37,7 @@
 | `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [verified] (03/07/2026 17:35 CEST) |
 | `templates/github/` | Stamped to `.github/`: CI checks for verify/drift, plus GitHub Copilot assets (`copilot-instructions.md`, `prompts/*.prompt.md`, `chatmodes/*.chatmode.md`) | `templates/github/workflows/ai-check.yml.tmpl` | ours | [verified] (03/07/2026 17:35 CEST) |
 | `templates/agents/` | Google Antigravity assets stamped to `.agents/`: workflow equivalents of the Claude commands, and the add-feature skill (shared Agent Skills format) | `templates/agents/workflows/cold-start.md` | ours | [verified] (03/07/2026 17:35 CEST) |
-| `test/` | Smoke tests, deep-test standards verification, and the deterministic release gate | `test/run-tests.mjs` · `test/run-deep-test.mjs` · `test/release-check.mjs` | ours | [verified] (03/07/2026 17:35 CEST) |
+| `test/` | Smoke tests, deep-test standards verification, and the deterministic release gate | `test/run-tests.mjs` · `test/run-deep-test.mjs` · `test/release-check.mjs` | ours | [verified] (03/07/2026 19:12 CEST) |
 | `docs/` | Human-facing guides (audit guide, FAQ, release checklist) | `docs/README.md` | ours | [verified] (03/07/2026 17:35 CEST) |
 | `examples/` | Sample target repos used to demonstrate/exercise the kit | `examples/README.md` | ours | [verified] (03/07/2026 17:35 CEST) |
 
