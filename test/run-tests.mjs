@@ -1741,10 +1741,14 @@ console.log("\n— demo —");
 // ---------- npm pack: examples/legacy-calculator/ must ship (the demo packaging trap) ----------
 console.log("\n— npm pack (demo packaging) —");
 {
-  const rr = spawnSync("npm", ["pack", "--dry-run"], { encoding: "utf8", cwd: kitRoot });
+  // shell: true is required on Windows — npm is a .cmd shim there, and
+  // spawnSync can't resolve/execute it directly without a shell (the same
+  // gotcha does not apply to node itself, which is why every other spawnSync
+  // call in this file omits it).
+  const rr = spawnSync("npm", ["pack", "--dry-run"], { encoding: "utf8", cwd: kitRoot, shell: true });
   const packOut = (rr.stdout || "") + (rr.stderr || "");
   ok(rr.status === 0 && /examples\/legacy-calculator\/calculator\.js/.test(packOut),
-    `npm pack --dry-run lists examples/legacy-calculator/ (the files[] packaging fix)`);
+    `npm pack --dry-run lists examples/legacy-calculator/ (the files[] packaging fix): status=${rr.status} err=${(rr.stderr || "").slice(0, 200)}`);
 }
 
 // ---------- unit tests: destinationFor ----------
