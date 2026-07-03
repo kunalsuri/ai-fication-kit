@@ -155,9 +155,18 @@ written file — with a SHA-256 content hash — is recorded in
 | `templates/claude/` | `.claude/` | Claude Code commands, subagents, skills |
 | `templates/github/` | `.github/` | Copilot instructions, prompts, chatmodes |
 | `templates/agents/` | `.agents/` | Antigravity workflows + shared Agent Skills |
+| `templates/cursor/` | `.cursor/` | native Cursor rules (`rules/*.mdc`) |
 | `templates/ai/`, root templates | `ai/`, `CLAUDE.md`, `AGENTS.md` | the knowledge layer + agent rules |
 
 (See [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md) for what each tool does with its tree.)
+
+**The living progress page.** `ai/START-HERE.html` is stamped alongside the
+rest of `ai/` and regenerated — via `refreshProgressPage()` in
+`lib/progress.mjs` — at the end of `install`, `verify`, `drift`, `status`, and
+`audit`. It's a fully offline dashboard (5-step checklist, `[verified]`/
+`[inferred]` counts, drift items, a small glossary): open it directly in a
+browser, no server needed. `uninstall` removes it; the other commands work
+fine if you delete it (they just won't recreate it).
 
 **Process 2 backups.** If a user-authored `CLAUDE.md`/`AGENTS.md` exists (detected
 by the absence of the kit's footer marker), it is copied to a timestamped backup

@@ -1,6 +1,6 @@
 {
   "kitVersion": "0.2.0",
-  "installed": "2026-07-03T18:39:16.411Z",
+  "installed": "2026-07-03T18:53:50.095Z",
   "files": [
     ".agents/skills/add-feature/SKILL.md",
     ".agents/skills/add-feature/reference/checklist.md",
@@ -47,6 +47,7 @@
     "AGENTS.md",
     "CLAUDE.md",
     "ai/INDEX.md",
+    "ai/START-HERE.html",
     "ai/analysis/FEATURE_CATALOG.md",
     "ai/analysis/FEATURE_CATALOG_BACKEND.md",
     "ai/analysis/FEATURE_CATALOG_FRONTEND.md",
@@ -122,6 +123,7 @@
     "ai/lab/decisions/ADR_TEMPLATE.md": "a74a8e92ce80a670fe6296fa0462ed79c0a0016958b3bede66688b7cd2c89f0c",
     "ai/lab/evaluations/EVALUATION_TEMPLATE.md": "83bde957bc21425c23e21db3f4e6837ea3b33114b2cfdc28ed786f8494634607",
     "ai/lab/experiments/EXPERIMENT_TEMPLATE.md": "c2952e88a2fb8eb27de85eb3a3f41867a75608bb4f2c8837f392cb058f6b49a9",
-    "ai/lab/specs/SPEC_TEMPLATE.md": "6937e7923f5a98ce04f970f03067a630af93f80e2062459b2c9811f3d06a03b3"
+    "ai/lab/specs/SPEC_TEMPLATE.md": "6937e7923f5a98ce04f970f03067a630af93f80e2062459b2c9811f3d06a03b3",
+    "ai/START-HERE.html": "f6ece2d23c3286ca80216e1f132edea9dea049311596fb3b5b57947848634940"
   }
 }

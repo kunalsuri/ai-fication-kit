@@ -33,7 +33,7 @@
 | B3 | `demo` — zero-risk playground | P2 | S–M | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | A5 | Native Cursor rules assets | P3 | S | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | B2 | AI-tool detection in wizard | P3 | M | — | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
-| B5 | Living progress page in target `ai/` | P3 | M | A2 | idea | ☐ | 2026-07-03 | — | — |
+| B5 | Living progress page in target `ai/` | P3 | M | A2 | shipped | ☑ | 2026-07-03 | 2026-07-03 | (this branch) |
 | A4 | Monorepo / workspace support | P4 | L | — | needs own spec | ☐ | 2026-07-03 | — | — |
 
 Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dropped`).

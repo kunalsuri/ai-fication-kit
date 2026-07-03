@@ -41,8 +41,16 @@
 - **Business goal:** Copy and stamp `templates/` into the target repo using detected profile facts.
 - **Touches:** `install.mjs`, `lib/installer.mjs`, `templates/`
 - **Verify with:** `node install.mjs install . --dry-run`
-- **Gotchas:** Records every written path in `ai/install-manifest.json` for deterministic cleanup. Never overwrites files without `--force` — except files it just backed up in the Process-2 flow (see `shazam`), which are intentionally replaced. Re-installs merge into the existing manifest so no written path is ever forgotten.
+- **Gotchas:** Records every written path in `ai/install-manifest.json` for deterministic cleanup. Never overwrites files without `--force` — except files it just backed up in the Process-2 flow (see `shazam`), which are intentionally replaced. Re-installs merge into the existing manifest so no written path is ever forgotten. Calls `refreshProgressPage` (see `progress-page`) at the end of every real (non-dry-run) run; `ai/START-HERE.html`'s destination path is exempt from the usual edited-file/child-lock detection since its content is expected to change on every run.
 - **Related:** `uninstall`, `shazam`
+
+### progress-page  `[inferred]`
+- **Business goal:** Give a beginner the same "what's my status?" view as the `status` command, but as a living, fully offline HTML page they can open in a browser and refresh just by re-running any kit command.
+- **Touches:** `templates/ai/START-HERE.html.tmpl`, `lib/progress.mjs`, call sites in `lib/installer.mjs` / `lib/verify.mjs` / `lib/drift.mjs` / `lib/status.mjs` / `lib/audit.mjs`
+- **Verify with:** open `ai/START-HERE.html` in a browser after `install`/`verify`/`drift`/`status`/`audit`
+- **Gotchas:** `refreshProgressPage` only ever rewrites the `<script id="progress-data">` JSON block via regex — the rest of the page (including the `{{PROJECT_NAME}}`-stamped title) is untouched. It uses *dynamic* `import()` for `status.mjs`/`doctor.mjs` internally specifically to avoid a static import cycle (every caller imports this module statically). A no-op (never throws, never recreates) if the page is missing or doesn't carry the expected data block.
+- **Related:** `status`, `doctor`, `install`
+
 
 ### shazam (one-shot onboarding)  `[inferred]`
 - **Business goal:** Single command that takes a repo from unknown to AI-ready: maturity check → orient → optional indepth → first-run wizard → install → printed next steps.

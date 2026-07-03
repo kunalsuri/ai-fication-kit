@@ -177,6 +177,7 @@ async function testInstaller(label, exec, script) {
     path.join(".cursor", "rules", "cold-start.mdc"),
     path.join(".cursor", "rules", "add-feature.mdc"),
     path.join(".cursor", "rules", "ai-knowledge-layer.mdc"),
+    path.join("ai", "START-HERE.html"),
     path.join("ai", "install-manifest.json")]) {
     ok(await exists(path.join(repo, f)), `installed ${f}`);
   }
@@ -197,6 +198,20 @@ async function testInstaller(label, exec, script) {
     `.cursor/rules/ai-knowledge-layer.mdc is the alwaysApply: true index rule`);
   ok(cursorAlwaysRule.includes("ai/INDEX.md") && /\[inferred\]/.test(cursorAlwaysRule) && /\[verified\]/.test(cursorAlwaysRule),
     `the always-on rule points at ai/INDEX.md and states the provenance rule`);
+
+  // ---------- ai/START-HERE.html: the living progress page ----------
+  const progressPath = path.join(repo, "ai", "START-HERE.html");
+  const progressHtml = await fs.readFile(progressPath, "utf8");
+  ok(progressHtml.startsWith("<!-- Copyright") && progressHtml.includes("<!doctype html>") &&
+    progressHtml.trim().endsWith("</html>"), `ai/START-HERE.html is a complete HTML document`);
+  ok(!progressHtml.includes("{{") && !/https?:\/\//i.test(progressHtml),
+    `ai/START-HERE.html has no unresolved placeholders and zero external requests`);
+  ok(progressHtml.includes(`${label}-saas`), `ai/START-HERE.html is stamped with the project name`);
+  const progressDataMatch = progressHtml.match(/<script id="progress-data"[^>]*>([\s\S]*?)<\/script>/);
+  ok(Boolean(progressDataMatch), `ai/START-HERE.html carries a progress-data script block`);
+  const progressDataAfterInstall = progressDataMatch ? JSON.parse(progressDataMatch[1]) : null;
+  ok(progressDataAfterInstall && typeof progressDataAfterInstall.doctorStep === "number",
+    `install() already refreshed the progress page with live data (not the bootstrap placeholder)`);
   ok(!(await exists(path.join(repo, "ai", "README.md"))) &&
     !(await exists(path.join(repo, "README.md.tmpl"))),
     `templates/README.md not installed; no .tmpl suffixes leaked`);
@@ -213,6 +228,15 @@ async function testInstaller(label, exec, script) {
   r = run(exec, [script, "verify", repo, "--strict"]);
   ok(r.code === 0,
     `fresh install passes verify --strict (no catalog/upstream placeholder false-positives): ${r.out.split("\n").filter(l => /missing|moved/.test(l)).join(" | ")}`);
+  // `verify` reruns refreshProgressPage — confirm the page reflects the fresh,
+  // all-claims-confirmed state (the state changed since the install()-time refresh).
+  {
+    const html = await fs.readFile(progressPath, "utf8");
+    const m = html.match(/<script id="progress-data"[^>]*>([\s\S]*?)<\/script>/);
+    const data = m ? JSON.parse(m[1]) : null;
+    ok(data && data.brokenClaims === 0,
+      `verify's refresh updates the progress page's brokenClaims to 0: ${JSON.stringify(data)}`);
+  }
   // verify writes report artifacts that install did not — remove them so the
   // later "uninstall leaves an empty ai/ tree" assertion still holds.
   for (const f of ["VERIFICATION_MANIFEST.json", "VERIFICATION_REPORT.md"]) {
@@ -266,6 +290,11 @@ async function testInstaller(label, exec, script) {
   const guideFiles = await fs.readdir(path.join(repo, "ai", "guide"));
   ok(guideFiles.some(n => /^CONVENTIONS_bkp_\d{8}_\d{6}\.md$/.test(n)),
     `--force leaves a timestamped backup of the file it overwrote`);
+  // regression: ai/START-HERE.html's content legitimately changes on every
+  // verify/drift/install run (refreshProgressPage) — --force must never treat
+  // that as a human edit and leave a pointless timestamped backup behind.
+  ok(!(await fs.readdir(path.join(repo, "ai"))).some(n => /^START-HERE_bkp_/.test(n)),
+    `--force never backs up ai/START-HERE.html (it's a live dashboard, not human prose)`);
 
   // --force-verified: the explicit escape hatch for [verified] files.
   // In a non-TTY shell without --yes, the typed "overwrite" confirmation cannot
@@ -301,6 +330,7 @@ async function testInstaller(label, exec, script) {
   ok(r.code === 0, `uninstall exits 0` + (r.code === 0 ? "" : ` (out: ${r.out})`));
   ok(!(await exists(path.join(repo, "CLAUDE.md"))), `uninstall removed CLAUDE.md`);
   ok(!(await exists(path.join(repo, "ai"))), `uninstall removed empty ai/ tree`);
+  ok(!(await exists(progressPath)), `uninstall removed ai/START-HERE.html (the progress page)`);
   ok(!(await exists(path.join(repo, ".cursor"))), `uninstall removed the .cursor/ tree`);
   ok(await exists(path.join(repo, "package.json")) && await exists(path.join(repo, "app.ts")),
     `uninstall kept user files`);
@@ -1555,6 +1585,83 @@ console.log("\n— audit —");
       `writeAuditedMap leaves a timestamped MODULE_MAP_bkp_*.md backup`);
     ok((await fs.readFile(bkpPath, "utf8")) === before, `the backup preserves the pre-audit content byte-for-byte`);
     ok((await fs.readFile(mapPath, "utf8")) === newText, `writeAuditedMap writes the new content to MODULE_MAP.md`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
+// ---------- progress: the living progress page ----------
+console.log("\n— progress (ai/START-HERE.html) —");
+{
+  const { refreshProgressPage } = await import(pathToFileURL(path.join(kitRoot, "lib", "progress.mjs")).href);
+  const bootstrapPage =
+    "<!doctype html><html><body>" +
+    '<script id="progress-data" type="application/json">' +
+    '{"doctorStep":1,"rows":{"verified":0,"inferred":0,"unknown":0},"brokenClaims":null,"driftItems":null,"verdict":"NEEDS AUDIT"}' +
+    "</script></body></html>";
+
+  // refreshProgressPage populates real data over the bootstrap placeholder
+  {
+    const d = await makeBareFixture("progress-refresh", {
+      "ai/START-HERE.html": bootstrapPage,
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/07/2026) |\n",
+      "app.ts": "export {};\n",
+    });
+    await refreshProgressPage(d);
+    const html = await fs.readFile(path.join(d, "ai", "START-HERE.html"), "utf8");
+    const m = html.match(/<script id="progress-data"[^>]*>([\s\S]*?)<\/script>/);
+    const data = JSON.parse(m[1]);
+    ok(data.rows.verified === 1 && data.rows.inferred === 0, `refreshProgressPage picks up MODULE_MAP row counts`);
+    ok(data.verdict === "TRUSTED", `refreshProgressPage computes the same verdict status would: ${data.verdict}`);
+    ok(html.startsWith("<!doctype html>"), `refreshProgressPage only rewrites the data block, not the shell`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // no-op when the page doesn't exist — never recreates it, never throws
+  {
+    const d = await makeBareFixture("progress-absent", {
+      "ai/guide/MODULE_MAP.md": "# map\n",
+    });
+    let threw = false;
+    try { await refreshProgressPage(d); } catch { threw = true; }
+    ok(!threw, `refreshProgressPage does not throw when ai/START-HERE.html is absent`);
+    ok(!(await exists(path.join(d, "ai", "START-HERE.html"))), `refreshProgressPage does not recreate a deleted page`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // no-op when the file exists but isn't a progress page we recognize (no data block)
+  {
+    const d = await makeBareFixture("progress-not-ours", {
+      "ai/START-HERE.html": "<!doctype html><html><body>hand-written page</body></html>",
+    });
+    await refreshProgressPage(d);
+    const html = await fs.readFile(path.join(d, "ai", "START-HERE.html"), "utf8");
+    ok(html === "<!doctype html><html><body>hand-written page</body></html>",
+      `refreshProgressPage leaves an unrecognized ai/START-HERE.html untouched`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // commands still work when the page is absent (user deleted it) — no crash
+  {
+    const d = await makeBareFixture("progress-cmds-no-page", {
+      "ai/guide/MODULE_MAP.md":
+        "# map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `/` (root) | core | `app.ts` | ours | [verified] (01/07/2026) |\n",
+      "app.ts": "export {};\n",
+    });
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "verify", d]);
+    ok(r.code === 0, `verify still works with no ai/START-HERE.html present`);
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "drift", d]);
+    ok(r.code === 0, `drift still works with no ai/START-HERE.html present`);
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
+    ok(r.code === 0, `status still works with no ai/START-HERE.html present`);
+    ok(!(await exists(path.join(d, "ai", "START-HERE.html"))),
+      `none of verify/drift/status recreate ai/START-HERE.html on their own`);
     await fs.rm(d, { recursive: true, force: true });
   }
 }
