@@ -1,12 +1,11 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # CLI reference — every command, every flag
 
-The complete reference for the kit's command-line interface. Both installers are
-**feature-identical and zero-dependency** — pick whichever runtime you have:
+The complete reference for the kit's command-line interface. The installer is
+**zero-dependency** (Node stdlib only):
 
 ```bash
 node install.mjs <command> <path-to-your-repo> [options]     # Node.js ≥ 18
-python install.py <command> <path-to-your-repo> [options]    # Python ≥ 3.8
 npx github:kunalsuri/ai-fication-kit <command> <path> [options]  # no clone needed
 ```
 
@@ -305,6 +304,6 @@ first step of `shazam`.
 
 ---
 
-*Every claim on this page is sourced from `install.mjs` / `install.py` and the
+*Every claim on this page is sourced from `install.mjs` and the
 `lib/` modules — the implementation each command routes to is documented for
 contributors in [FUNCTIONALITY.md](FUNCTIONALITY.md).*

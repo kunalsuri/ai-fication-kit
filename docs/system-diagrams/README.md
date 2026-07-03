@@ -46,12 +46,12 @@ graph LR
 
 ## 2. Class / Module Diagram
 
-The Class/Module diagram represents the layout of the code modules, the data schemas passed between them, and the logical dependencies of the Node.js and Python runtimes.
+The Class/Module diagram represents the layout of the code modules, the data schemas passed between them, and the logical dependencies of the Node.js runtime.
 
 ```mermaid
 classDiagram
     class CLIWrapper {
-        <<install.mjs / install.py>>
+        <<install.mjs>>
         +String command
         +String targetPath
         +Object flags
@@ -116,7 +116,7 @@ The Sequence diagram traces the step-by-step control flow and interactions betwe
 sequenceDiagram
     autonumber
     actor Dev as Developer (Operator)
-    participant CLI as install.mjs / install.py (CLI)
+    participant CLI as install.mjs (CLI)
     participant ORI as lib/orient
     participant INT as lib/intake (Wizard)
     participant INS as lib/installer

@@ -3,7 +3,7 @@
 //
 // Smoke tests for ai-fication-kit. Zero dependencies. Run: node test/run-tests.mjs
 //
-// For EACH installer (Node, Python — if present on PATH) this:
+// For the Node installer this:
 //   1. builds a throwaway fixture repo (TS app, fork remote, Java fixture too)
 //   2. orient        → asserts repo-profile.json has the right facts
 //   3. shazam --yes  → asserts files exist, placeholders resolved, fork rule stamped
@@ -46,14 +46,6 @@ async function exists(p) {
 function run(cmd, args) {
   const r = spawnSync(cmd, args, { encoding: "utf8" });
   return { code: r.status, out: (r.stdout || "") + (r.stderr || ""), error: r.error };
-}
-
-function pythonCmd() {
-  for (const c of ["python3", "python"]) {
-    const r = spawnSync(c, ["--version"], { encoding: "utf8" });
-    if (r.status === 0) return c;
-  }
-  return null;
 }
 
 async function makeFixture(name, { fork }) {
@@ -582,8 +574,6 @@ async function testInstaller(label, exec, script) {
 
 console.log("ai-fication-kit smoke tests");
 
-const py = pythonCmd();
-
 await testInstaller("node", process.execPath, path.join(kitRoot, "install.mjs"));
 
 // the intake wizard must self-skip (return null) for automation, never hang on input.
@@ -849,7 +839,6 @@ console.log("\n— indepth git history —");
       console.log("  — SKIPPED (could not create a commit in this environment)");
     } else {
       const installers = [["node", process.execPath, path.join(kitRoot, "install.mjs")]];
-      if (py) installers.push(["python", py, path.join(kitRoot, "install.py")]);
       for (const [ilabel, exec, script] of installers) {
         const r = run(exec, [script, "indepth", hrepo]);
         let gh = null;
@@ -950,52 +939,6 @@ console.log("\n— indepth git history —");
   b = await detectBranch(broot);
   ok(b.versionControlled === false && b.name === null, `no .git → not version controlled`);
   await fs.rm(broot, { recursive: true, force: true });
-}
-
-if (py) {
-  await testInstaller("python", py, path.join(kitRoot, "install.py"));
-} else {
-  console.log("\n— python — SKIPPED (no python on PATH)");
-}
-
-// ---------- Node ↔ Python parity: identical orient profiles ----------
-// The dual-runtime guarantee is asserted structurally: both installers must
-// write byte-identical profiles (modulo the generation timestamp) for the same
-// fixture, so any divergence in detection or message wording fails here.
-console.log("\n— node/python orient parity —");
-if (py) {
-  const prepo = await makeFixture("parity", { fork: true });
-  const profiles = {};
-  for (const [ilabel, exec, script] of [
-    ["node", process.execPath, path.join(kitRoot, "install.mjs")],
-    ["python", py, path.join(kitRoot, "install.py")],
-  ]) {
-    const r = run(exec, [script, "orient", prepo]);
-    ok(r.code === 0, `${ilabel} orient exits 0 on the parity fixture`);
-    profiles[ilabel] = JSON.parse(await fs.readFile(
-      path.join(prepo, "ai", "repo-profile.json"), "utf8"));
-    await fs.rm(path.join(prepo, "ai"), { recursive: true, force: true });
-  }
-  const canon = (v) => Array.isArray(v) ? v.map(canon)
-    : (v && typeof v === "object")
-      ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canon(v[k])]))
-      : v;
-  for (const p of Object.values(profiles)) delete p.generated;
-  const nj = JSON.stringify(canon(profiles.node), null, 2);
-  const pj = JSON.stringify(canon(profiles.python), null, 2);
-  if (nj !== pj) {
-    const nLines = nj.split("\n"), pLines = pj.split("\n");
-    for (let i = 0; i < Math.max(nLines.length, pLines.length); i++) {
-      if (nLines[i] !== pLines[i]) {
-        console.error(`    first divergence (line ${i + 1}):\n      node:   ${nLines[i]}\n      python: ${pLines[i]}`);
-        break;
-      }
-    }
-  }
-  ok(nj === pj, `node and python orient write identical profiles (minus timestamp)`);
-  await fs.rm(prepo, { recursive: true, force: true });
-} else {
-  console.log("  — SKIPPED (no python on PATH)");
 }
 
 console.log(`\n${checks - failures}/${checks} checks passed`);

@@ -8,8 +8,8 @@ Audit the AI knowledge layer. Read-only with one exception: you may write ONE re
 1. **Reuse the mechanical verifier's output; don't redo its job.** If
    `ai/analysis/audit-reports/VERIFICATION_MANIFEST.json` exists, read its `summary`
    and the non-`confirmed` claims first — path-existence checking is already done
-   deterministically by the kit's `verify` command (`node install.mjs verify <repo>`
-   or `python install.py verify <repo>`; no LLM involved, so its statuses are facts).
+   deterministically by the kit's `verify` command (`node install.mjs verify <repo>`;
+   no LLM involved, so its statuses are facts).
    Spend your pass on what a script cannot judge (steps 2, 4, 5 below, and the
    *semantic* half of step 3). If the manifest is absent or older than the docs it
    covers, recommend regenerating it instead of re-deriving path checks by hand.

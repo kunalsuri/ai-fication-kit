@@ -5,8 +5,6 @@ test/
 examples/
 docs/
 make-checksums.sh
-__pycache__/
-*.pyc
 banner.svg
 .zenodo.json
 .gitattributes

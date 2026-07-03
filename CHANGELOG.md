@@ -6,6 +6,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+### Removed
+- **Python installer removed — the kit is now Node.js-only.** `install.py` and the
+  parallel Python modules (`lib/*.py`) are gone; `install.mjs` + `lib/*.mjs`
+  (Node.js ≥ 18, stdlib only, zero dependencies) is the single implementation.
+  Maintaining two feature-identical runtimes doubled the cost of every change and
+  risked silent behavior drift between them. Nothing changes for target repos:
+  Python projects are still fully supported by stack detection (`orient`),
+  `indepth` analysis, and all knowledge-layer features — only the runtime that
+  executes the kit itself now requires Node. CI and the smoke-test suite run
+  Node-only accordingly.
+
 ### Added
 - **Incremental, hash-verified re-runs with a "child-lock" for human work.**
   `install`/`shazam` re-runs are now safe by construction: the install manifest
@@ -27,9 +38,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     `--yes` abort safely);
   - `ai/repo-profile.json` re-writes now carry the intake wizard's `humanContext`
     forward, so onboarding answers survive re-runs.
-  Implemented identically in `lib/installer.mjs` and `lib/installer.py`
-  (`classifyAction` / `classify_action`); covered by new smoke tests for both
-  runtimes. Manifests written by older kit versions have no hashes, so their
+  Implemented in `lib/installer.mjs` (`classifyAction`); covered by new smoke
+  tests. Manifests written by older kit versions have no hashes, so their
   existing files classify as "keep" — exactly the old skip behavior, nothing regresses.
 - **Native GitHub Copilot and Google Antigravity assets**, extending the kit beyond Claude Code:
   - `templates/github/copilot-instructions.md`, `templates/github/prompts/*.prompt.md` (8 files),
@@ -40,12 +50,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     installed to `.agents/`, giving Google Antigravity native workflow equivalents of the same
     commands, plus the `add-feature` skill in the shared Agent Skills (`SKILL.md`) format that
     Antigravity and Copilot both discover natively (no per-tool duplication).
-  - New `agents/` → `.agents/` destination mapping in `lib/installer.mjs` and `lib/installer.py`
+  - New `agents/` → `.agents/` destination mapping in `lib/installer.mjs`
     (the `github/` → `.github/` mapping already covered the Copilot assets).
   - No new rules files were added for Antigravity: it already reads the tool-agnostic
     `AGENTS.md` at the repo root natively.
-- **Coverage-driven test-suite hardening.** The smoke suite grows from 246 to 327
-  checks (Node installer coverage: 78.6 % → 85.8 % lines, 66.6 % → 76.4 % branches):
+- **Coverage-driven test-suite hardening.** The smoke suite grows substantially
+  (Node installer coverage: 78.6 % → 85.8 % lines, 66.6 % → 76.4 % branches):
   - table-driven `orient` detector tests across every supported stack (Gradle both
     variants, Go, Rust, Ruby, PHP, CMake, the bare-Makefile fallback and its
     suppression, pip, yarn/bun/Pipenv lockfiles, Turborepo, `package.json` without
@@ -55,23 +65,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
     fill-in fallback);
   - per-ecosystem `indepth` dependency-parsing tests (pip, Poetry, Go, Cargo,
     Bundler, Composer) and a real-git-repo fixture exercising the git-history
-    analyzer (commit/contributor/tag counts) in both runtimes;
+    analyzer (commit/contributor/tag counts);
   - unit tests for `classifyAction` pinning the full re-run matrix — including the
     kit-upgrade `"update"` path that end-to-end tests cannot reach — and for the
     intake wizard's `detectBranch` (normal / detached HEAD / no `.git`; exported
     from `lib/intake.mjs` for testing);
   - `verify` edge cases (no knowledge docs → clear error; duplicate basenames →
     `2 matches` note) and CLI surface checks (usage text, unknown option);
-  - a **Node ↔ Python parity test**: both installers must write byte-identical
-    orient profiles (modulo timestamp) for the same fixture, so cross-runtime
-    drift now fails the suite instead of shipping;
   - `npm run coverage` (c8, fetched via `npx`) and a CI `coverage` job in
     `test.yml` enforcing a floor (83 % lines / 73 % branches).
-
-### Fixed
-- Python `orient` recorded fork evidence with an ASCII `->` where the Node
-  installer writes `→`; the two now emit identical profiles (caught by the new
-  parity test).
+  (The suite briefly also carried a Node ↔ Python orient-parity gate; it was
+  retired in the same cycle when the Python runtime was removed.)
 
 ## [0.1.2] — 2026-06-30
 

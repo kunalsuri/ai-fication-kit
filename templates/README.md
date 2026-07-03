@@ -1,7 +1,7 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # templates/ — the installable kit
 
-Everything in this folder is stamped into a target repo by `install.mjs` / `install.py`.
+Everything in this folder is stamped into a target repo by `install.mjs`.
 
 Rules:
 - Files ending `.tmpl` have `{{PLACEHOLDERS}}` substituted and lose the `.tmpl` suffix.

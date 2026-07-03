@@ -92,13 +92,13 @@ The architecture enforces a strict separation between two categories of operatio
 
 The kit never runs the user's code, opens a network connection, or installs external dependencies.
 
-### 3.3 Dual-Runtime Implementation
+### 3.3 Single-Runtime Implementation
 
-The entire toolkit is implemented twice — in Node.js (`install.mjs` + `lib/*.mjs`) and in Python (`install.py` + `lib/*.py`). Both implementations are feature-identical, use only standard-library modules (zero external dependencies), and produce functionally identical output, kept honest by a shared cross-runtime test suite that exercises both installers. The user selects whichever runtime they have available: Node.js ≥ 18 or Python ≥ 3.8.
+The toolkit is implemented in Node.js (`install.mjs` + `lib/*.mjs`). The implementation uses only standard-library modules (zero external dependencies) and requires Node.js ≥ 18. (Earlier versions also shipped a feature-identical Python implementation; it was removed in v0.2 to eliminate cross-runtime parity maintenance.)
 
 ### 3.4 Module Architecture
 
-The codebase is organized as a thin CLI entry point (`install.mjs` / `install.py`) delegating to seven single-purpose library modules:
+The codebase is organized as a thin CLI entry point (`install.mjs`) delegating to seven single-purpose library modules:
 
 | Module | Responsibility |
 |---|---|
@@ -283,9 +283,9 @@ Output: `DRIFT_MANIFEST.json` and `DRIFT_REPORT.md`. Both commands support `--st
 
 ## 7. Security Properties
 
-The kit's installers are designed to be minimal-trust:
+The kit's installer is designed to be minimal-trust:
 
-- **Zero dependencies.** Node.js standard library or Python standard library only. No external packages to audit.
+- **Zero dependencies.** Node.js standard library only. No external packages to audit.
 - **No network access.** Nothing is downloaded, fetched, or sent.
 - **No code execution.** The kit copies and stamps text files; it never runs the user's code or any third-party code. (Exception: `drift --git` runs local, read-only `git` — `git rev-parse` and `git diff` — which inspects history without modifying the repository.)
 - **No writes outside the target.** Only the directory passed as a CLI argument is modified. The `uninstall` command includes a path-traversal guard that verifies all deletions are strictly within the target directory.
@@ -559,9 +559,9 @@ The measurement uses no model and no network — `measure.mjs` counts file bytes
 
 ## 12. Testing
 
-The kit includes a cross-runtime test suite (`test/run-tests.mjs`) that verifies:
+The kit includes a smoke-test suite (`test/run-tests.mjs`) that verifies:
 
-- Node.js and Python installer behavior
+- Node.js installer behavior
 - Stack detection across multiple marker-file configurations
 - Process 1 and Process 2 installation paths
 - Maturity check scoring and process assignment
@@ -571,7 +571,7 @@ The kit includes a cross-runtime test suite (`test/run-tests.mjs`) that verifies
 - Uninstall completeness and backup file preservation
 - **Documentation link integrity** — every local link in the human-facing docs (`README.md`, `docs/**`, `examples/**`) is checked to ensure it resolves on disk, extending the honesty guarantee from the knowledge layer to the project's own prose
 
-The suite reports roughly 87 assertions per run (executed against each available runtime); about 30 of these were added specifically to cover dual-mode (Process 2) installation. The Python checks self-skip when no Python interpreter is on `PATH`. CI runs on Linux, macOS, and Windows, and additionally exercises Python 3.8 alongside 3.11.
+The suite reports roughly 87 assertions per run; about 30 of these were added specifically to cover dual-mode (Process 2) installation. CI runs on Linux, macOS, and Windows.
 
 ---
 
@@ -621,7 +621,7 @@ ai-fication-kit provides a structured method for making any existing codebase na
 3. **Stability markers** (`frozen` / `stable` / `ours` / `?`) that function as behavioral constraints for agent edits.
 4. **Mechanical integrity checks** (`verify` and `drift`) that keep the knowledge layer honest as the codebase evolves, with CI-compatible `--strict` modes.
 5. **A deeply integrated Claude Code automation layer** — seven slash commands, three subagents, and a multi-phase skill — composing into a complete agentic workflow from onboarding through safeguarded feature delivery.
-6. **A dual-runtime, zero-dependency implementation** (Node.js and Python) that never executes user code or accesses the network.
+6. **A zero-dependency Node.js implementation** that never executes user code or accesses the network.
 7. **Dual onboarding value** — the verified `ai/` folder serves both AI agents and human engineers as instant, trustworthy repository documentation.
 
 The kit transforms a legacy repository into an AI-native workspace through a single `shazam` command, then relies on the human audit to convert scaffolding into a verified knowledge-base that serves both AI agents and human engineers.

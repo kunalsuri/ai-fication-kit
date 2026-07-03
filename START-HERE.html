@@ -63,7 +63,6 @@
   <div class="badges">
     <span class="badge"><b>Apache&nbsp;2.0</b></span>
     <span class="badge">Node <b>18+</b></span>
-    <span class="badge">Python <b>3.8+</b></span>
     <span class="badge"><b>Zero</b> dependencies</span>
   </div>
 
@@ -75,7 +74,7 @@
   <!-- STEP 1 -->
   <section class="step">
     <h2><span class="num">1</span> Scaffold the kit into your repo</h2>
-    <p>Pick one. The <b>npx</b> way needs nothing cloned; the clone way runs the pure Node or Python installer.</p>
+    <p>Pick one. The <b>npx</b> way needs nothing cloned; the clone way runs the pure Node installer.</p>
 
     <div class="cmd">
       <button class="copy">Copy</button>
@@ -88,11 +87,10 @@ npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo</pre>
 
     <div class="cmd">
       <button class="copy">Copy</button>
-      <pre><span class="cm"># B · From a local clone — pure Node or Python stdlib (no npm/pip install)</span>
+      <pre><span class="cm"># B · From a local clone — pure Node stdlib (no npm install)</span>
 git clone https://github.com/kunalsuri/ai-fication-kit.git
 cd ai-fication-kit
-node install.mjs shazam /path/to/your/repo      <span class="cm"># Node 18+</span>
-python install.py shazam /path/to/your/repo     <span class="cm"># …or Python 3.8+</span></pre>
+node install.mjs shazam /path/to/your/repo      <span class="cm"># Node 18+</span></pre>
     </div>
   </section>
 
@@ -113,7 +111,7 @@ python install.py shazam /path/to/your/repo     <span class="cm"># …or Python 
     <p>Open <code>ai/guide/MODULE_MAP.md</code>, set each module's Stability, and flip confirmed rows from <code>[inferred]</code> to <code>[verified]</code>. Then cross-check every file-path claim against the real tree (deterministic, no LLM):</p>
     <div class="cmd">
       <button class="copy">Copy</button>
-      <pre>node install.mjs verify /path/to/your/repo       <span class="cm"># or: python install.py verify ...</span>
+      <pre>node install.mjs verify /path/to/your/repo
 <span class="cm"># add --strict to fail (exit 1) on stale claims, e.g. in CI</span></pre>
     </div>
     <p class="hint">Build features safely with <span class="hl">/add-feature</span>. Full walkthrough: the repo's <code>README.md</code> and <code>docs/GETTING-STARTED.md</code>.</p>

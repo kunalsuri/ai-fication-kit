@@ -24,7 +24,7 @@ implied new capability nor forked the citable record.
   citable version of the PoC.
 
 ## Consequences
-- `KIT_VERSION` (in `lib/util.mjs` / `lib/util.py`) and `package.json` move together
+- `KIT_VERSION` (in `lib/util.mjs`) and `package.json` move together
   on every release; stamped artifacts (`ai/repo-profile.json`, `ai/repo-indepth.json`)
   should be regenerated after a bump so their `kitVersion` stamps stay current.
 - Citations stay stable while the kit iterates.

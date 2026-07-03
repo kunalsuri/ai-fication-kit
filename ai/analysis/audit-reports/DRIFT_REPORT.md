@@ -1,6 +1,6 @@
 # Drift report
 
-> Generated mechanically by ai-fication-kit `drift` on 2026-07-02.
+> Generated mechanically by ai-fication-kit `drift` on 2026-07-03.
 > Drift is where the repository has moved away from the knowledge layer. The
 > statuses are facts; closing the gap (re-map, fix the docs, re-audit) is your call.
 

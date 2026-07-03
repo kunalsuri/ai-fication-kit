@@ -1,9 +1,9 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # Security
 
-The installers in this kit are deliberately boring:
+The installer in this kit is deliberately boring:
 
-- **No dependencies.** Node stdlib / Python stdlib only — there is nothing else to trust.
+- **No dependencies.** Node stdlib only — there is nothing else to trust.
 - **No network access.** Nothing is downloaded, fetched, or phoned home.
 - **No code execution.** The kit copies and stamps text files; it never runs your code
   or anyone else's.
@@ -12,8 +12,8 @@ The installers in this kit are deliberately boring:
 - **Clean removal.** `uninstall` deletes exactly the files recorded in
   `ai/install-manifest.json`.
 
-You are encouraged to read both installers in full before running them.
-Each is a thin CLI (`install.mjs`, `install.py`) over seven small single-purpose
+You are encouraged to read the installer in full before running it.
+It is a thin CLI (`install.mjs`) over seven small single-purpose
 modules in `lib/` (`util`, `orient`, `installer`, `intake`, `verify`, `drift`,
 `maturity`) — every file is commented and short enough to audit in one sitting.
 

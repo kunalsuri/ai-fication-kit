@@ -27,9 +27,8 @@ later).
 - `CHANGELOG.md` — entry under `[Unreleased]`.
 
 **Out (explicitly):**
-- No Python mirror — this is repo-maintainer tooling, not shipped kit
-  functionality (the dual-runtime guarantee covers `install.mjs`/`install.py`;
-  `test/` is already Node-only).
+- This is repo-maintainer tooling, not shipped kit functionality
+  (`test/` is already Node-only).
 - Not part of the `install.mjs` CLI and not stamped into target repos.
 - No third-party GitHub Actions (zero-dependency ethos).
 - No claim of *semantic* changelog completeness — the coverage check is a
@@ -39,7 +38,7 @@ later).
 ## The checks
 | # | Check | Pre-tag mode | Tag mode |
 |---|---|---|---|
-| 1 | **version-sync** — `package.json` = `KIT_VERSION` in `lib/util.mjs` = `lib/util.py` = `CITATION.cff` = `.zenodo.json` (= tag) | hard fail | hard fail |
+| 1 | **version-sync** — `package.json` = `KIT_VERSION` in `lib/util.mjs` = `CITATION.cff` = `.zenodo.json` (= tag) | hard fail | hard fail |
 | 2 | **changelog-gate** — `## [X.Y.Z]` section exists with a date; version link ref present; `[Unreleased]` emptied | section may be absent while unreleased; `[Unreleased]` must exist | hard fail |
 | 3 | **coverage report** — `git diff --name-only <lastTag>..HEAD` grouped by top-level area; areas with source changes keyword-matched against the changelog section | informational | informational |
 | 4 | **cli-docs-sync** — commands and flags parsed from `install.mjs`'s own argv parser must each be mentioned in `docs/CLI-REFERENCE.md` and the usage help | hard fail | hard fail |
@@ -82,7 +81,7 @@ skipped with an explicit "skipped" line, never silently.
 
 **Human approval:** granted by the maintainer in-session on 2026-07-02 — scope:
 add files under `test/` (whose MODULE_MAP row is `[inferred]`) and read (not
-edit) `lib/util.mjs` / `lib/util.py`.
+edit) `lib/util.mjs`.
 
 ## Knowledge update on completion
 - [ ] FEATURE_MAP.md entry added/updated
