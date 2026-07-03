@@ -1,11 +1,18 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
-# Lessons learned — design of the `ai/` knowledge layer
+# Two Kinds of Knowledge: Memory, Context, and the Harness
 
-> **Status:** `[inferred]` (agent-drafted 2026-07-03; a human must audit before
-> flipping any item to `[verified]`).
-> **Purpose:** capture recurring design questions about the `ai/` folder so the same
-> confusion is not re-litigated in future sessions or PRs. Loaded like the rest of
-> `ai/lab/`: when planning or reviewing, not on every agent session.
+## Metadata
+
+| Field | Value |
+|---|---|
+| **Timestamp** | 2026-07-03T00:00:00+02:00 |
+| **Category** | Knowledge-Layer Design / Memory / Context Engineering / Harness Engineering |
+| **Status** | `[inferred]` — agent-drafted; a human must audit before flipping any item to `[verified]` |
+
+This document records the resolution of a recurring design question about the `ai/`
+folder — why a "knowledge repo" contains `lab/` at all — so the same confusion is
+not re-litigated in future sessions or PRs. It then generalizes the answer into how
+memory, context, context engineering, and harness engineering interlock in this kit.
 
 ---
 

@@ -19,8 +19,8 @@ This is also what agents need to work safely: the maps tell an agent *where* cod
 plans are current. Without `lab/`, the `ai/` layer is a navigation tool; with it, it
 is a knowledge base. In memory terms: `guide/` is the repo's semantic memory (facts),
 `lab/` is its episodic memory (experience) — see
-`lessons-learnt/2026-07-03-knowledge-kinds-memory-context-harness.md` for the full
-rationale.
+[docs/dev/lessons-learnt/knowledge-kinds-memory-context-and-harness.md](../../docs/dev/lessons-learnt/knowledge-kinds-memory-context-and-harness.md)
+for the full rationale.
 
 | Folder | Contains | Who writes it |
 |---|---|---|
@@ -28,7 +28,6 @@ rationale.
 | `decisions/` | Architecture Decision Records (ADRs) | Human |
 | `evaluations/` | Post-implementation retrospectives | Human |
 | `experiments/` | AI-agent approach trials: prompts, configs, outcomes | Human + AI |
-| `lessons-learnt/` | Recurring design questions about the `ai/` layer, answered once (one dated file per lesson) | Human + AI |
 
 ## Lifecycle of a feature
 ```
