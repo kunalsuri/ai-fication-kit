@@ -1,6 +1,6 @@
 # Claim verification report
 
-> Generated mechanically by ai-fication-kit `verify` on 2026-07-02.
+> Generated mechanically by ai-fication-kit `verify` on 2026-07-03.
 > A claim is a backtick-quoted path in the knowledge docs; verification is a
 > file-existence check against the repository tree. No model involved — treat
 > the statuses as facts, the fix as your judgement.

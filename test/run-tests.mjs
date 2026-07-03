@@ -69,6 +69,19 @@ async function makeFixture(name, { fork }) {
   return dir;
 }
 
+// Minimal fixture: exactly the given files (nested paths allowed), nothing else.
+async function makeBareFixture(name, files) {
+  const dir = path.join(here, `tmp-${name}-${process.pid}`);
+  await fs.rm(dir, { recursive: true, force: true });
+  await fs.mkdir(dir, { recursive: true });
+  for (const [rel, content] of Object.entries(files)) {
+    const abs = path.join(dir, ...rel.split("/"));
+    await fs.mkdir(path.dirname(abs), { recursive: true });
+    await fs.writeFile(abs, content);
+  }
+  return dir;
+}
+
 async function testInstaller(label, exec, script) {
   console.log(`\n— ${label} —`);
 
@@ -99,6 +112,35 @@ async function testInstaller(label, exec, script) {
   ok(indepthResult.codeStructure.codeMetrics.fileCount > 0, `indepth counts files: ${indepthResult.codeStructure.codeMetrics.fileCount}`);
   ok(indepthResult.documentation.completionScore > 0, `indepth computes doc completion score: ${indepthResult.documentation.completionScore}`);
   ok(indepthResult.testing.testFileCount > 0, `indepth detects test files: ${indepthResult.testing.testFileCount}`);
+
+  // ---------- indepth: per-ecosystem dependency parsing ----------
+  // The main fixture only exercises the package.json parser; each case below
+  // isolates one manifest format and asserts the exact direct-dependency count.
+  const depCases = [
+    { name: "pip", direct: 2, files: {
+      "requirements.txt": "flask==2.0.1\nrequests>=2.28\n# a comment\n-r other.txt\n" } },
+    { name: "poetry", direct: 1, files: {
+      "pyproject.toml": "[tool.poetry.dependencies]\npython = \"^3.11\"\nflask = \"^2.0\"\n\n[build-system]\n" } },
+    { name: "go", direct: 1, files: {
+      "go.mod": "module example.com/m\n\ngo 1.21\n\nrequire (\n\tgithub.com/a/b v1.0.0\n\tgithub.com/c/d v2.1.0 // indirect\n)\n" } },
+    { name: "cargo", direct: 2, files: {
+      "Cargo.toml": "[package]\nname = \"x\"\n\n[dependencies]\nserde = \"1\"\ntokio = \"1\"\n\n[profile.release]\nopt-level = 3\n" } },
+    { name: "bundler", direct: 2, files: {
+      "Gemfile": "source 'https://rubygems.org'\ngem 'rails', '~> 7.0'\ngem \"puma\"\n" } },
+    { name: "composer", direct: 2, files: {
+      "composer.json": "{\"require\":{\"php\":\">=8.0\",\"monolog/monolog\":\"^3.0\"},\"require-dev\":{\"phpunit/phpunit\":\"^10\"}}\n" } },
+  ];
+  for (const tc of depCases) {
+    const d = await makeBareFixture(`${label}-dep-${tc.name}`, tc.files);
+    r = run(exec, [script, "indepth", d]);
+    let got = null;
+    try {
+      got = JSON.parse(await fs.readFile(path.join(d, "ai", "repo-indepth.json"), "utf8")).dependencies.direct;
+    } catch { /* missing/invalid output — caught by the assertion */ }
+    ok(r.code === 0 && got === tc.direct,
+      `indepth counts ${tc.name} direct dependencies (got ${got}, want ${tc.direct})`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
 
   // dry-run writes nothing new
   r = run(exec, [script, "install", repo, "--dry-run"]);
@@ -294,6 +336,117 @@ async function testInstaller(label, exec, script) {
 
   await fs.rm(lockrepo, { recursive: true, force: true });
 
+  // ---------- orient: detector matrix (one bare fixture per stack) ----------
+  // `expect` strings must appear in the orient --dry-run output; `absent` must not.
+  const detectorCases = [
+    { name: "gradle", files: { "build.gradle": "" },
+      expect: ["Java/Kotlin", "./gradlew build -x test", "./gradlew test"] },
+    { name: "gradle-kts", files: { "build.gradle.kts": "" },
+      expect: ["Kotlin/Java", "./gradlew build -x test"] },
+    { name: "go", files: { "go.mod": "module example.com/m\n" },
+      expect: ["Go", "go build ./...", "go test ./..."] },
+    { name: "rust", files: { "Cargo.toml": "[package]\nname = \"x\"\n" },
+      expect: ["Rust", "cargo build", "cargo test"] },
+    { name: "ruby", files: { "Gemfile": "source 'https://rubygems.org'\n" },
+      expect: ["Ruby", "bundle install", "bundle exec rake test"] },
+    { name: "php", files: { "composer.json": "{}\n" },
+      expect: ["PHP", "composer install", "composer test"] },
+    { name: "cmake", files: { "CMakeLists.txt": "" },
+      expect: ["C/C++", "cmake -B build && cmake --build build"] },
+    { name: "makefile-fallback", files: { "Makefile": "all:\n" },
+      expect: ["C/C++", "make test"] },
+    { name: "makefile-suppressed",
+      files: { "Makefile": "all:\n", "package.json": "{\"scripts\":{\"build\":\"x\",\"test\":\"y\"}}\n" },
+      expect: ["JavaScript"], absent: ["C/C++"] },
+    { name: "pip", files: { "requirements.txt": "flask==2.0\n" },
+      expect: ["Python", "pip install -r requirements.txt", "pytest"] },
+    { name: "yarn",
+      files: { "yarn.lock": "", "package.json": "{\"scripts\":{\"build\":\"x\",\"test\":\"y\"}}\n" },
+      expect: ["yarn install && yarn build", "yarn test"] },
+    { name: "bun",
+      files: { "bun.lockb": "", "package.json": "{\"scripts\":{\"build\":\"x\",\"test\":\"y\"}}\n" },
+      expect: ["bun install && bun run build", "bun test"] },
+    { name: "pipenv", files: { "Pipfile": "", "requirements.txt": "flask==2.0\n" },
+      expect: ["pipenv install", "pipenv run pytest"] },
+    { name: "no-build-script", files: { "package.json": "{\"name\":\"x\"}\n" },
+      expect: ["npm install", "no test script in package.json"], absent: ["npm run build"] },
+    { name: "malformed-package-json", files: { "package.json": "{ not json\n" },
+      expect: ["npm install"], absent: ["npm run build"] },
+    { name: "empty-repo", files: {},
+      expect: ["No known build-system marker found"] },
+    { name: "multi-stack",
+      files: { "go.mod": "module m\n", "package.json": "{\"scripts\":{\"build\":\"x\",\"test\":\"y\"}}\n" },
+      expect: ["Multiple build systems detected"] },
+  ];
+  for (const tc of detectorCases) {
+    const d = await makeBareFixture(`${label}-det-${tc.name}`, tc.files);
+    r = run(exec, [script, "orient", d, "--dry-run"]);
+    const missing = (tc.expect || []).filter(s => !r.out.includes(s));
+    const leaked = (tc.absent || []).filter(s => r.out.includes(s));
+    ok(r.code === 0 && missing.length === 0 && leaked.length === 0,
+      `orient detects ${tc.name}` +
+      (missing.length ? ` — missing: ${missing.join(" | ")}` : "") +
+      (leaked.length ? ` — unexpected: ${leaked.join(" | ")}` : ""));
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---------- orient: flag overrides win over detection ----------
+  {
+    const d = await makeBareFixture(`${label}-flags`, { "package.json": "{}\n" });
+    r = run(exec, [script, "orient", d, "--dry-run", "--name", "CustomName",
+      "--description", "Custom description here.", "--build", "make custom-build",
+      "--test", "make custom-test", "--upstream", "acme/widget"]);
+    const wanted = ["CustomName", "Custom description here.", "make custom-build",
+      "make custom-test", "acme/widget", "--upstream flag"];
+    const missing = wanted.filter(s => !r.out.includes(s));
+    ok(r.code === 0 && missing.length === 0,
+      `orient honors --name/--description/--build/--test/--upstream` +
+      (missing.length ? ` — missing: ${missing.join(" | ")}` : ""));
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---------- orient: turbo.json refinement lands in the profile ----------
+  {
+    const d = await makeBareFixture(`${label}-turbo`, {
+      "package.json": "{\"scripts\":{\"build\":\"turbo build\",\"test\":\"turbo test\"}}\n",
+      "turbo.json": "{}\n",
+    });
+    r = run(exec, [script, "orient", d]);
+    let systems = [];
+    try {
+      systems = JSON.parse(await fs.readFile(path.join(d, "ai", "repo-profile.json"), "utf8")).buildSystems;
+    } catch { /* missing profile — caught by the assertion */ }
+    ok(r.code === 0 && systems.includes("Turborepo"),
+      `turbo.json adds Turborepo to buildSystems: ${systems}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---------- orient: description extraction edge cases ----------
+  {
+    const noisy = await makeBareFixture(`${label}-desc-noisy`, {
+      "README.md": "# Title\n\n[![CI](https://img)](https://ci)\n![badge](x.png)\n" +
+        "<p align=\"center\">html</p>\n---\nshort\n\nThe real prose description of this project.\n",
+    });
+    r = run(exec, [script, "orient", noisy, "--dry-run"]);
+    ok(r.code === 0 && r.out.includes("The real prose description of this project."),
+      `description skips headings/badges/HTML/rules/short lines to the first prose line`);
+    await fs.rm(noisy, { recursive: true, force: true });
+
+    const longLine = "This project " + "x".repeat(180);
+    const longd = await makeBareFixture(`${label}-desc-long`, { "README.md": longLine + "\n" });
+    r = run(exec, [script, "orient", longd, "--dry-run"]);
+    ok(r.code === 0 && r.out.includes(longLine.slice(0, 157) + "...") && !r.out.includes(longLine),
+      `description over 160 chars is truncated with an ellipsis`);
+    await fs.rm(longd, { recursive: true, force: true });
+
+    const bare = await makeBareFixture(`${label}-desc-none`, {
+      "README.md": "# Only a heading\n\n![badge](b.png)\n" });
+    r = run(exec, [script, "orient", bare, "--dry-run"]);
+    ok(r.code === 0 && r.out.includes("fill in"),
+      `README with no prose line falls back to the fill-in placeholder`);
+    await fs.rm(bare, { recursive: true, force: true });
+  }
+
   // ---------- verify: mechanical claim checking ----------
   const vrepo = await makeFixture(`${label}-verify`, { fork: false });
   await fs.mkdir(path.join(vrepo, "ai", "guide"), { recursive: true });
@@ -337,6 +490,34 @@ async function testInstaller(label, exec, script) {
   ok(r.code !== 0, `verify --strict exits non-zero on unconfirmed claims`);
 
   await fs.rm(vrepo, { recursive: true, force: true });
+
+  // verify with no knowledge docs at all → refuses with a clear error
+  {
+    const nrepo = await makeBareFixture(`${label}-verify-none`, { "app.ts": "export {};\n" });
+    r = run(exec, [script, "verify", nrepo]);
+    ok(r.code !== 0 && /Nothing to verify/.test(r.out),
+      `verify without knowledge docs exits non-zero with guidance`);
+    await fs.rm(nrepo, { recursive: true, force: true });
+  }
+
+  // duplicate basenames: a filename claim is confirmed but flags the ambiguity
+  {
+    const dupe = await makeBareFixture(`${label}-verify-dupe`, {
+      "a/dup.ts": "export {};\n",
+      "b/dup.ts": "export {};\n",
+      "ai/guide/MODULE_MAP.md": "# map\nSee `dup.ts`.\n",
+    });
+    r = run(exec, [script, "verify", dupe]);
+    let dc = null;
+    try {
+      const dm = JSON.parse(await fs.readFile(path.join(dupe, "ai", "analysis",
+        "audit-reports", "VERIFICATION_MANIFEST.json"), "utf8"));
+      dc = dm.claims.find(c => c.claim === "dup.ts");
+    } catch { /* missing manifest — caught by the assertion */ }
+    ok(r.code === 0 && dc?.status === "confirmed" && /2 matches/.test(dc?.note || ""),
+      `filename claim with duplicate basenames confirmed with a "2 matches" note`);
+    await fs.rm(dupe, { recursive: true, force: true });
+  }
 
   // ---------- drift: structural detection (unmapped / vanished) ----------
   const drepo = await makeFixture(`${label}-drift`, { fork: false });
@@ -382,9 +563,13 @@ async function testInstaller(label, exec, script) {
 
   await fs.rm(drepo, { recursive: true, force: true });
 
-  // ---------- error handling ----------
+  // ---------- error handling & CLI surface ----------
   r = run(exec, [script, "install", path.join(here, "definitely-not-here-xyz")]);
   ok(r.code !== 0, `missing target → non-zero exit`);
+  r = run(exec, [script]);
+  ok(r.code === 0 && /Usage:/.test(r.out), `bare invocation prints usage and exits 0`);
+  r = run(exec, [script, "orient", ".", "--bogus"]);
+  ok(r.code !== 0 && /Unknown option/.test(r.out), `unknown option → non-zero exit`);
 }
 
 console.log("ai-fication-kit smoke tests");
@@ -629,6 +814,47 @@ console.log("\n— drift stale (git) —");
     await fs.rm(grepo, { recursive: true, force: true });
   }
 }
+// ---------- indepth git history (git-gated; both installers) ----------
+// The main-fixture indepth run has a fake .git (config only, no repository), so
+// the whole git-history analyzer short-circuits there. This exercises it for real.
+console.log("\n— indepth git history —");
+{
+  const gitOk = run("git", ["--version"]).code === 0;
+  if (!gitOk) {
+    console.log("  — SKIPPED (no git on PATH)");
+  } else {
+    const hrepo = path.join(here, `tmp-indepth-git-${process.pid}`);
+    await fs.rm(hrepo, { recursive: true, force: true });
+    await fs.mkdir(hrepo, { recursive: true });
+    await fs.writeFile(path.join(hrepo, "app.ts"), "export const a = 1;\n");
+    const g = (...a) => run("git", ["-C", hrepo, ...a]);
+    g("init", "-q"); g("config", "user.email", "t@t.t"); g("config", "user.name", "t");
+    g("config", "commit.gpgsign", "false"); g("config", "tag.gpgsign", "false");
+    g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "init");
+    await fs.writeFile(path.join(hrepo, "app.ts"), "export const a = 2;\n");
+    g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "change");
+    g("tag", "-a", "v1.0.0", "-m", "first release");
+    const sha = run("git", ["-C", hrepo, "rev-parse", "HEAD"]).out.trim();
+    if (!/^[0-9a-f]{7,40}$/.test(sha)) {
+      console.log("  — SKIPPED (could not create a commit in this environment)");
+    } else {
+      const installers = [["node", process.execPath, path.join(kitRoot, "install.mjs")]];
+      for (const [ilabel, exec, script] of installers) {
+        const r = run(exec, [script, "indepth", hrepo]);
+        let gh = null;
+        try {
+          gh = JSON.parse(await fs.readFile(path.join(hrepo, "ai", "repo-indepth.json"), "utf8")).gitHistory;
+        } catch { /* missing output — caught by the assertion */ }
+        ok(r.code === 0 && gh && gh.commitCount === 2 && gh.contributorCount === 1 && gh.tagCount === 1,
+          `${ilabel}: indepth analyzes real git history ` +
+          `(commits ${gh?.commitCount}, contributors ${gh?.contributorCount}, tags ${gh?.tagCount})`);
+        await fs.rm(path.join(hrepo, "ai"), { recursive: true, force: true });
+      }
+    }
+    await fs.rm(hrepo, { recursive: true, force: true });
+  }
+}
+
 // ---------- unit tests: destinationFor ----------
 {
   console.log("\n— destinationFor unit tests —");
@@ -658,6 +884,61 @@ console.log("\n— drift stale (git) —");
     `root-level .tmpl strip`);
   ok(destinationFor("README.md") === "README.md",
     `plain file passthrough`);
+}
+
+// ---------- unit tests: classifyAction (the re-run three-way compare) ----------
+// The E2E suite cannot reach the "update" outcome — it needs a template that
+// changed BETWEEN kit versions (disk == recorded hash != fresh stamp), i.e. the
+// upgrade path — so the classification matrix is pinned down directly here.
+{
+  console.log("\n— classifyAction unit tests —");
+  const { classifyAction, VERIFIED_TAG } =
+    await import(pathToFileURL(path.join(kitRoot, "lib", "installer.mjs")).href);
+  const { sha256 } = await import(pathToFileURL(path.join(kitRoot, "lib", "util.mjs")).href);
+  const tmpl = "# doc\nrow one\n";
+  const newTmpl = "# doc\nrow one\nrow two (new in this kit version)\n";
+  const edited = "# doc\nrow one\nhuman note\n";
+  const audited = `# doc\nrow one ${VERIFIED_TAG} (01/07/2026)\n`;
+  const base = { newText: newTmpl, force: false, forceVerified: false };
+  ok(classifyAction({ ...base, diskText: null, recordedHash: undefined }) === "new",
+    `missing file → "new"`);
+  ok(classifyAction({ ...base, diskText: newTmpl, recordedHash: sha256(tmpl) }) === "up-to-date",
+    `disk equals the fresh template → "up-to-date"`);
+  ok(classifyAction({ ...base, diskText: tmpl, recordedHash: sha256(tmpl) }) === "update",
+    `kit-owned file + newer template → "update" (the upgrade path)`);
+  ok(classifyAction({ ...base, diskText: edited, recordedHash: sha256(tmpl) }) === "keep",
+    `edited file without --force → "keep"`);
+  ok(classifyAction({ ...base, diskText: edited, recordedHash: undefined }) === "keep",
+    `edited file under a pre-hash (old-format) manifest → "keep"`);
+  ok(classifyAction({ ...base, diskText: edited, recordedHash: sha256(tmpl), force: true }) === "overwrite",
+    `edited file with --force → "overwrite"`);
+  ok(classifyAction({ ...base, diskText: audited, recordedHash: sha256(tmpl), force: true }) === "locked",
+    `${VERIFIED_TAG} file stays "locked" even under --force (child-lock)`);
+  ok(classifyAction({ ...base, diskText: audited, recordedHash: sha256(tmpl),
+    force: true, forceVerified: true }) === "overwrite-verified",
+    `${VERIFIED_TAG} file with --force-verified → "overwrite-verified"`);
+  ok(classifyAction({ ...base, newText: audited, diskText: audited, recordedHash: undefined }) === "up-to-date",
+    `a template's own ${VERIFIED_TAG} prose does not trigger the lock when disk matches`);
+}
+
+// ---------- unit tests: detectBranch (intake wizard branch safety) ----------
+{
+  console.log("\n— detectBranch unit tests —");
+  const { detectBranch } = await import(pathToFileURL(path.join(kitRoot, "lib", "intake.mjs")).href);
+  const broot = path.join(here, `tmp-branch-${process.pid}`);
+  await fs.mkdir(path.join(broot, ".git"), { recursive: true });
+  await fs.writeFile(path.join(broot, ".git", "HEAD"), "ref: refs/heads/feature/x\n");
+  let b = await detectBranch(broot);
+  ok(b.versionControlled === true && b.name === "feature/x",
+    `normal checkout → branch name read from .git/HEAD`);
+  await fs.writeFile(path.join(broot, ".git", "HEAD"),
+    "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678\n");
+  b = await detectBranch(broot);
+  ok(b.versionControlled === true && b.name === "(detached HEAD)", `detached HEAD detected`);
+  await fs.rm(path.join(broot, ".git"), { recursive: true, force: true });
+  b = await detectBranch(broot);
+  ok(b.versionControlled === false && b.name === null, `no .git → not version controlled`);
+  await fs.rm(broot, { recursive: true, force: true });
 }
 
 console.log(`\n${checks - failures}/${checks} checks passed`);

@@ -4,8 +4,9 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-06-25 @ commit ba964e9 (drift baseline re-anchored 2026-07-02 to the
-> squash-merge commit on main — the per-row human audit dates below remain the authoritative signatures)
+> Last verified: 2026-06-25 @ commit 1fd11db (drift baseline re-anchored 2026-07-02: the
+> human-merged PRs #5–#7 changed `/`, `templates/`, and `docs/` after the previous baseline —
+> the per-row human audit dates below remain the authoritative signatures)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
@@ -27,7 +28,7 @@
 | `lib/` | Implementation modules (Node `.mjs`, stdlib only): stack detection, template stamping, claim verification, drift detection, maturity assessment, intake wizard, and indepth analysis | `lib/util.mjs` | ours | [inferred] |
 | `templates/` | The installable kit — copied/stamped into a target repo by the installer | `templates/README.md` | ours | [inferred] (files under it changed in the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
 | `templates/ai/` | Knowledge-layer templates (the `ai/` folder a target repo receives) | `templates/ai/INDEX.md.tmpl` | ours | [verified] (25/06/2026 20:52 CEST) |
-| `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [verified] (25/06/2026 20:52 CEST) |
+| `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [inferred] (files under it changed in the v0.2 Python removal; human-audited 25/06/2026 before that — re-audit) |
 | `templates/github/` | Stamped to `.github/`: CI checks for verify/drift, plus GitHub Copilot assets (`copilot-instructions.md`, `prompts/*.prompt.md`, `chatmodes/*.chatmode.md`) | `templates/github/workflows/ai-check.yml.tmpl` | ours | [inferred] |
 | `templates/agents/` | Google Antigravity assets stamped to `.agents/`: workflow equivalents of the Claude commands, and the add-feature skill (shared Agent Skills format) | `templates/agents/workflows/cold-start.md` | ours | [inferred] |
 | `test/` | Smoke tests and deep-test standards verification | `test/run-tests.mjs` · `test/run-deep-test.mjs` | ours | [inferred] |

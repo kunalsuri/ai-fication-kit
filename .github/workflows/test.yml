@@ -24,3 +24,19 @@ jobs:
         run: node --check install.mjs lib/drift.mjs lib/indepth.mjs lib/installer.mjs lib/intake.mjs lib/maturity.mjs lib/orient.mjs lib/util.mjs lib/verify.mjs test/run-tests.mjs
       - name: Run smoke tests
         run: node test/run-tests.mjs
+
+  # Coverage floor for the installer (c8/V8).
+  # Floors sit a few points under the measured numbers so environment noise
+  # doesn't flake the gate; raise them as coverage improves.
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Measure coverage and enforce the floor
+        run: >
+          npx --yes c8 --include "lib/**/*.mjs" --include install.mjs
+          --check-coverage --lines 83 --branches 73 --functions 90 --statements 83
+          --reporter=text node test/run-tests.mjs

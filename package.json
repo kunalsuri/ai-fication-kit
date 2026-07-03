@@ -22,7 +22,8 @@
     "setup": "node install.mjs install",
     "remove": "node install.mjs uninstall",
     "test": "node test/run-tests.mjs",
-    "deep-test": "node test/run-deep-test.mjs"
+    "deep-test": "node test/run-deep-test.mjs",
+    "coverage": "npx --yes c8 --include \"lib/**/*.mjs\" --include install.mjs --reporter=text node test/run-tests.mjs"
   },
   "repository": {
     "type": "git",
