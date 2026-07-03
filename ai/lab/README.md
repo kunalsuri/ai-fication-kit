@@ -10,6 +10,7 @@ Loaded when planning or reviewing, not on every agent session.
 | `decisions/` | Architecture Decision Records (ADRs) | Human |
 | `evaluations/` | Post-implementation retrospectives | Human |
 | `experiments/` | AI-agent approach trials: prompts, configs, outcomes | Human + AI |
+| `LESSONS_LEARNED.md` | Recurring design questions about the `ai/` layer, answered once | Human + AI |
 
 ## Lifecycle of a feature
 ```
