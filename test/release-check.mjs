@@ -145,13 +145,14 @@ if (changelog === null) {
 console.log("\n3. coverage report (informational — human judges)");
 {
   const git = (...args) => spawnSync("git", ["-C", root, ...args], { encoding: "utf8" });
-  const lastTag = git("describe", "--tags", "--abbrev=0").stdout.trim();
+  // stdout is null (not "") when git itself is missing — guard before trim.
+  const lastTag = (git("describe", "--tags", "--abbrev=0").stdout || "").trim();
   if (!lastTag) {
     note("skipped — no git history or no previous tag reachable from HEAD");
   } else if (!releaseSectionText) {
     note(`skipped — no changelog section to match against`);
   } else {
-    const files = git("diff", "--name-only", `${lastTag}..HEAD`).stdout
+    const files = (git("diff", "--name-only", `${lastTag}..HEAD`).stdout || "")
       .split("\n").map((f) => f.trim()).filter(Boolean);
     const areas = new Map();
     for (const f of files) {

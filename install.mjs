@@ -40,10 +40,13 @@
 //               kit at any repo of your own. Takes no target path argument.
 //
 // WHAT THIS DOES NOT DO (by design, so it cannot harm you):
-//   - It does NOT execute any code or open any network connection. (Two exceptions
-//     run LOCAL, READ-ONLY git: `drift --git` computes the stale set, and `indepth`
-//     reads commit/contributor history. Everything else is pure file inspection.)
-//   - It does NOT write anywhere outside the target folder you pass in.
+//   - It does NOT execute any code or open any network connection. (Three exceptions
+//     run LOCAL, READ-ONLY git: `drift --git` computes the stale set, `audit --git`
+//     shows the last commit per row, and `indepth` reads commit/contributor history.
+//     Everything else is pure file inspection.)
+//   - It does NOT write anywhere outside the target folder you pass in. (Two
+//     exceptions: `demo` creates its playground under os.tmpdir(), and
+//     `--github-summary` appends to the file CI names in $GITHUB_STEP_SUMMARY.)
 //   - It NEVER overwrites a file you have edited. Re-runs are incremental: new kit
 //     files are added, untouched kit files are refreshed (told apart by the content
 //     hashes recorded in ai/install-manifest.json), and anything you changed is kept.
@@ -281,7 +284,12 @@ if (command === "orient") {
   }
 } else if (command === "install") {
   const existingProfile = await readText(path.join(targetAbs, PROFILE_REL));
-  const profile = existingProfile ? JSON.parse(existingProfile) : await orient(targetAbs, flags);
+  let profile = null;
+  if (existingProfile) {
+    try { profile = JSON.parse(existingProfile); }
+    catch { /* corrupt profile on disk — fall through to a fresh orient */ }
+  }
+  if (!profile) profile = await orient(targetAbs, flags);
   await install(targetAbs, profile, flags);
 } else if (command === "shazam") {
   banner();
