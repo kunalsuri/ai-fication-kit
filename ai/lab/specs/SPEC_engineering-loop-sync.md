@@ -34,7 +34,11 @@ four without changing any CLI behavior.
 **Out (explicitly):** promoting `/implement-spec` into `templates/`
 (maintainer's product decision, deferred in W-004); a mechanical
 merged-commit-without-ledger-row detector (needs its own spec); renaming the
-historical evaluation file; registering the `deep-test` skill for Claude Code.
+historical evaluation file; registering the `deep-test` skill for Claude Code;
+the two pre-existing `npm run deep-test` failures — placeholder-check false
+positives on prose examples in `ai/guide/FEATURE_MAP.md` and
+`ai/lab/specs/SPEC_B5-progress-page.md` (checker fix = its own bugfix), and
+the `docs/` stale row that only a human `audit --git` re-audit may re-anchor.
 
 ## Touch list
 | Layer | Location | Change |
@@ -56,13 +60,15 @@ historical evaluation file; registering the `deep-test` skill for Claude Code.
    (except the documented `/implement-spec` mention, live lab README only).
 3. `ai/lab/WORKLOG.md` reflects all merged work through PR #28, and every
    backticked path in it resolves.
-4. `npm test`, `node install.mjs verify . --strict`, `drift --strict`, and
-   `npm run deep-test` all pass; no template placeholder leaks outside
-   `templates/`.
+4. `npm test`, `node install.mjs verify . --strict`, and `drift --strict`
+   (without `--git`) all pass; `npm run deep-test` reports no findings beyond
+   the two pre-existing failures named in the Out list; this change leaks no
+   new template placeholders outside `templates/`.
 
 ## Verification
 - Suites: `npm test` · `node install.mjs verify . --strict` ·
-  `node install.mjs drift . --strict` · `npm run deep-test`
+  `node install.mjs drift . --strict` · `npm run deep-test` (expectation per
+  acceptance criterion 4: no findings beyond the pre-existing two)
 - Sync check: `diff -r` between each template dir and its dogfood twin shows
   only the known, documented deltas (`implement-spec.md`, `deep-test`).
 - Stability check: every touched area is `ours` in `ai/guide/MODULE_MAP.md`;
