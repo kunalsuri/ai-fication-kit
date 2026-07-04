@@ -23,6 +23,7 @@ Stack: JavaScript/TypeScript.
    it to `[verified]`. Never flip that tag yourself.
 8. **No Phantom Bugs & Configuration Churn.** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, `package.json`, or `ai/guide/` documents) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs.
 9. **Verify claims.** Before declaring a task finished, run `node install.mjs verify . --strict` (or equivalent test runner validation script) to ensure no file paths in the knowledge documents are broken.
+10. **Record work.** Every unit of work ends with an appended row in `ai/lab/WORKLOG.md` linking its spec, review, and commits — even work done outside the command workflows.
 
 ## Knowledge map
 **Navigation (fast path):** `ai/guide/MODULE_MAP.md` (where code lives),

@@ -36,17 +36,24 @@ timeline that makes the episodes findable and citable (`W-<n>`).
 
 ## The engineering loop — every unit of work (feature or bug) `[inferred]`
 ```
-1. Plan      →  specs/SPEC_<name>.md            (feature — copy SPEC_TEMPLATE.md)
+1. Spec      →  specs/SPEC_<name>.md            (feature — copy SPEC_TEMPLATE.md)
                 specs/BUGFIX_<name>.md          (bug — copy BUGFIX_TEMPLATE.md)
 2. Decide    →  decisions/ADR_<n>-<title>.md    (any non-obvious design choice)
 3. Implement →  /add-feature or /fix-bug — the agent reads the spec
+                (/implement-spec drives a pre-authored spec through steps 3–6)
 4. Review    →  reviews/REVIEW_<id>.md via /review-change (fresh context,
                 never the implementing session)
-5. Evaluate  →  evaluations/EVAL_<name>.md      (after the work ships)
+5. Evaluate  →  evaluations/EVAL_<name>.md      (human, after the work ships —
+                copy EVALUATION_TEMPLATE.md)
 6. Record    →  WORKLOG.md row linking spec ↔ review ↔ eval ↔ commits
-7. Learn     →  experiments/EXP_<n>-<desc>.md   (if the AI approach was novel or failed)
-8. Archive   →  mark spec implemented; entry lands in ai/analysis/FEATURE_CATALOG.md
+7. Learn     →  experiments/EXP_<n>-<desc>.md   (optional — if the AI approach
+                was novel or failed)
+8. Archive   →  (optional) mark spec implemented; entry lands in
+                ai/analysis/FEATURE_CATALOG.md
 ```
-No code before step 1, no merge before step 4, no closed row before step 6.
+Steps 1–6 are the canonical loop — Spec → Decide → Implement → Review →
+Evaluate → Record, as defined in `docs/METHODOLOGY.md` §7; steps 7–8 are
+optional follow-ups. No code before step 1, no merge before step 4, no closed
+row before step 6.
 `verify` checks every backticked path in WORKLOG.md, so the ledger cannot
 silently rot.

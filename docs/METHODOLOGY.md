@@ -145,7 +145,7 @@ in `ai/lab/`:
 |:---|:---|:---|:---|
 | **Spec** | specification-driven | `ai/lab/specs/SPEC_*.md` or `BUGFIX_*.md` | no code before the human OKs the spec; for bugs, no fix before a *failing* regression test reproduces the defect |
 | **Decide** | decision records | `ai/lab/decisions/ADR_*.md` | non-obvious choices are written down, not implied by the diff |
-| **Implement** | surgical diffs | the change itself (`/add-feature`, `/fix-bug`) | Stability gates apply; `frozen`/`?` requires recorded human approval |
+| **Implement** | surgical diffs | the change itself (`/add-feature`, `/fix-bug`; `/implement-spec` when the spec was authored and hardened separately — see [IMPLEMENT-SPEC.md](IMPLEMENT-SPEC.md)) | Stability gates apply; `frozen`/`?` requires recorded human approval |
 | **Review** | review-driven | `ai/lab/reviews/REVIEW_*.md` (`/review-change`) | fresh context — never the implementing session; blockers send the work back |
 | **Evaluate** | evaluation-driven | `ai/lab/evaluations/EVAL_*.md` | what the agent did well/poorly, audit cost, what to change next time |
 | **Record** | memory | one row in `ai/lab/WORKLOG.md` | the row links spec ↔ review ↔ eval ↔ commits; `verify` checks its paths |

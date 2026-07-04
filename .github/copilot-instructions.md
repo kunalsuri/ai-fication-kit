@@ -8,7 +8,9 @@ then `ai/guide/MODULE_MAP.md` to find code by area before opening files.
 Hard rules from `AGENTS.md` apply to every request in this workspace: respect
 `ai/guide/MODULE_MAP.md` Stability (`frozen`/`?` = do not edit), keep diffs
 surgical, match license headers, and never flip an `[inferred]` tag in `ai/` to
-`[verified]` yourself — that is a human signature.
+`[verified]` yourself — that is a human signature. Every unit of work ends with a
+row appended to `ai/lab/WORKLOG.md`, even work done outside the prompt files
+below.
 
 ## Slash commands available in Copilot Chat
 

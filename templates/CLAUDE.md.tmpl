@@ -21,6 +21,7 @@ Stack: {{LANGUAGES}}.
   Never flip that tag yourself.
 - **No Phantom Bugs & Configuration Churn:** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, `package.json`, or anything in `ai/guide/`) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs.
 - **Verify claims:** Before declaring a task finished, run `node install.mjs verify . --strict` (or your repo's verify script) to ensure no file paths in the knowledge documents are broken.
+- **Record work:** Every unit of work (feature, bugfix, refactor, process change) ends with a row appended to `ai/lab/WORKLOG.md` — even work done outside the slash commands.
 
 ## Where to look — read on demand, do NOT pre-load
 - Role → path manifest:   ai/INDEX.md

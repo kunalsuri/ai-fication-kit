@@ -17,6 +17,8 @@ If `ai/lab/specs/SPEC_<name>.md` doesn't exist, draft it from SPEC_TEMPLATE.md
 - `ai/guide/MODULE_MAP.md` → which modules; note Stability of every target.
 - `ai/analysis/FEATURE_CATALOG.md` → the "where new code lives" decision tree and
   the 3-file rule for related features.
+- `ai/lab/WORKLOG.md` → recent history: was this area just changed? is the
+  behavior deliberate?
 - Delegate broad reading to `repo-explorer`.
 
 ## 3. Gate
