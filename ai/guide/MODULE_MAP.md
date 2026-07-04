@@ -4,11 +4,7 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-07-03 @ commit 4bbf46c (drift baseline re-anchored 2026-07-03: the
-> adversarial-audit fix commits c8a0fd7 and 4bbf46c (PR #22 review fix, AUD-R2-28)
-> touched `/`, `lib/`, `templates/github/`, `test/`, and `docs/` after the previous
-> e28482e baseline — this re-anchor accompanies that PR for human review at merge time;
-> the per-row human audit dates below remain the authoritative signatures)
+> Last verified: 2026-07-04 @ commit 2b5d0b6 (drift baseline re-anchored 2026-07-04: the audit-R3 fix commits 206e24e and 2b5d0b6 — spec `ai/lab/specs/BUGFIX_audit-R3-fixes.md`, review `ai/lab/reviews/REVIEW_W-002.md`, verdict approve — touched `/`, `lib/`, `templates/`, `test/`, and `.github/` after the previous 4bbf46c baseline; this re-anchor accompanies that PR for human review at merge time, and the per-row human audit dates below remain the authoritative signatures. Future audits can move this anchor via `audit --git`, which now offers the update after the human confirms — AUD-R2-11.)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
