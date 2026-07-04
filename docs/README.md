@@ -27,6 +27,7 @@ Everything about *using* the kit and *understanding* the method lives here.
 - [AUDIT-GUIDE.md](AUDIT-GUIDE.md) — deciding Stability, the evidence bar for `[verified]`, worked rows, common mistakes.
 - [MULTI-TOOL-SETUP.md](MULTI-TOOL-SETUP.md) — running the workflow in Claude Code, GitHub Copilot, Google Antigravity, Cursor, or Codex.
 - [FAQ.md](FAQ.md) — troubleshooting: misdetection, monorepos, re-runs and upgrades, the `[verified]` child-lock, wizard questions.
+- [IMPLEMENT-SPEC.md](IMPLEMENT-SPEC.md) — the `/implement-spec` command: spec-faithful implementation with a lighter model, inside the engineering loop.
 
 **Look up (reference):**
 - [CLI-REFERENCE.md](CLI-REFERENCE.md) — all 8 commands, all flags, what each writes, exit codes.

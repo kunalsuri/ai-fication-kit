@@ -280,6 +280,24 @@ Every command ships in four native formats — Claude Code slash command (`.clau
 | `/verify-ai-readiness`             | Holistic assessment of the knowledge layer on a 5-level maturity scale; flags agent-blocking gaps.             |
 | `/perform-feature-add-simulation`  | Dry-run the add-feature workflow for a proposed feature — friction report and readiness score, no code written. |
 
+### The Engineering Loop & `/implement-spec`
+
+Once the map is trusted, every unit of work runs the closed **engineering
+loop** — *Spec → Decide → Implement → Review → Evaluate → Record* — leaving one
+`ai/lab/WORKLOG.md` row per change, with its artifact links mechanically
+checked by `verify` (see [docs/METHODOLOGY.md §7](docs/METHODOLOGY.md#7-the-engineering-loop--the-steady-state-after-the-map-is-trusted)).
+
+The `/implement-spec <spec-path>` command (currently kit-repo dogfood in
+`.claude/commands/` + `.agents/workflows/`) is the loop's implementation
+engine: it takes a finished, human-audited spec from `ai/lab/specs/` and drives
+an agent — typically a lighter, cheaper model — through faithful
+implementation: bounded context, a hard **stop-and-report** rule for any
+spec-vs-reality conflict (no silent improvisation), the spec's full test plan
+as the definition of done, a fresh-context `/review-change` gate, and the
+`[inferred]`-tagged knowledge updates. Plan with a heavy model, implement with
+a light one — the spec is the checkpoint between the two. Full guide:
+[docs/IMPLEMENT-SPEC.md](docs/IMPLEMENT-SPEC.md).
+
 <br>
 
 ## Detailed Overview of the Methodology
