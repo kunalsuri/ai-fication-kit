@@ -1979,6 +1979,28 @@ console.log("\n— audit R3 regressions —");
     ok(classifyAction({ diskText: humanAudited, recordedHash: sha256(tmpl),
       newText: tmpl, force: true, forceVerified: false }) === "locked",
       `a human-ADDED ${VERIFIED_TAG} line still locks under --force (child-lock kept)`);
+    // Copilot PR #26 review: a CRLF disk file (Windows / editor conversion)
+    // whose only [verified] lines are the template's own prose must NOT
+    // false-lock — the comparison strips trailing \r on both sides.
+    const crlfEditedProse = editedProseOnly.replace(/\n/g, "\r\n");
+    ok(classifyAction({ diskText: crlfEditedProse, recordedHash: sha256(tmpl),
+      newText: tmpl, force: true, forceVerified: false }) === "overwrite",
+      `CRLF disk file with only template ${VERIFIED_TAG} prose → "overwrite", not false-locked`);
+  }
+
+  // Copilot PR #26 review: the Process-2 backup notice must say "Would back up"
+  // under --dry-run (nothing is written), not "Will back up".
+  {
+    const d = await makeBareFixture("r3-drybackup", {
+      "package.json": "{}\n",
+      "CLAUDE.md": "# my own hand-written rules\n",
+    });
+    const r = run(process.execPath, [script, "install", d, "--dry-run", "--yes"]);
+    ok(r.code === 0 && /Would back up CLAUDE\.md/.test(r.out) && !/Will back up/.test(r.out),
+      `--dry-run says "Would back up", never "Will back up": ${(r.out.match(/(Would|Will) back up[^\n]*/) || ["<none>"])[0]}`);
+    ok(!(await fs.readdir(d)).some(n => /_bkp_/.test(n)),
+      `--dry-run backup notice writes no actual backup file`);
+    await fs.rm(d, { recursive: true, force: true });
   }
 
   // AUD-R3-02 (E2E): --force must be able to refresh an edited stamped
