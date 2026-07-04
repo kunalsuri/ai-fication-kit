@@ -28,7 +28,8 @@
 //               in-process (structural only, never git), counts MODULE_MAP
 //               [verified]/[inferred] rows, and prints a single verdict (TRUSTED /
 //               NEEDS AUDIT / DRIFTING). Writes ai/analysis/audit-reports/STATUS.json
-//               only with --json.
+//               only with --json; like install/verify/drift/audit it also refreshes
+//               the ai/START-HERE.html progress page when that page exists.
 //   audit     — interactive-only guided human audit of MODULE_MAP.md: gathers
 //               deterministic evidence per row (fs stat; --git adds the last commit
 //               touching that area) and only writes a [verified] tag after an
@@ -50,6 +51,10 @@
 //   - It NEVER overwrites a file you have edited. Re-runs are incremental: new kit
 //     files are added, untouched kit files are refreshed (told apart by the content
 //     hashes recorded in ai/install-manifest.json), and anything you changed is kept.
+//     (One exception, by design: on first contact with a repo that has a
+//     user-authored CLAUDE.md/AGENTS.md — no kit footer — Process 2 backs each up
+//     with a timestamped copy, after you confirm, and then replaces it; /cold-start
+//     reuses the backup as seed knowledge.)
 //     --force overwrites edited files only after a timestamped backup — and files
 //     carrying a human [verified] tag are never overwritten, even with --force.
 //     Only the dedicated --force-verified flag can unlock those, and it first shows
@@ -226,6 +231,15 @@ if (command === "orient") {
   const profile = await orient(targetAbs, flags);
   printProfile(profile);
   if (!flags.dryRun) {
+    // A re-run must never erase the intake wizard's answers — same carry-forward
+    // the installer does (lib/installer.mjs): fresh orient output has no
+    // humanContext, but the profile on disk may.
+    try {
+      const prevProfile = JSON.parse(await readText(path.join(targetAbs, PROFILE_REL)) ?? "null");
+      if (prevProfile?.humanContext && !profile.humanContext) {
+        profile.humanContext = prevProfile.humanContext;
+      }
+    } catch { /* no usable prior profile */ }
     await fs.mkdir(path.join(targetAbs, "ai"), { recursive: true });
     await fs.writeFile(path.join(targetAbs, PROFILE_REL),
       JSON.stringify(profile, null, 2) + "\n", "utf8");

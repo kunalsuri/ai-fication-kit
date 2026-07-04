@@ -27,10 +27,12 @@ this ledger says *what was done to it, when, and under which contract*.
 ## Ledger
 
 <!-- Example row (copy, replace the angle-bracket fields, backtick real paths
-     written from the repo root):
-| W-001 | 2026-01-15 | feature | Short title | ai/lab/specs/SPEC_<name>.md | ai/lab/decisions/ADR_<n>-<t>.md | ai/lab/reviews/REVIEW_W-001.md | ai/lab/evaluations/EVAL_<name>.md | <commit/PR> | FEATURE_MAP row | shipped | [inferred] |
+     written from the repo root). The example ID W-000 is reserved for this
+     comment — real rows start at W-001:
+| W-000 | 2026-01-15 | feature | Short title | ai/lab/specs/SPEC_<name>.md | ai/lab/decisions/ADR_<n>-<t>.md | ai/lab/reviews/REVIEW_W-000.md | ai/lab/evaluations/EVAL_<name>.md | <commit/PR> | FEATURE_MAP row | shipped | [inferred] |
 -->
 
 | ID | Date | Type | Title | Spec | ADRs | Review | Eval | Commits / PR | Knowledge updated | Status | Provenance |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| W-001 | 2026-07-03 | process | Engineering loop: fix-bug + review-change workflows, work ledger, verify coverage | `ai/lab/specs/SPEC_engineering-loop.md` | — | — | — | (this branch) | `ai/lab/README.md`, `ai/INDEX.md` | in-review | [inferred] |
+| W-001 | 2026-07-03 | process | Engineering loop: fix-bug + review-change workflows, work ledger, verify coverage | `ai/lab/specs/SPEC_engineering-loop.md` | — | — (waived: this work shipped the review process itself, so no fresh-context review existed to run — recorded per AUD-R3-08) | — | PR #23, merge bafa3d0 | `ai/lab/README.md`, `ai/INDEX.md` | shipped | [inferred] |
+| W-002 | 2026-07-04 | bugfix | Fix audit R3 defects AUD-R3-01..11 + AUD-R2-11 (fail-first regression tests, 365/365) | `ai/lab/specs/BUGFIX_audit-R3-fixes.md` | — | `ai/lab/reviews/REVIEW_W-002.md` (approve) + Copilot PR #26 review (2 comments, addressed in 825b00f) | — | 206e24e, 2b5d0b6, 825b00f (branch claude/deep-codebase-audit-zmd328, PR #26) | `ai/analysis/audit-reports/DEFECT_TRACEABILITY.md` rows flipped; `ai/guide/MODULE_MAP.md` baseline re-anchored to 825b00f; `ai/guide/FEATURE_MAP.md` gotchas added for orient/indepth/install/audit + stale ci-checks fix (8ca033a, review addendum approve) | in-review | [inferred] |

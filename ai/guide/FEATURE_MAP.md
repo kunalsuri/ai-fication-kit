@@ -20,14 +20,14 @@
 - **Business goal:** Perform deterministic, fast stack detection from target repository marker files.
 - **Touches:** `install.mjs`, `lib/orient.mjs`, `lib/util.mjs`
 - **Verify with:** `node install.mjs orient . --dry-run`
-- **Gotchas:** Runs in ~200ms by strictly performing file-existence checks (no network, zero execution, no LLM).
+- **Gotchas:** Runs in ~200ms by strictly performing file-existence checks (no network, zero execution, no LLM). Re-runs carry `humanContext` forward: the `orient` branch in `install.mjs` reads the profile already on disk and copies its `humanContext` (the first-run wizard's answers) onto the fresh profile before writing, so re-running `orient` never wipes the wizard answers `/cold-start` depends on (AUD-R3-04).
 - **Related:** `shazam`, `indepth`
 
 ### indepth  `[inferred]`
 - **Business goal:** Perform extensive local analysis of dependencies, code metrics, git history, configuration, and architecture heuristics.
 - **Touches:** `install.mjs`, `lib/indepth.mjs`, `lib/util.mjs`
 - **Verify with:** `node install.mjs indepth . --dry-run`
-- **Gotchas:** Requires local git CLI binary for history features (falls back gracefully if missing). Strictly offline and zero-network.
+- **Gotchas:** Requires local git CLI binary for history features (falls back gracefully if missing). Strictly offline and zero-network. Three traps closed in R3: (1) a `.gitignore` **directory** rule (e.g. build/) requires the slash before descendants, so it no longer over-matches a prefix sibling like builder/ and silently drop it from LOC/module/architecture stats (AUD-R3-06); (2) dependency category counts track the current section — Cargo `[dev-dependencies]` and Ruby `Gemfile` `group :development`/`:test` entries are booked as development, not production (AUD-R3-09); (3) `runCmd` takes an **argv array**, not a space-split string — so git `--format` strings pass through verbatim with no shell, no word-splitting, and no quote-stripping (AUD-R3-11). `topContributors[].email` still actually holds contributor *names* (`git shortlog -sn` output) — open item AUD-R2-27.
 - **Related:** `orient`, `shazam`
 
 ### intake  `[inferred]`
@@ -41,7 +41,7 @@
 - **Business goal:** Copy and stamp `templates/` into the target repo using detected profile facts.
 - **Touches:** `install.mjs`, `lib/installer.mjs`, `templates/`
 - **Verify with:** `node install.mjs install . --dry-run`
-- **Gotchas:** Records every written path in `ai/install-manifest.json` for deterministic cleanup. Never overwrites files without `--force` — except files it just backed up in the Process-2 flow (see `shazam`), which are intentionally replaced. Re-installs merge into the existing manifest so no written path is ever forgotten. Calls `refreshProgressPage` (see `progress-page`) at the end of every real (non-dry-run) run; `ai/START-HERE.html`'s destination path is exempt from the usual edited-file/child-lock detection since its content is expected to change on every run.
+- **Gotchas:** Records every written path in `ai/install-manifest.json` for deterministic cleanup. Never overwrites files without `--force` — except files it just backed up in the Process-2 flow (see `shazam`), which are intentionally replaced. Re-installs merge into the existing manifest so no written path is ever forgotten. Calls `refreshProgressPage` (see `progress-page`) at the end of every real (non-dry-run) run; `ai/START-HERE.html`'s destination path is exempt from the usual edited-file/child-lock detection since its content is expected to change on every run. The child-lock (`classifyAction`) keys on `[verified]` lines a human **added** — lines absent from the freshly stamped template, compared with trailing carriage returns stripped so CRLF files aren't false-locked (AUD-R3-02, Copilot PR #26). The templates' own `[verified]` provenance prose therefore never locks a file, so `--force` can still refresh an edited `CLAUDE.md`/`AGENTS.md`/`ai/guide/MODULE_MAP.md`/`ai/lab/WORKLOG.md`. Process-2 backups are decided up front but copied only in the write phase, **after** the confirmation prompt — so an aborted `install` leaves the repo byte-identical and "nothing written" is literally true (AUD-R3-03); under `--dry-run` the notice reads "Would back up".
 - **Related:** `uninstall`, `shazam`
 
 ### progress-page  `[inferred]`
@@ -105,7 +105,7 @@
 - **Business goal:** Do the drudgery of the human audit (walking rows, gathering evidence) while keeping the `[inferred]` → `[verified]` flip a genuine, per-row human signature.
 - **Touches:** `install.mjs`, `lib/audit.mjs`, `lib/drift.mjs` (`DRIFT_IGNORED_DIRS`, `parseModuleMap`), `lib/installer.mjs` (`VERIFIED_TAG`)
 - **Verify with:** `node install.mjs audit .` from a real interactive terminal
-- **Gotchas:** Unlike every other command, `--yes` does **not** unlock this one — it refuses with a friendly message alongside the non-TTY case, by design (automation must never manufacture a human signature). Only rewrites rows that already have a 5-column Status cell; 4-column scaffolded rows (pre-`/cold-start`) are left alone. Row rewrites never insert/delete lines, so line numbers stay valid across the whole run. Takes exactly one timestamped `MODULE_MAP_bkp_*.md` backup, before the first write.
+- **Gotchas:** Unlike every other command, `--yes` does **not** unlock this one — it refuses with a friendly message alongside the non-TTY case, by design (automation must never manufacture a human signature). Only rewrites rows that already have a 5-column Status cell; 4-column scaffolded rows (pre-`/cold-start`) are left alone. Row rewrites never insert/delete lines, so line numbers stay valid across the whole run. Takes exactly one timestamped `MODULE_MAP_bkp_*.md` backup, before the first write. After a `--git` run, once the confirmed rows are written, it offers to move the "Last verified … @ commit &lt;sha&gt;" anchor to HEAD — applied only on an explicit human confirmation (via the exported `updateAnchorLine`; automation still cannot move it), so freshly audited rows aren't immediately flagged stale by `drift --git`; without `--git` it prints a reminder instead (AUD-R2-11). `updateAnchorLine` consumes a multi-line parenthetical anchor note whole, never orphaning half a sentence (REVIEW_W-002 finding 1).
 - **Related:** `verify`, `drift`, `status`
 
 ### demo  `[inferred]`
@@ -133,7 +133,7 @@
 - **Business goal:** Provide a GitHub Actions workflow template that runs `verify --strict` and `drift --git --strict` automatically on push/PR for target repos.
 - **Touches:** `templates/github/workflows/ai-check.yml.tmpl`, `.github/workflows/ai-check.yml`, `lib/installer.mjs`
 - **Verify with:** `npm test` (integration test checks `.github/workflows/ai-check.yml` is installed)
-- **Gotchas:** The template uses `npm install -g ai-fication-kit` to fetch the kit in CI; requires the package to be published to npm. The kit's own self-hosted workflow uses `node install.mjs` directly.
+- **Gotchas:** The template fetches the kit with `npm install -g github:kunalsuri/ai-fication-kit` — installed straight from GitHub because the package is **not** on the npm registry (pin a `#vX.Y.Z` tag once releases are tagged). This corrected an earlier stale `npm install -g ai-fication-kit` line that assumed an npm publish which never happened (AUD-R2-06). The kit's own self-hosted workflow uses `node install.mjs` directly.
 - **Related:** `verify`, `drift`, `install`
 
 ### cursor-rules  `[inferred]`
