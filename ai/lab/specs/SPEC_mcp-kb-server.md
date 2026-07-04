@@ -29,7 +29,7 @@ cache, or index, and reads files from disk on every request.
 | # | Constraint |
 |---|---|
 | C1 | **Zero runtime dependencies.** Node stdlib only (`node:fs`, `node:path`, `node:readline`, `node:process`). Do NOT add `@modelcontextprotocol/sdk` or anything else to `package.json` dependencies. |
-| C2 | **No changes to existing `lib/*.mjs` logic.** The server imports the already-exported functions listed in §5.2. If something seems missing, implement it locally in `lib/mcp.mjs` — do not edit other modules (exception: the two surgical touches in §10). |
+| C2 | **No changes to existing `lib/*.mjs` logic.** The server imports the already-exported functions listed in §5.2. If something seems missing, implement it locally in `lib/mcp.mjs` — do not edit other modules (exception: the surgical modifications listed in §10). |
 | C3 | **stdout is the protocol channel.** After the server starts, NOTHING is written to stdout except newline-delimited JSON-RPC messages. All diagnostics go to `process.stderr`. Never call `banner()`, `info()`, or `console.log` inside the server. |
 | C4 | **No caching.** Every tool call / resource read re-reads the relevant files from disk. Do not memoize, do not read at startup, do not hold parsed tables in module state. |
 | C5 | **Read-only.** Phase 1 tools never write to the target repo (exception: none — even the derived-staleness check in §7.2 only *reports*; it does not regenerate in phase 1). |
@@ -42,8 +42,12 @@ cache, or index, and reads files from disk on every request.
 - **Target repo** — the repository the server serves; the `<path>` argument. May be
   the kit repo itself (dogfooding) or any repo where the kit was installed.
 - **KB** — the `ai/` folder of the target repo.
-- **MODULE_MAP** — `ai/guide/MODULE_MAP.md` in the target repo. Table columns:
-  `| Directory | Responsibility | Entry point | Stability | Status |`.
+- **MODULE_MAP** — `ai/guide/MODULE_MAP.md` in the target repo. Table columns,
+  by **position**: 1 Directory, 2 Responsibility, 3 Entry point, 4 Stability,
+  5 Status. Never match header text literally — real headers carry suffixes
+  (e.g. `Responsibility (one line)`, `Stability (guess)`), and freshly
+  scaffolded repos (the shazam fixture in tests) have a **4-column** map with
+  no Status column at all.
 - **Provenance** — `[verified]` or `[inferred]` tag in a row's Status column.
 - **Stability** — `frozen | stable | ours | ?` per the MODULE_MAP legend. `?` and
   anything unrecognized are treated as `frozen` ("treat as frozen until a human decides").
@@ -124,12 +128,15 @@ import { parseModuleMap, MODULE_MAP_REL, computeDrift } from "./drift.mjs";
 import { computeVerification } from "./verify.mjs";
 import { computeStatus } from "./status.mjs";
 ```
-**Known pitfall (do not skip):** `parseModuleMap` returns per-row
-`{ dirClaims, entryClaims, status, line, label }` — it does **NOT** return the
-Stability column. `lib/mcp.mjs` must implement its own `parseStabilityRows(text)`
-for `kb_check_stability` (§6.3), using the same cell-splitting rules as
-`parseModuleMap` (split on `|`, trim, drop empty lead/tail cells, skip separator
-and header rows) and reading the **4th data column** as stability.
+**Known pitfall (do not skip):** `parseModuleMap` returns
+`{ rows, verifiedSha }`; each element of `rows` is
+`{ dirClaims, entryClaims, status, line, label }` — iterate `.rows`, not the
+return value itself. It does **NOT** return the Stability column. `lib/mcp.mjs`
+must implement its own `parseStabilityRows(text)` for `kb_check_stability`
+(§6.3), using the same cell-splitting rules as `parseModuleMap` (split on `|`,
+trim, drop empty lead/tail cells, skip separator and header rows) and reading
+the **4th data column** as stability. In 4-column maps (§3) the Status column
+is absent: stability is still column 4; provenance is then `"unknown"`.
 
 ### 5.3 Resource catalog (`resources/list`)
 Return `{ "resources": [...] }` with one entry per file below **that exists on
@@ -206,7 +213,7 @@ never break the tool.
 ```json
 {
   "query":"...",
-  "module_map_hits":[{"line":27,"cells":["`lib/`","Implementation modules …","`lib/util.mjs`","ours","[verified] (03/07/2026 17:35 CEST)"],"stability":"ours","provenance":"verified"}],
+  "module_map_hits":[{"line":26,"cells":["`lib/`","Implementation modules …","`lib/util.mjs`","ours","[verified] (03/07/2026 17:35 CEST)"],"stability":"ours","provenance":"verified"}],
   "feature_map_hits":[{"line":12,"cells":[...]}],
   "hint":"Call kb_check_stability(<path>) before editing anything listed here.",
   "_kb":{...}
@@ -241,8 +248,11 @@ never break the tool.
      only root-level files).
   3. Matching: a row matches if any claim equals the query path, OR the query
      path starts with `<claim>/`, OR (for entry-point file claims) the claim
-     equals the query. Pick the row with the **longest matching claim**
-     (most-specific wins; e.g. `templates/ai/` beats `templates/`).
+     equals the query. Special case: the **empty (root) claim matches any query
+     containing no `/`** (root-level files like `AGENTS.md`) — without this
+     rule the root row can never match anything. Pick the row with the
+     **longest matching claim** (most-specific wins; e.g. `templates/ai/`
+     beats `templates/`; any named claim beats the empty root claim).
   4. Result mapping: matched row → its stability, lowercased; values outside
      `frozen|stable|ours` (including `?`) → report the raw value but set
      `effective: "frozen"`. No row matched → `stability: "unknown"`,
@@ -254,7 +264,7 @@ never break the tool.
   "stability":"ours",
   "effective":"ours",
   "provenance":"verified",
-  "matched_row":{"line":28,"claim":"lib/"},
+  "matched_row":{"line":26,"claim":"lib/"},
   "rule":"frozen = do not edit; ? and unknown are treated as frozen until a human audits",
   "_kb":{...}
 }
@@ -274,8 +284,11 @@ never break the tool.
 - **description:** `Report where the code has drifted from the module map: unmapped top-level areas, vanished paths, and (never git-based here) structural staleness.`
 - **inputSchema:** `{"type":"object","properties":{}}`
 - **Behaviour:** call `computeDrift(targetAbs, { git: false })` — **always**
-  `git:false`; the server must not shell out to git. Payload: the returned
-  object + `_kb`.
+  `git:false`; the server must not shell out to git. `computeDrift` returns
+  `null` when `ai/guide/MODULE_MAP.md` is missing (reachable — §5.1 only checks
+  `ai/INDEX.md`): in that case return `isError:true` with
+  `error: "No MODULE_MAP.md — run /cold-start first."` (same pattern as §6.4).
+  Otherwise payload: the returned object + `_kb`.
 
 ### 6.6 `kb_feature`
 - **description:** `Feature-to-files lookup: search FEATURE_MAP.md (and FEATURE_CATALOG.md if present) for a named feature; returns its rows so an agent knows which files implement it and the gotchas.`
@@ -293,8 +306,10 @@ never break the tool.
 - **inputSchema:** `{"type":"object","properties":{}}`
 - **Behaviour:** run `parseModuleMap` on a fresh read; payload:
 ```json
-{"verified":[{"line":27,"label":"`/` (root)"}],"inferred":[],"unknown":[],"counts":{"verified":10,"inferred":0,"unknown":0},"rule":"[inferred] is unaudited AI output; only a human may flip it to [verified]","_kb":{...}}
+{"verified":[{"line":25,"label":"`/` (root)"}],"inferred":[],"unknown":[],"counts":{"verified":10,"inferred":0,"unknown":0},"rule":"[inferred] is unaudited AI output; only a human may flip it to [verified]","_kb":{...}}
 ```
+(Line numbers in all §6 examples are illustrative snapshots of the current kit
+map — always return the real parsed line numbers, never hard-code these.)
 
 ## 7. Freshness model (contract, with acceptance tests in §11)
 
@@ -346,7 +361,7 @@ Success:
 
 ## 9. CLI wiring and installer integration
 
-### 9.1 `install.mjs` (two surgical edits)
+### 9.1 `install.mjs` (three surgical edits)
 1. Line ~136: add `"mcp"` to the `COMMANDS` set.
 2. In the dispatch chain (after the `status` branch), add:
 ```js
@@ -355,10 +370,14 @@ Success:
   await serveMcp(targetAbs);
 }
 ```
+3. Add one line to the usage text (`node install.mjs mcp <path-to-your-repo>` —
+serve the ai/ knowledge-base over MCP stdio) and to the header comment block
+listing commands.
+
 Note: the generic pre-dispatch code already resolves/validates `targetAbs` and
-prints nothing to stdout for valid invocations, so C3 holds. Also add one line to
-the usage text (`node install.mjs mcp <path-to-your-repo>` — serve the ai/
-knowledge-base over MCP stdio) and to the header comment block listing commands.
+prints nothing to stdout for valid invocations (verified: `banner()` runs only
+for `demo`, the no-command usage path, and inside the `shazam` branch; argument
+errors use `die()` → stderr), so C3 holds.
 
 ### 9.2 Installer stamps `.mcp.json` into target repos
 - New template `templates/mcp.json.tmpl` (exact content):
@@ -372,14 +391,35 @@ knowledge-base over MCP stdio) and to the header comment block listing commands.
   }
 }
 ```
-- `lib/installer.mjs`: stamp it to `<target>/.mcp.json` following the existing
-  pattern for root-level stamped files, with one merge rule: if `.mcp.json`
-  already exists and parses as JSON, **merge** — set
-  `existing.mcpServers["repo-kb"]` to the object above and rewrite, preserving
-  every other key; if it exists but does not parse, leave it untouched and warn
-  on stderr. Record `.mcp.json` in the manifest `files` array (forward slashes)
-  exactly like other stamped files so `uninstall` removes it. Honour `--dry-run`
-  like every other write.
+- `lib/installer.mjs` — **`.mcp.json` is a dedicated special case, NOT routed
+  through the normal template loop.** Two facts about the existing code force
+  this (do not "follow the existing pattern" here; it cannot express what we
+  need):
+  1. `destinationFor()` only remaps the `claude/`, `github/`, `agents/`,
+     `cursor/` prefixes and strips `.tmpl` — a root-level `mcp.json.tmpl` would
+     land at `<target>/mcp.json` (no dot). Add an explicit mapping:
+     `mcp.json.tmpl` → `.mcp.json`.
+  2. `classifyAction()`'s provenance logic fights merging: a pre-existing user
+     `.mcp.json` has unknown provenance → `"keep"` (merge never happens), and
+     recording the merged file's hash would make the next re-install classify it
+     `"update"` and overwrite the merge with the pure template, destroying the
+     user's other servers.
+  Therefore implement `mergeMcpJson(targetAbs, flags)` as its own step, bypassing
+  `classifyAction` entirely (precedent: the progress-page special case in the
+  same file). Behaviour, **idempotent** so re-installs are safe:
+  - No `.mcp.json` on disk → write the template content.
+  - Exists and parses as JSON → set `existing.mcpServers["repo-kb"]` to the
+    template's server object, preserve every other key and server, rewrite.
+  - Exists but does not parse → leave untouched, warn on stderr, skip.
+  - Record `.mcp.json` in the manifest `files` array (forward slashes). Do
+    **NOT** record it in `fileHashes` — it is merge-managed, not
+    provenance-managed. Honour `--dry-run` like every other write.
+- **Uninstall un-merges (never wholesale-deletes) `.mcp.json`:** before the
+  manifest deletion loop, handle `.mcp.json` specially — parse it; delete
+  `mcpServers["repo-kb"]`; if other servers or other top-level keys remain,
+  rewrite the file (it stays on disk, user config preserved); only if `repo-kb`
+  was the sole server and `mcpServers` the sole key, delete the file. Then
+  exclude `.mcp.json` from the generic `fs.rm` loop.
 - README/template docs (one short section, mirrored in `templates/CLAUDE.md.tmpl`
   + `templates/AGENTS.md.tmpl`): Claude Code auto-detects `.mcp.json`; Cursor
   users copy the server block into `.cursor/mcp.json`; VS Code users into
@@ -393,11 +433,14 @@ knowledge-base over MCP stdio) and to the header comment block listing commands.
 | CLI | `install.mjs` | modify — COMMANDS set + dispatch branch + usage/header text |
 | backend | `lib/installer.mjs` | modify — stamp/merge `.mcp.json`, manifest entry |
 | templates | `templates/mcp.json.tmpl` | **add** |
-| tests | `test/run-tests.mjs` | modify — append MCP section (§11); or **add** `test/mcp-tests.mjs` invoked from the runner if the file would grow unwieldy |
+| tests | `test/run-tests.mjs` | modify — append the MCP section (§11) directly to this file; do NOT create a separate test file (the runner has no mechanism for invoking other files — `run-deep-test.mjs` is a separate npm script, not a precedent) |
 | docs | `README.md`, `templates/CLAUDE.md.tmpl`, `templates/AGENTS.md.tmpl` | modify — one "Querying the knowledge-base over MCP" section each |
+| knowledge | `ai/guide/MODULE_MAP.md`, `ai/guide/FEATURE_MAP.md`, `ai/analysis/FEATURE_CATALOG.md`, `ai/INDEX.md`, `ai/lab/WORKLOG.md`, this spec | modify — the §13 knowledge updates (part of the change; reviewers checking the diff against this table must expect them) |
 
-Stability check: all touched areas are `ours` in MODULE_MAP.md (root, `lib/`,
-`templates/`, `test/`, `docs/`). No `frozen` files.
+Stability check: all touched code areas are `ours` in MODULE_MAP.md (root,
+`lib/`, `templates/`, `test/`). The knowledge-row edits are governed by the
+provenance rule (new content is `[inferred]`), not by Stability. No `frozen`
+files.
 
 ### 10.1 `lib/mcp.mjs` skeleton (follow this structure)
 ```js
@@ -445,7 +488,7 @@ Target fixture: the repo produced by the existing `shazam --yes` fixture flow
 | T8 | **freshness (no cache)** | with the server RUNNING: call `kb_lookup("zz-sentinel")` → 0 hits; append a row containing `zz-sentinel` to the fixture's MODULE_MAP.md; call again on the same process → ≥1 hit |
 | T9 | derived_stale | touch the fixture's `package.json` mtime forward; `resources/read kb://profile` → `contents` has 2 entries; the 2nd is a §5.4 contents item (has `uri` ending `#derived_stale` and `mimeType`, no `type` field) whose `text` contains `derived_stale` |
 | T10 | no-KB repo | `mcp` against an empty temp dir → exit code 1, stderr mentions `shazam`, stdout empty |
-| T11 | installer round-trip | fresh install → `.mcp.json` exists with `mcpServers["repo-kb"]`, listed in `ai/install-manifest.json`; pre-existing `.mcp.json` with another server key survives merge; `uninstall --yes` removes the stamped file |
+| T11 | installer round-trip | fresh install → `.mcp.json` exists with `mcpServers["repo-kb"]`, listed in `ai/install-manifest.json` `files` but NOT in `fileHashes`; pre-existing `.mcp.json` with another server key survives merge (both servers present); re-install is idempotent (other server still present after second install); `uninstall --yes` on the merged file removes only the `repo-kb` key (file remains with the user's server); `uninstall --yes` on a kit-only `.mcp.json` deletes the file |
 | T12 | tool error shape | `kb_check_stability` with `{"path":""}` → `isError:true` and `content[0].text` parses as JSON with an `error` key |
 | T13 | stdout purity | across all of the above, every stdout line of the server process parses as JSON with `jsonrpc === "2.0"` |
 
