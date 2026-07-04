@@ -66,3 +66,32 @@ needs maintainer decision) · Sev: per the audit's user-impact rubric.
   each row says what the fix should be.
 - Audit R1 (PR #21) is fully subsumed: every R1 finding maps to an R2 row (see
   the Trace column); R1 items without an R2 fix are the OPEN rows above.
+
+---
+
+## Audit R3 — 2026-07-04
+
+- Evidence & repros: [`ADVERSARIAL_AUDIT_2026-07-04_R3.md`](ADVERSARIAL_AUDIT_2026-07-04_R3.md)
+- Re-verification: all 16 R2 FIXED rows re-checked, none regressed; all 11 R2
+  OPEN rows re-verified still present (R3 report §12). Findings below are new.
+
+| ID | Sev | Status | Location (at audit time) | Defect (the error) | Root cause | Fix made | Fixed in / date | Trace |
+|---|---|---|---|---|---|---|---|---|
+| AUD-R3-01 | CRITICAL | OPEN | `.github/workflows/ai-check.yml:27`, `ai/guide/MODULE_MAP.md:7` | `drift . --git --strict` fails on main (8 stale `[verified]` rows) — the repo's own CI gate is red on every push/PR, and `npm run deep-test` fails at step 3 (reproduced 2026-07-04) | PR #23 merged without the re-anchor/re-audit step every prior PR performed; nothing enforces it (see AUD-R2-11) | — (needs a human re-audit + re-anchor; then automate anchor maintenance) | — | R3 §1 |
+| AUD-R3-02 | HIGH | OPEN | `lib/installer.mjs:111` + core templates | `--force` child-lock false-positives on the templates' own `[verified]` prose: any edit to a stamped CLAUDE.md/AGENTS.md/MODULE_MAP.md/WORKLOG.md classifies `locked` (reproduced) — the documented `--force` contract is unreachable for exactly those files | Lock tests `diskText.includes("[verified]")`; pristine templates contain that literal in provenance prose | — (classify via the `humanAdded` diff already computed at `installer.mjs:225-228`) | — | R3 §2 |
+| AUD-R3-03 | HIGH | OPEN | `lib/installer.mjs:150-164` vs `:262-275` | Process-2 backups written before any consent; declining the confirm still leaves `CLAUDE_bkp_*.md` behind while printing "Aborted; nothing written." (reproduced) | Backup copy runs at the top of `install()`, before plan display and both confirmations | — (defer the copy to the write phase) | — | R3 §3 |
+| AUD-R3-04 | HIGH | OPEN | `install.mjs:228-232` | Re-running `orient` wipes `humanContext` (wizard answers) from `ai/repo-profile.json` (reproduced) | Fresh profile written with no carry-forward; only the install path has one (`installer.mjs:289-295`) | — (copy `humanContext` forward, same as installer) | — | R3 §4 |
+| AUD-R3-05 | MEDIUM | OPEN | `install.mjs:50-56` | Trust header "It NEVER overwrites a file you have edited" is false for Process 2 (user-authored CLAUDE.md/AGENTS.md replaced after backup on plain install, no `--force`) | Guarantee prose never updated when Process 2 landed; same class as fixed AUD-R2-15 | — (add the Process-2 carve-out sentence) | — | R3 §5 |
+| AUD-R3-06 | MEDIUM | OPEN | `lib/indepth.mjs:42-44` | Gitignore dir rules over-match prefix siblings: `build/` also excludes `builder/` from all indepth metrics (reproduced) | `pattern += "?.*"` makes the trailing slash optional | — (require the slash before descendants) | — | R3 §6 |
+| AUD-R3-07 | MEDIUM | OPEN | `.github/workflows/test.yml:24` | Syntax gate omits `lib/audit.mjs`, `lib/status.mjs`, `lib/doctor.mjs`, `lib/demo.mjs`, `lib/progress.mjs`, `test/run-deep-test.mjs`, `test/release-check.mjs` | Hardcoded list never updated as modules were added | — (glob the list) | — | R3 §7 |
+| AUD-R3-08 | LOW | OPEN | `ai/lab/WORKLOG.md:36`, `templates/ai/lab/WORKLOG.md.tmpl:31` | First ledger row violates the loop it documents: merged with Review `—`, Status stuck `in-review`, Commits cell "(this branch)" unresolvable; template example row reuses ID `W-001` | Row written pre-merge and never updated; example ID collides with the "next W-n" rule | — (backfill row; use `W-000` in the example) | — | R3 §8 |
+| AUD-R3-09 | LOW | OPEN | `lib/indepth.mjs:278-291,302-310` | Cargo `[dev-dependencies]` and all Gemfile gems booked as production | Section/group tracking not implemented for those parsers | — | — | R3 §9 |
+| AUD-R3-10 | LOW | OPEN | `install.mjs:30-31` | Header says `status` writes only with `--json`; it also rewrites `ai/START-HERE.html` whenever the page exists (`status.mjs:119`) | Header not updated when the progress-page refresh landed | — | — | R3 §10 |
+| AUD-R3-11 | LOW | OPEN | `lib/indepth.mjs:10-14` | `runCmd` comment invites space-containing format strings that `cmd.split(" ")` would break; quotes stripped from every token | Convenience comment overstates the parser | — (argv-array signature like `drift.mjs:160`) | — | R3 §11 |
+
+### R3 summary
+
+- **0 FIXED / 11 OPEN** — this audit reports; fixes are a separate unit of work.
+- AUD-R3-01 is live: main's ai-check workflow fails until a human re-audits
+  the 8 stale rows and re-anchors the baseline. AUD-R2-11 is its recurring
+  root cause and should be prioritized accordingly.
