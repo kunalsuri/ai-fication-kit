@@ -246,7 +246,8 @@ your-repo/
 │                                 evaluations/, experiments/
 ├── .claude/                    # Claude Code: commands (/cold-start, /add-feature, …),
 │                                 subagents (repo-explorer, feature-builder, test-runner),
-│                                 and the add-feature skill
+│                                 the add-feature skill, and an always-on index rule
+│                                 (rules/ai-knowledge-layer.md)
 ├── .github/                    # GitHub Copilot: copilot-instructions.md, prompts/*.prompt.md
 │                                 (same commands), chatmodes/*.chatmode.md (same subagents)
 ├── .agents/                    # Google Antigravity: workflows/*.md (same commands),

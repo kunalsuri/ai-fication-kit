@@ -28,7 +28,7 @@ install time, and a mixed team can use different tools on the same repo:
 
 | Tool | Assets installed | Invocation |
 |---|---|---|
-| **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/` | slash commands + subagents, natively |
+| **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/`, `.claude/rules/` | slash commands + subagents, natively |
 | **GitHub Copilot** (VS Code) | `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`, `.github/chatmodes/*.chatmode.md` | prompts + chat modes in Copilot Chat |
 | **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` | workflows in the Agent Manager |
 | **Cursor** | `.cursor/rules/*.mdc` | invoke a rule, same as any other Cursor rule |
@@ -73,7 +73,10 @@ The most complete integration, and what the main docs assume by default.
 `CLAUDE.md` is auto-loaded every session; commands are typed directly
 (`/cold-start`, `/add-feature`, …); subagents are delegated to automatically by
 the commands (e.g. `/cold-start` sends heavy reading to `repo-explorer` to keep
-the main context window clean).
+the main context window clean). `.claude/rules/ai-knowledge-layer.md` — a native
+always-on rule (no `paths:` frontmatter) — also loads every session, mirroring
+Cursor's `alwaysApply: true` rule so both tools keep the `ai/INDEX.md` pointer
+and the provenance + record invariants in front of the agent.
 
 Nothing to configure — open the repo in Claude Code after `shazam` and run
 `/cold-start`.

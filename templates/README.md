@@ -7,8 +7,10 @@ Rules:
 - Files ending `.tmpl` have `{{PLACEHOLDERS}}` substituted and lose the `.tmpl` suffix.
 - All other files are copied verbatim.
 - `templates/claude/**` installs to `.claude/**` (kept visible here so the kit's own
-  tree is browsable): Claude Code slash commands, subagents, and the `add-feature`
-  and `fix-bug` skills.
+  tree is browsable): Claude Code slash commands, subagents, the `add-feature`
+  and `fix-bug` skills, and `rules/ai-knowledge-layer.md` — an always-on rule (no
+  `paths:` frontmatter) that is the native Claude Code twin of the Cursor
+  `alwaysApply: true` rule.
 - `templates/github/**` installs to `.github/**`: the CI/CD workflow template, plus
   GitHub Copilot assets — `copilot-instructions.md` (repo-wide instructions),
   `prompts/*.prompt.md` (slash-command equivalents of the Claude commands), and
