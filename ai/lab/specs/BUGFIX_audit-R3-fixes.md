@@ -69,4 +69,7 @@ Two judgement calls promoted here rather than to an ADR:
 ## Knowledge update on completion
 - [x] WORKLOG.md row appended (type `bugfix`, linking this doc + review)
 - [x] DEFECT_TRACEABILITY.md rows AUD-R3-01..11 (+ AUD-R2-11) flipped with the fix commit
+- [x] FEATURE_MAP.md gotchas added for the touched features (`install`, `orient`,
+      `indepth`, `audit`); the stale `ci-checks` gotcha (pre-AUD-R2-06 npm-publish
+      claim) corrected in the same pass. Reviewed fresh in `ai/lab/reviews/REVIEW_W-002.md`.
 - [ ] EVAL — deferred; the R3 report itself records the lessons
