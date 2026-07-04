@@ -307,10 +307,14 @@ notifications because clients re-read on demand anyway.
 lag reality. On `resources/read` of `kb://profile` or `kb://indepth`, compare the
 file's mtime with the mtimes of `package.json` and `ai/guide/MODULE_MAP.md` in
 the target (use `fs.stat`; ignore files that don't exist). If the derived file is
-older than either input, append this line to the returned `text` (it is JSON —
-so instead include it as a sibling content item):
-`{"type":"text","text":"WARNING derived_stale: <relative path> is older than its inputs — re-run: node install.mjs orient <path>"}`
-as a **second** entry in the `contents` array. Do not regenerate (C5).
+older than either input, append a **second** entry to the `contents` array of
+the `resources/read` result. That entry MUST use the §5.4 contents-item shape
+(`uri` / `mimeType` / `text`) — NOT the tool-call `{"type":"text"}` content
+shape, which is invalid inside `resources/read`:
+```json
+{"uri":"<requested uri>#derived_stale","mimeType":"text/plain","text":"WARNING derived_stale: <relative path> is older than its inputs — re-run: node install.mjs orient <path>"}
+```
+Do not regenerate (C5).
 
 ### 7.3 Docs vs. code reality
 Surfaced in-band, not hidden: the `_kb` envelope (§6.0) puts the live
@@ -434,7 +438,7 @@ Target fixture: the repo produced by the existing `shazam --yes` fixture flow
 | T6 | kb_check_stability | on the kit repo: `lib/verify.mjs` → `stability:"ours"`; `no/such/path.js` → `stability:"unknown"`, `effective:"frozen"`; unit-test `matchStability` longest-claim precedence with a synthetic two-row map (`templates/` stable + `templates/ai/` frozen → query `templates/ai/x.md` returns frozen) |
 | T7 | parity | `kb_verify` counts equal a direct `computeVerification(target)` call; `kb_status` verdict equals `computeStatus(target).verdict` |
 | T8 | **freshness (no cache)** | with the server RUNNING: call `kb_lookup("zz-sentinel")` → 0 hits; append a row containing `zz-sentinel` to the fixture's MODULE_MAP.md; call again on the same process → ≥1 hit |
-| T9 | derived_stale | touch the fixture's `package.json` mtime forward; `resources/read kb://profile` → `contents` has 2 entries and the 2nd contains `derived_stale` |
+| T9 | derived_stale | touch the fixture's `package.json` mtime forward; `resources/read kb://profile` → `contents` has 2 entries; the 2nd is a §5.4 contents item (has `uri` ending `#derived_stale` and `mimeType`, no `type` field) whose `text` contains `derived_stale` |
 | T10 | no-KB repo | `mcp` against an empty temp dir → exit code 1, stderr mentions `shazam`, stdout empty |
 | T11 | installer round-trip | fresh install → `.mcp.json` exists with `mcpServers["repo-kb"]`, listed in `ai/install-manifest.json`; pre-existing `.mcp.json` with another server key survives merge; `uninstall --yes` removes the stamped file |
 | T12 | tool error shape | `kb_check_stability` with `{"path":""}` → `isError:true` and `content[0].text` parses as JSON with an `error` key |
