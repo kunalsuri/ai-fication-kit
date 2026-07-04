@@ -105,7 +105,7 @@ F9 → `ai/analysis/audit-reports/DRIFT_REPORT.md` (+ gitignored manifest). `[in
 ### F10 — Claude Code workflow assets
 | Layer | Files | Confidence |
 |---|---|---|
-| Payload | `templates/claude/commands/` (10 commands) · `templates/claude/agents/` (3 subagents) · `templates/claude/skills/add-feature/SKILL.md` | `[inferred]` |
+| Payload | `templates/claude/commands/` (10 commands) · `templates/claude/agents/` (3 subagents) · `templates/claude/skills/` (`add-feature` + `fix-bug` skills) | `[inferred]` |
 | Installed twin | `.claude/` (kit dogfoods its own templates — keep byte-identical) | `[inferred]` |
 | Tests | `test/run-tests.mjs` (asserts installed paths) | `[inferred]` |
 
