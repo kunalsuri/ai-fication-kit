@@ -61,6 +61,29 @@ source of truth; MCP is a *serving layer*, not a second store.
 - HTTP/SSE transport — stdio only; remote serving is a later concern.
 - Knowledge graph *storage*. Graph *derivation* is phase 2, see below.
 
+## Freshness model (how the MCP stays current while agents rewrite ai/ underneath it)
+The kit's own workflows write into `ai/` after every feature/bugfix, so the server
+is serving a knowledge-base that is being edited while it runs. Three staleness
+layers, three answers:
+1. **Server vs. disk — stateless by contract.** The server holds no snapshot,
+   cache, or index. Every tool call and resource read hits the filesystem at
+   request time (`parseModuleMap` on current bytes). A WORKLOG append or
+   FEATURE_MAP edit is visible on the very next call, no restart. *Caching is
+   forbidden, not merely omitted.* Optional refinement: `fs.watch` on `ai/` →
+   MCP `notifications/resources/updated` for clients that cache on their side.
+2. **Derived artifacts vs. source docs.** Compiled outputs (`repo-profile.json`,
+   future `ai/graph.json`) can lag their inputs. On each relevant call the server
+   compares input/output mtimes (or hashes) and either regenerates on the fly
+   (deterministic + cheap) or sets `"derived_stale": true` in the response.
+   Never serve a stale derivation silently.
+3. **Docs vs. code reality.** Already the kit's core job (drift/verify/provenance);
+   MCP surfaces it in-band instead of hiding it: every tool response carries the
+   current `kb_status` verdict (TRUSTED / NEEDS AUDIT / DRIFTING) plus per-row
+   provenance tags — staleness is always *declared* in the same payload. Backstop:
+   `check-drift` in CI or a git hook. The phase-3 write tools close the loop fully
+   (reads and knowledge updates through one protocol, so completion can be gated
+   on the update actually happening).
+
 ## Phase 2 (sketch, separate spec before build): derived knowledge graph
 Do **not** introduce a graph store. The graph already exists implicitly:
 MODULE_MAP rows (module → path → stability), FEATURE_MAP rows (feature → files),
@@ -97,6 +120,10 @@ No existing `lib/*.mjs` logic changes — the server imports the already-exporte
 5. `npm test` passes; `node install.mjs verify . --strict` passes.
 6. A repo *without* the kit installed gets a clear error, not a crash.
 7. All tool outputs include the provenance tag of their source data.
+8. Freshness: editing `ai/guide/MODULE_MAP.md` between two `kb_lookup` calls
+   (server kept running) changes the second result — proves no caching.
+9. A derived artifact older than its inputs is regenerated or flagged
+   `derived_stale`, never served silently.
 
 ## Verification
 - Tests to add: `test/` — MCP handshake, per-tool golden outputs against
