@@ -1955,5 +1955,147 @@ console.log("\n— npm pack (demo packaging) —");
   }
 }
 
+// ---------- audit R3 regressions (ai/lab/specs/BUGFIX_audit-R3-fixes.md) ----------
+console.log("\n— audit R3 regressions —");
+{
+  const script = path.join(kitRoot, "install.mjs");
+
+  // AUD-R3-02 (unit): the templates' own [verified] prose must not trigger the
+  // child-lock — only a [verified] line the human ADDED (absent from the
+  // pristine template) is a signature worth locking.
+  {
+    const { classifyAction, VERIFIED_TAG } =
+      await import(pathToFileURL(path.join(kitRoot, "lib", "installer.mjs")).href);
+    const { sha256 } = await import(pathToFileURL(path.join(kitRoot, "lib", "util.mjs")).href);
+    const tmpl = `# doc\nflip rows to ${VERIFIED_TAG} when audited\n`;
+    const editedProseOnly = tmpl + "my human note\n";
+    ok(classifyAction({ diskText: editedProseOnly, recordedHash: sha256(tmpl),
+      newText: tmpl, force: true, forceVerified: false }) === "overwrite",
+      `template ${VERIFIED_TAG} prose alone does not lock: edited file + --force → "overwrite"`);
+    ok(classifyAction({ diskText: editedProseOnly, recordedHash: sha256(tmpl),
+      newText: tmpl, force: false, forceVerified: false }) === "keep",
+      `template ${VERIFIED_TAG} prose alone does not lock: edited file without --force → "keep"`);
+    const humanAudited = tmpl + `| row | ours | ${VERIFIED_TAG} (01/07/2026) |\n`;
+    ok(classifyAction({ diskText: humanAudited, recordedHash: sha256(tmpl),
+      newText: tmpl, force: true, forceVerified: false }) === "locked",
+      `a human-ADDED ${VERIFIED_TAG} line still locks under --force (child-lock kept)`);
+  }
+
+  // AUD-R3-02 (E2E): --force must be able to refresh an edited stamped
+  // CLAUDE.md (whose template contains "[verified]" in its provenance prose),
+  // taking a timestamped backup — the documented --force contract.
+  {
+    const d = await makeBareFixture("r3-forcelock", { "package.json": "{}\n" });
+    let r = run(process.execPath, [script, "install", d, "--yes"]);
+    ok(r.code === 0, `r3: baseline install exits 0`);
+    await fs.appendFile(path.join(d, "CLAUDE.md"), "\nmy typo fix note\n");
+    r = run(process.execPath, [script, "install", d, "--yes", "--force"]);
+    const claude = await fs.readFile(path.join(d, "CLAUDE.md"), "utf8");
+    ok(r.code === 0 && !claude.includes("my typo fix note"),
+      `--force refreshes an edited stamped CLAUDE.md (template [verified] prose is not a signature)`);
+    const rootFiles = await fs.readdir(d);
+    const bkp = rootFiles.find(n => /^CLAUDE_bkp_\d{8}_\d{6}(_\d+)?\.md$/.test(n));
+    ok(Boolean(bkp) && (await fs.readFile(path.join(d, bkp), "utf8")).includes("my typo fix note"),
+      `the --force overwrite left a timestamped backup holding the edit`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // AUD-R3-03 (E2E): declining the install confirmation must leave the repo
+  // byte-identical — no Process-2 backup may be written before consent.
+  {
+    const d = await makeBareFixture("r3-abort", {
+      "package.json": "{}\n",
+      "CLAUDE.md": "# my own hand-written rules\n",
+    });
+    const r = run(process.execPath, [script, "install", d]); // no --yes, stdin closed → abort
+    const rootFiles = await fs.readdir(d);
+    ok(!rootFiles.some(n => /_bkp_/.test(n)),
+      `aborted install writes NO backup file (consent first): ${rootFiles.join(", ")}`);
+    ok((await fs.readFile(path.join(d, "CLAUDE.md"), "utf8")) === "# my own hand-written rules\n" &&
+      !(await exists(path.join(d, "ai", "install-manifest.json"))),
+      `aborted install leaves the repo untouched (exit ${r.code})`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // AUD-R3-04 (E2E): re-running orient must carry humanContext forward, like install does.
+  {
+    const d = await makeBareFixture("r3-orient", {
+      "package.json": "{}\n",
+      "ai/repo-profile.json": JSON.stringify({
+        humanContext: { primaryTool: "Claude Code" } }, null, 2) + "\n",
+    });
+    const r = run(process.execPath, [script, "orient", d]);
+    let p = null;
+    try { p = JSON.parse(await fs.readFile(path.join(d, "ai", "repo-profile.json"), "utf8")); }
+    catch { /* caught by the assertion */ }
+    ok(r.code === 0 && p?.humanContext?.primaryTool === "Claude Code",
+      `orient re-run preserves humanContext (wizard answers survive)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // AUD-R3-06 (E2E): a .gitignore dir rule ("gen/") must not swallow a prefix
+  // sibling ("genuine/") from the indepth analysis.
+  {
+    const d = await makeBareFixture("r3-gitignore", {
+      "package.json": "{}\n",
+      ".gitignore": "gen/\n",
+      "gen/out.js": "// generated\n",
+      "genuine/mod.js": "export const x = 1;\n",
+    });
+    const r = run(process.execPath, [script, "indepth", d]);
+    let count = null;
+    try {
+      count = JSON.parse(await fs.readFile(path.join(d, "ai", "repo-indepth.json"), "utf8"))
+        .codeStructure.codeMetrics.fileCount;
+    } catch { /* caught by the assertion */ }
+    ok(r.code === 0 && count === 3,
+      `gitignore "gen/" excludes gen/ but not genuine/ (fileCount ${count}, want 3: package.json, .gitignore, genuine/mod.js)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // AUD-R3-09 (E2E): Cargo [dev-dependencies] and Gemfile :development/:test
+  // groups must be booked as development, not production.
+  {
+    const d = await makeBareFixture("r3-cargo-dev", {
+      "Cargo.toml": "[package]\nname = \"x\"\n\n[dependencies]\nserde = \"1\"\n\n[dev-dependencies]\ncriterion = \"0.5\"\n",
+    });
+    const r = run(process.execPath, [script, "indepth", d]);
+    let deps = null;
+    try { deps = JSON.parse(await fs.readFile(path.join(d, "ai", "repo-indepth.json"), "utf8")).dependencies; }
+    catch { /* caught by the assertion */ }
+    ok(r.code === 0 && deps?.direct === 2 &&
+      deps?.byCategory.production === 1 && deps?.byCategory.development === 1,
+      `Cargo dev-dependencies booked as development (prod ${deps?.byCategory.production}, dev ${deps?.byCategory.development})`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+  {
+    const d = await makeBareFixture("r3-gem-dev", {
+      "Gemfile": "source 'https://rubygems.org'\ngem 'rails'\n\ngroup :development do\n  gem 'rubocop'\nend\n",
+    });
+    const r = run(process.execPath, [script, "indepth", d]);
+    let deps = null;
+    try { deps = JSON.parse(await fs.readFile(path.join(d, "ai", "repo-indepth.json"), "utf8")).dependencies; }
+    catch { /* caught by the assertion */ }
+    ok(r.code === 0 && deps?.direct === 2 &&
+      deps?.byCategory.production === 1 && deps?.byCategory.development === 1,
+      `Gemfile :development group booked as development (prod ${deps?.byCategory.production}, dev ${deps?.byCategory.development})`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // AUD-R2-11 (unit): the anchor rewrite the guided audit offers after a --git run.
+  {
+    const { updateAnchorLine } =
+      await import(pathToFileURL(path.join(kitRoot, "lib", "audit.mjs")).href);
+    const map = "# map\n> Last verified: <fill in date> @ commit <fill in sha>\n| a | b | c |\n";
+    const updated = updateAnchorLine ? updateAnchorLine(map, "2026-07-04", "abc1234") : null;
+    ok(typeof updateAnchorLine === "function" &&
+      updated !== null && updated.includes("> Last verified: 2026-07-04 @ commit abc1234") &&
+      updated.split("\n").length === map.split("\n").length,
+      `updateAnchorLine rewrites exactly the anchor line`);
+    ok(typeof updateAnchorLine === "function" && updateAnchorLine("# no anchor here\n", "2026-07-04", "abc1234") === null,
+      `updateAnchorLine returns null when the map has no anchor line`);
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);

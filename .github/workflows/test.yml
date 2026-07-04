@@ -21,7 +21,11 @@ jobs:
         with:
           node-version: 20
       - name: Verify JavaScript syntax correctness
-        run: node --check install.mjs lib/drift.mjs lib/indepth.mjs lib/installer.mjs lib/intake.mjs lib/maturity.mjs lib/orient.mjs lib/util.mjs lib/verify.mjs test/run-tests.mjs
+        # Globbed on purpose (AUD-R3-07): a hardcoded list silently loses every
+        # module added after it was written. bash exists on all three runners.
+        shell: bash
+        run: |
+          for f in install.mjs lib/*.mjs test/*.mjs; do node --check "$f"; done
       - name: Run smoke tests
         run: node test/run-tests.mjs
 
