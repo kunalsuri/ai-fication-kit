@@ -40,7 +40,8 @@ concept is explained in depth.
   other claim.
 - **Engineering loop** — the steady-state method once the map is trusted: every
   unit of work runs Spec → Decide → Implement → Review → Evaluate → Record
-  (`/add-feature` or `/fix-bug`, then `/review-change`, then a ledger row).
+  (`/add-feature` or `/fix-bug` — or `/implement-spec` for a pre-authored
+  spec — then `/review-change`, then a ledger row).
 
 ## The commands
 

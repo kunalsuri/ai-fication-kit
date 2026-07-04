@@ -10,7 +10,8 @@ in this repo). Summary of the contract:
 
 1. **Spec first.** If no spec exists in `ai/lab/specs/`, draft one from the template
    and get the user's OK before writing code.
-2. **Locate via the maps.** MODULE_MAP → FEATURE_MAP/CATALOG → open only what's needed.
+2. **Locate via the maps.** MODULE_MAP → FEATURE_MAP/CATALOG → WORKLOG history
+   (was this area just changed?) → open only what's needed.
 3. **Respect Stability.** Never modify `frozen` or `?` files without explicit human
    approval in this conversation.
 4. **Build surgically.** Smallest diff that satisfies the spec; match conventions and
