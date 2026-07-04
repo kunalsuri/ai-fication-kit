@@ -2094,6 +2094,18 @@ console.log("\n— audit R3 regressions —");
       `updateAnchorLine rewrites exactly the anchor line`);
     ok(typeof updateAnchorLine === "function" && updateAnchorLine("# no anchor here\n", "2026-07-04", "abc1234") === null,
       `updateAnchorLine returns null when the map has no anchor line`);
+    // REVIEW_W-002 finding 1: an anchor whose parenthetical note spans
+    // blockquote continuation lines must be replaced whole — never leaving
+    // orphaned half-sentences and a dangling ")".
+    const multiline = "# map\n" +
+      "> Last verified: 2026-07-03 @ commit aaaaaaa (re-anchored: the fix\n" +
+      "> commits (PR #22) touched `lib/` after the previous baseline —\n" +
+      "> the per-row signatures below remain authoritative)\n" +
+      "| a | b | c |\n";
+    const u2 = updateAnchorLine ? updateAnchorLine(multiline, "2026-07-04", "abc1234") : null;
+    ok(u2 !== null && u2.includes("> Last verified: 2026-07-04 @ commit abc1234") &&
+      !u2.includes("signatures below") && !u2.includes("PR #22") && u2.includes("| a | b | c |"),
+      `updateAnchorLine consumes a multi-line parenthetical anchor note whole`);
   }
 }
 

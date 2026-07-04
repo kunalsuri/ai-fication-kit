@@ -1,6 +1,6 @@
 # SHA-256 checksums for ai-fication-kit — regenerate with ./make-checksums.sh
 a42d083f46160054ee729fbec535b5df7b3768b62dfe71e6485534dc46189ac8  install.mjs
-2670a11688be50fea2fc606d1c650cc52f916617c8f728e77080c48e8d5dd2fe  lib/audit.mjs
+afd22a121b8e4bf9794a7ddfea2d2e264e543990925b3fd0e17cfdcbeccd2102  lib/audit.mjs
 cbb3c614a4467d041739fc8faf7ef4166473de3b64b6eff2c7696b7b375289c0  lib/demo.mjs
 999d88a20de46137c3290b25bdc66008ba3e4a6f4e17c8806e80d4f6ac62d79a  lib/doctor.mjs
 3a86b778c34b164b3d0e5b07866571e9a721200ad141389bbce1cd8db8f75924  lib/drift.mjs
