@@ -6,10 +6,10 @@
 
 | Field | Value |
 |---|---|
-| **Version** | 0.1.0 |
-| **Release Date** | 2026-06-25 |
-| **Report Date** | 2026-06-28 |
-| **Report Revision** | v4 (2026-06-28) — incorporates an independent technical review |
+| **Version** | 0.2.0 |
+| **Release Date** | 2026-07-03 |
+| **Report Date** | 2026-07-04 |
+| **Report Revision** | v5 (2026-07-04) — updated for the 0.2.0 release cycle (see §13.1 for scope) |
 | **Author** | Kunal Suri (CEA LIST — French Alternative Energies and Atomic Energy Commission) |
 | **License** | Apache 2.0 |
 | **DOI** | 10.5281/zenodo.20860637 |
@@ -27,10 +27,10 @@
 6. [Verification and Integrity](#6-verification-and-integrity)
 7. [Security Properties](#7-security-properties)
 8. [Scaffolded Artifacts](#8-scaffolded-artifacts)
-9. [Claude Code Integration](#9-claude-code-integration)
+9. [Agent Integration](#9-agent-integration)
 10. [Stack Detection and Tool Compatibility](#10-stack-detection-and-tool-compatibility)
-11. [Bundled Examples](#11-bundled-examples)
-12. [Testing](#12-testing)
+11. [Bundled Examples and the Demo Command](#11-bundled-examples-and-the-demo-command)
+12. [Testing and Release Engineering](#12-testing-and-release-engineering)
 13. [Current Status and Limitations](#13-current-status-and-limitations)
 14. [Differentiation](#14-differentiation)
 15. [Summary](#15-summary)
@@ -41,9 +41,9 @@
 
 AI coding agents — tools such as Claude Code, Cursor, GitHub Copilot, and OpenAI Codex — can read files, execute terminal commands, and perform multi-file edits across a codebase. However, on large or legacy repositories they operate without reliable context: they re-crawl directory trees each session, guess which files are safe to modify, and risk hallucinating structural details that lead to edits in the wrong module.
 
-**ai-fication-kit** addresses this problem by scaffolding a structured knowledge layer into any existing repository. The kit produces a compact `ai/` directory — a map of modules, architecture, conventions, and features — that AI agents read instead of re-crawling source. Every claim in this map carries an explicit **provenance tag**: `[inferred]` (drafted by an agent or tool, not yet verified) or `[verified]` (confirmed by a human operator). Provenance tracking means knowing *who* produced a claim and *whether a human checked it*. By the agent rules the kit installs, agents must never promote their own drafts to `[verified]`; that flip is reserved as the human operator's signature. This is an instructional constraint enforced by the agent rules (and reinforced by a detective post-cold-start check), not a programmatic access control — see §5.
+**ai-fication-kit** addresses this problem by scaffolding a structured knowledge layer into any existing repository. The kit produces a compact `ai/` directory — a map of modules, architecture, conventions, and features — that AI agents read instead of re-crawling source. Every claim in this map carries an explicit **provenance tag**: `[inferred]` (drafted by an agent or tool, not yet verified) or `[verified]` (confirmed by a human operator). Provenance tracking means knowing *who* produced a claim and *whether a human checked it*. By the agent rules the kit installs, agents must never promote their own drafts to `[verified]`; that flip is reserved as the human operator's signature. This is an instructional constraint enforced by the agent rules (and reinforced by a detective post-cold-start check), not a programmatic access control — see §5. (The kit's own guided `audit` command is the one sanctioned writer of `[verified]` tags, and it only writes one after an explicit per-row human confirmation — see §4.8.)
 
-While the knowledge layer (`ai/` folder and `AGENTS.md`) is designed to be tool-agnostic — readable by any AI coding agent — the kit's automation layer is built around **Claude Code** as its primary agent runtime. Claude Code is a leading agentic coding tool that natively supports slash commands, subagent spawning, custom skills, and auto-loaded project memory (`CLAUDE.md`). The kit leverages these capabilities to deliver a deeply integrated experience — seven purpose-built slash commands, three specialized subagents, and a multi-phase add-feature skill — that together form a complete agentic development workflow from repository onboarding through safeguarded feature delivery. Users of other tools (Cursor, Copilot, Codex, Windsurf) can still use the provenance-tracked knowledge layer and agent rules, but must drive the slash-command workflows manually by pasting the command file contents as prompts.
+The knowledge layer (`ai/` folder and `AGENTS.md`) is tool-agnostic — readable by any AI coding agent. As of v0.2.0, the kit's automation layer is no longer Claude Code-only: a single install stamps the same eight workflow commands, three helper-agent personas, and the multi-phase add-feature skill **natively for four tools** — Claude Code (`.claude/`: slash commands, subagents, skills), GitHub Copilot (`.github/`: `copilot-instructions.md`, prompt files, chat modes), Google Antigravity (`.agents/`: workflows plus the skill in the shared Agent Skills format), and Cursor (`.cursor/rules/*.mdc` rules). Claude Code remains the most deeply integrated runtime (native subagent spawning and auto-triggered skills); users of Codex or Windsurf can still use the provenance-tracked knowledge layer and agent rules, driving the workflows manually by pasting command file contents as prompts.
 
 The result is a dual-purpose artifact. For AI agents, the `ai/` folder provides a trusted navigation layer that reduces context-window consumption and prevents unsafe edits to frozen code. For human engineers, the same verified knowledge-base serves as instant onboarding documentation — a single source of truth about module responsibilities, stability boundaries, and feature locations.
 
@@ -61,6 +61,8 @@ AI coding agents face three recurring problems on unfamiliar repositories:
 2. **Guesswork.** The agent has no structured way to determine which modules are safe to modify and which are frozen, vendor-supplied, or load-bearing legacy code.
 3. **Hallucinated structure.** An agent's confident but inaccurate description of repository layout can lead to edits in the wrong module — a failure mode worse than having no map at all.
 
+The README adds a fourth cost: **humans pay the same tax** — a new engineer joining the codebase spends days or weeks reverse-engineering tribal knowledge that lives in a few people's heads. The same verified map that serves agents doubles as that engineer's onboarding document.
+
 ### 2.2 The Trust Gap
 
 Existing approaches to repository documentation tend to be either fully manual (and therefore quickly stale) or fully automated (and therefore unverifiable). ai-fication-kit addresses this gap by combining automated drafting with mandatory human verification and deterministic integrity checks.
@@ -68,6 +70,8 @@ Existing approaches to repository documentation tend to be either fully manual (
 ### 2.3 Design Goal
 
 The project's CITATION.cff states the design goal directly: ai-fication-kit "scaffolds a provenance-tracked repository-intelligence layer (maps, feature catalogs, conventions, decision records) into any legacy codebase, then guides an AI coding agent through a bootstrapping pass whose every claim is tagged `[inferred]` until a human audits it to `[verified]`. Deterministic observation (the orient step) is strictly separated from model inference (the cold-start step), and a verification workflow keeps the generated knowledge mechanically honest against the code."
+
+The v0.2.0 README distills this into a three-part framing: **context and memory for the agent** (the `ai/` knowledge layer), **harness engineering support** (the pre-built agent harness — instructions, commands, personas, skills, CI workflow — stamped natively for four tools), and **guided, human-verified repo intelligence** (one linear path: scaffold → agent inference → human audit → mechanical verification).
 
 ---
 
@@ -77,7 +81,7 @@ The project's CITATION.cff states the design goal directly: ai-fication-kit "sca
 
 The system rests on three pillars:
 
-1. **Agent Scaffolding.** The kit stamps agent instruction files (`CLAUDE.md`, `AGENTS.md`), slash commands (`/cold-start`, `/add-feature`), subagent definitions (`repo-explorer`, `feature-builder`, `test-runner`), and reusable skills into the target repository.
+1. **Agent Scaffolding.** The kit stamps agent instruction files (`CLAUDE.md`, `AGENTS.md`), eight workflow commands (`/cold-start`, `/add-feature`, …), helper-agent definitions (`repo-explorer`, `feature-builder`, `test-runner`), reusable skills, and a CI check (`ai-check.yml`) into the target repository — natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install.
 
 2. **Repository Context.** The kit generates a structured `ai/` folder containing human-readable maps of conventions, architecture, modules, and features. Agents query this folder instead of crawling raw source each session.
 
@@ -87,34 +91,52 @@ The system rests on three pillars:
 
 The architecture enforces a strict separation between two categories of operation:
 
-- **Deterministic operations** (no LLM, no code execution): `orient`, `check-repo-maturity`, `install`, `uninstall`, `verify`, `drift`, and the `shazam` command that chains them. These are implemented in the kit's own code and perform only file reads, file copies, and file comparisons. (The single exception: `drift --git` runs local, read-only `git` — see §6.2.)
-- **Model-inference operations** (require an external AI agent): `/cold-start`, `/add-feature`, and related slash commands. These are defined as template prompts in `.claude/commands/` and executed by an AI coding agent, not by the kit itself.
+- **Deterministic operations** (no LLM): `orient`, `indepth`, `check-repo-maturity`, `install`, `uninstall`, `verify`, `drift`, `status`, `doctor`, `audit`, `demo`, and the `shazam` command that chains the core pipeline. These are implemented in the kit's own code and perform only file reads, file copies, and file comparisons. (The exceptions that shell out at all invoke only local, read-only `git` via `execFile` — `drift --git`, `audit --git`, and `indepth`'s git-history analysis; see §6.2 and §7.)
+- **Model-inference operations** (require an external AI agent): `/cold-start`, `/add-feature`, and the other workflow commands. These are defined as template prompts (stamped per tool into `.claude/commands/`, `.github/prompts/`, `.agents/workflows/`, and `.cursor/rules/`) and executed by an AI coding agent, not by the kit itself.
 
 The kit never runs the user's code, opens a network connection, or installs external dependencies.
 
 ### 3.3 Single-Runtime Implementation
 
-The toolkit is implemented in Node.js (`install.mjs` + `lib/*.mjs`). The implementation uses only standard-library modules (zero external dependencies) and requires Node.js ≥ 18. (Earlier versions also shipped a feature-identical Python implementation; it was removed in v0.2 to eliminate cross-runtime parity maintenance.)
+The toolkit is implemented in Node.js (`install.mjs` + `lib/*.mjs`). The implementation uses only standard-library modules (zero external dependencies) and requires Node.js ≥ 18. v0.2.0 removed the feature-identical Python installer that earlier versions shipped, eliminating cross-runtime parity maintenance; Python **target** repositories remain fully supported by `orient`/`indepth` and all knowledge-layer features.
 
 ### 3.4 Module Architecture
 
-The codebase is organized as a thin CLI entry point (`install.mjs`) delegating to seven single-purpose library modules:
+The codebase is organized as a thin CLI entry point (`install.mjs`) delegating to thirteen single-purpose library modules:
 
 | Module | Responsibility |
 |---|---|
 | `lib/util` | Shared filesystem wrappers, user prompts, and constants (`KIT_VERSION`, `PROFILE_REL`, `MANIFEST_REL`, `KIT_FOOTER_MARKER`). |
-| `lib/maturity` | Deterministic, read-only AI-readiness assessment. Runs 11 file-existence and file-content checks. Outputs a score (0–100, with 95 the practical maximum — see §4.2), a maturity level, and a process assignment (1 or 2). |
+| `lib/maturity` | Deterministic, read-only AI-readiness assessment. Runs 11 file-existence and file-content checks. Outputs a score (0–100, with 95 the practical maximum — see §4.2), a maturity level, a process assignment (1 or 2), and `MATURITY_REPORT.json`. |
 | `lib/orient` | Deterministic stack detection. Reads marker files and produces the `ai/repo-profile.json` payload (persisted by the CLI) with detected languages, build/test commands, fork status, and maturity data. Calls `checkMaturity()` internally. |
-| `lib/intake` | Interactive onboarding questionnaire. Captures developer skill level, warns about default-branch installation, confirms detected stack, and (for Process 2) explains the backup flow. Reads `.git/HEAD` directly without shelling out to git. |
-| `lib/installer` | Template stamping and manifest-based uninstall. Reads templates from the `templates/` directory, substitutes `{{PLACEHOLDER}}` variables, writes stamped files, and records every written path in `ai/install-manifest.json`. For Process 2 repos, creates timestamped backups before overwriting. |
-| `lib/verify` | Mechanical path-claim verification. Extracts backtick-quoted path references from knowledge documents, builds a file-tree index, and cross-references claims against the index. Filters out URLs, bash commands, and common code idioms (e.g., `module.exports`, `process.env`) using an exclusion list. |
-| `lib/drift` | Map drift detection. Compares `MODULE_MAP.md` entries against the filesystem to find unmapped code-bearing directories, vanished map entries, and (with `--git`) stale `[verified]` rows. |
+| `lib/indepth` | Optional deep-analysis engine. Computes per-file code metrics (lines of code, comment counts, docstring ratio, import/export counts, direct dependencies), builds dependency graphs, derives structural health scores, and writes `ai/repo-indepth.json`. Its git-history analysis runs local `git` via `execFile` (no shell). |
+| `lib/intake` | Interactive onboarding questionnaire. Captures developer skill level, warns about default-branch installation, confirms detected stack, detects the user's primary AI coding tool (see §4.6), and (for Process 2) explains the backup flow. Reads `.git/HEAD` directly without shelling out to git. |
+| `lib/installer` | Template stamping and manifest-based uninstall. Reads templates from the `templates/` directory, substitutes `{{PLACEHOLDER}}` variables, writes stamped files, and records every written path **with a SHA-256 content hash** in `ai/install-manifest.json` (the basis for incremental re-runs and the child-lock — see §3.6). Maps template subtrees to per-tool destinations (`github/` → `.github/`, `agents/` → `.agents/`, `cursor/` → `.cursor/`). For Process 2 repos, creates timestamped backups before overwriting. |
+| `lib/verify` | Mechanical path-claim verification. Extracts backtick-quoted path references from knowledge documents, builds a file-tree index, and cross-references claims against the index. Filters out URLs, bash commands, and common code idioms (e.g., `module.exports`, `process.env`) using an exclusion list. Exports a pure `computeVerification()` used by `status`. |
+| `lib/drift` | Map drift detection. Compares `MODULE_MAP.md` entries against the filesystem to find unmapped code-bearing directories, vanished map entries, and (with `--git`) stale `[verified]` rows. Exports a pure `computeDrift()` used by `status`. |
+| `lib/status` | One-command health snapshot. Runs the verify and drift core scans in-process (structural only, never git), counts `[verified]`/`[inferred]` MODULE_MAP rows, and prints a single verdict (see §6.3). |
+| `lib/doctor` | Read-only "what do I do next?" diagnostic. Detects which of the five workflow stages the repo is at and prints the exact next command. Writes nothing. |
+| `lib/audit` | Guided, interactive-only human audit of `MODULE_MAP.md` (see §4.8). The only kit code that writes `[verified]` tags — and only after explicit per-row human confirmation. |
+| `lib/demo` | Zero-risk playground. Copies the bundled example into a fresh temporary directory and runs `orient` + `install` there in-process (see §11.3). |
+| `lib/progress` | Regenerates the offline progress dashboard `ai/START-HERE.html` after `install`, `verify`, `drift`, `status`, and `audit` runs (see §8.2). |
 
-Within a single CLI invocation (e.g., `shazam`), modules pass data in-memory as function arguments. For persistent state across independent invocations, the kit uses filesystem documents: `ai/repo-profile.json` stores profile data, and `ai/install-manifest.json` records installed files for clean uninstall.
+Within a single CLI invocation (e.g., `shazam`), modules pass data in-memory as function arguments. For persistent state across independent invocations, the kit uses filesystem documents: `ai/repo-profile.json` stores profile data, and `ai/install-manifest.json` records installed files (with content hashes) for incremental re-runs and clean uninstall.
 
 ### 3.5 Kit-Footer Detection
 
 The kit distinguishes its own generated files from user-authored files using a footer marker: `<!-- Installed by ai-fication-kit`. This HTML comment is stamped at the bottom of kit-generated `CLAUDE.md` and `AGENTS.md` files. Its presence or absence drives the Process 1 vs. Process 2 decision gate (see §4.3). The marker is defined as the constant `KIT_FOOTER_MARKER` in `lib/util`.
+
+### 3.6 Incremental Re-Runs, Hash Provenance, and the Child-Lock
+
+New in v0.2.0, re-running `install`/`shazam` on an already-scaffolded repository is safe by construction. The install manifest records a SHA-256 hash per written file, enabling a deterministic three-way comparison on every re-run:
+
+- **New kit assets** (present in the templates, absent on disk) are written — so upgrades deliver new files.
+- **Untouched kit files** (on-disk hash matches the manifest) are refreshed to the latest template.
+- **User-edited files** (on-disk hash differs from the manifest) are kept — human edits are never overwritten by default.
+
+On top of this sits the **child-lock**: any file carrying a human `[verified]` tag is never overwritten, **even with `--force`**. The only way through is the explicit `--force-verified` escape hatch, which prints a per-signature warning quoting exactly what would be lost and requires typed `overwrite` consent (backups are always taken; non-interactive runs behave safely). Re-runs also carry the `humanContext` block of `ai/repo-profile.json` forward, so intake answers survive upgrades.
+
+The child-lock is notable in the trust model (§5): unlike the advisory stability rules that constrain *agent* behavior, it is a *programmatic* control on the kit's own write path — the installer mechanically refuses to destroy a human signature.
 
 ---
 
@@ -142,7 +164,7 @@ A read-only diagnostic that inspects 11 aspects of the target repository:
 | Security | 2 | `SECURITY.md` file |
 | Gitignore | 3 | `.gitignore` existence (2) and common pattern coverage (1) |
 
-The check produces a numeric score (0–100) and a maturity level: Minimal (0–24), Early (25–49), Developing (50–79), or Mature (80–100). AI config presence is recorded but does not contribute to the numeric score. Because the AI-config row is neutral, the scored rows above sum to 95 — the maximum attainable score in practice — but the level bands are unchanged (≥80 is still Mature).
+The check produces a numeric score (0–100), a maturity level — Minimal (0–24), Early (25–49), Developing (50–79), or Mature (80–100) — a rich console report, and `MATURITY_REPORT.json`. AI config presence is recorded but does not contribute to the numeric score. Because the AI-config row is neutral, the scored rows above sum to 95 — the maximum attainable score in practice — but the level bands are unchanged (≥80 is still Mature).
 
 ### 4.3 The Two Installation Processes
 
@@ -154,7 +176,7 @@ The maturity check determines one of two installation paths. The decision is bas
 
 Backup files are never deleted by `uninstall` — the user's prior knowledge is preserved. The `uninstall` command reports their locations so the user can manage them manually.
 
-### 4.4 Step 1: Orient
+### 4.4 Step 1: Orient (and the Optional `indepth` Pass)
 
 The `orient` command reads marker files at the repository root and writes `ai/repo-profile.json`. It calls `checkMaturity()` internally to embed maturity data (`maturity.process`, `maturity.score`, `maturity.level`, `existingAIConfig`). It also detects fork status by inspecting `.git/config` for an `upstream` remote, and extracts a project description from the README's first text line.
 
@@ -162,9 +184,11 @@ When several stacks are present, `orient` de-duplicates detectors by build syste
 
 All detected values are deterministic guesses. Users can override any detection with CLI flags: `--name`, `--description`, `--build`, `--test`, `--upstream`.
 
+Since v0.1.2, a deeper optional pass is available: `node install.mjs indepth <path>` (or `--analysis-level indepth` on `shazam`) runs the `lib/indepth` engine — per-file code metrics, dependency graphs, and structural health scores — and writes `ai/repo-indepth.json`. Like `orient`, it is deterministic and model-free.
+
 ### 4.5 Step 2: Install
 
-The `install` command reads templates from `templates/`, substitutes placeholder variables, and writes the stamped files. The template variables substituted by the `placeholders()` function are:
+The `install` command reads templates from `templates/`, substitutes placeholder variables, and writes the stamped files — including the per-tool automation trees (`.claude/`, `.github/`, `.agents/`, `.cursor/`; see §9) and the CI workflow `ai-check.yml`. The template variables substituted by the `placeholders()` function are:
 
 | Variable | Source |
 |---|---|
@@ -177,17 +201,17 @@ The `install` command reads templates from `templates/`, substitutes placeholder
 | `{{FORK_LINE}}` / `{{FORK_RULE}}` | Fork-aware text for agent instructions |
 | `{{TEST_DIRS}}` | Detected test directories |
 | `{{DATE}}` | Current date (ISO 8601 date portion) |
-| `{{KIT_VERSION}}` | Current kit version (0.1.0) |
+| `{{KIT_VERSION}}` | Current kit version (0.2.0) |
 
-Without `--force`, existing files are not overwritten. The manifest merges across installs so `uninstall` can always perform a clean removal. In non-interactive environments (no TTY) and with `--yes`, the kit's interactive prompts — the `shazam` intake wizard (§4.6) and the install confirmation — self-skip, making the kit CI-compatible.
+Without `--force`, existing files are not overwritten; on re-runs the hash-based three-way comparison of §3.6 decides per file whether to write, refresh, or keep, and the child-lock protects `[verified]` work unconditionally. The manifest merges across installs so `uninstall` can always perform a clean removal. In non-interactive environments (no TTY) and with `--yes`, the kit's interactive prompts — the `shazam` intake wizard (§4.6) and the install confirmation — self-skip, making the kit CI-compatible.
 
 ### 4.6 The `shazam` Command
 
-The one-shot entry point that chains the above: `check-repo-maturity` → `orient` → interactive intake wizard (if TTY and not `--yes`) → `install`. The wizard asks 4–5 questions: developer skill/familiarity, branch safety warnings (reads `.git/HEAD` to detect `main`/`master`), and stack confirmation. Answers are saved under a `humanContext` block in `ai/repo-profile.json`.
+The one-shot entry point that chains the above: `check-repo-maturity` → `orient` → interactive intake wizard (if TTY and not `--yes`) → `install`. The wizard asks a handful of questions: developer skill/familiarity, branch safety warnings (reads `.git/HEAD` to detect `main`/`master`), stack confirmation, and — new in the 0.2.0 cycle — "Which AI coding tool will you use?", pre-selected via read-only inspection of the environment (`~/.claude/`, `.cursor/` in the target or home directory, `~/.vscode/extensions/github.copilot*`; any read failure is tolerated silently). Answers are saved under a `humanContext` block in `ai/repo-profile.json` (the tool choice as `humanContext.primaryTool`), and the post-install "Next steps" output then shows only the chosen tool's instructions, pointing to `docs/MULTI-TOOL-SETUP.md` for the rest. `--yes`/no-TTY runs are unaffected — the wizard self-skips, and automation keeps the generic output.
 
 ### 4.7 Step 3: Cold-Start (Agent Inference)
 
-The `/cold-start` slash command is executed by an AI coding agent (not by the kit itself). The agent:
+The `/cold-start` command is executed by an AI coding agent (not by the kit itself). The agent:
 
 1. Reads `ai/repo-profile.json` to understand the detected stack and human context.
 2. (Process 2 only) Scans `*_bkp_*.md` backup files and extracts prior conventions, architecture notes, and module descriptions.
@@ -196,7 +220,7 @@ The `/cold-start` slash command is executed by an AI coding agent (not by the ki
 5. Drafts supplementary documents: `PROJECT_OVERVIEW.md`, `ARCHITECTURE.md`, `FEATURE_MAP.md`, `CONVENTIONS.md`, and Mermaid diagrams under `ai/analysis/diagrams/`.
 6. Prints an audit TODO table summarizing what needs human verification.
 
-According to the project documentation, this step runs for approximately five minutes.
+According to the project documentation, this step runs for approximately five minutes (more on large repositories).
 
 ### 4.8 Step 4: Human Audit
 
@@ -212,18 +236,27 @@ The human audit is the step on which the entire trust model rests. The operator 
 
 The audit documentation notes an asymmetric cost principle: a false `frozen` costs an occasional "the agent refused to touch X" prompt; a false `ours` lets an agent modify load-bearing code it does not understand. When torn between two values, the more conservative choice is recommended.
 
+**The guided `audit` command.** The 0.2.0 cycle added kit support for this step: `node install.mjs audit` walks the operator through `MODULE_MAP.md` row by row, gathering deterministic evidence per row (file count; the three largest and newest files via `fs.stat`; `--git` adds the last commit touching that area) — but it only ever writes a `[verified] (DD/MM/YYYY HH:mm)` tag after an explicit per-row human confirmation. Uniquely among the kit's commands, `--yes` does **not** unlock `audit`: automation must never manufacture a human signature. The command takes one timestamped backup before its first write and supports `--dry-run`.
+
 ### 4.9 Step 5: Verify (Optional)
 
-The optional verification step is, in the project's own terms, a "Script + Agent" stage: it pairs the deterministic `verify`/`drift` scripts (§6) with three agent-driven audits.
+The optional verification step is, in the project's own terms, a "Script + Agent" stage: it pairs the deterministic `verify`/`drift` scripts (§6) with agent-driven audits.
 
-- **Deterministic half.** `verify` (no LLM) mechanically cross-checks every file-path claim in the knowledge docs against the real tree; `drift` reports where the code has outgrown the map.
-- **Agent half.** `/post-cold-start-verification` (semantic gap report), `/verify-ai-readiness` (maturity-scale rating), and `/perform-feature-add-simulation` (dry-run friction test) judge the semantic quality a script cannot.
+- **Deterministic half.** `verify` (no LLM) mechanically cross-checks every file-path claim in the knowledge docs against the real tree; `drift` reports where the code has outgrown the map. The stamped CI workflow (`.github/workflows/ai-check.yml`) runs both with `--strict` on every push and pull request.
+- **Agent half.** `/check-drift` (runs the two scripts, then `git status` as a procedural safeguard against files mechanical checks miss, and drafts `[inferred]` map updates), `/post-cold-start-verification` (semantic gap report), `/verify-ai-readiness` (maturity-scale rating), and `/perform-feature-add-simulation` (dry-run friction test) judge the semantic quality a script cannot.
 
 The step is optional but recommended before building features, and its mechanical half is CI-friendly via `--strict` (see §5.3, §6).
 
 ### 4.10 Step 6: Build (`/add-feature`)
 
 Agent-assisted development through the `add-feature` skill (§9.3): spec first, locate via the maps, respect Stability, surgical implementation, tests before "done," and a knowledge update afterward. This is where verified scaffolding is finally used to ship change safely.
+
+### 4.11 Everyday Health Commands (`status`, `doctor`)
+
+Two read-only commands added in the 0.2.0 cycle support day-to-day use between the numbered steps:
+
+- **`status`** — a one-command health snapshot (see §6.3) that answers "can I trust the map right now?" with a single verdict.
+- **`doctor`** — answers "what do I do next?": it detects which of the five workflow stages the repository is at (no scan yet / no MODULE_MAP / unaudited `[inferred]` rows / no or failing verify-drift manifests / fully verified) and prints the exact next command in plain language. It writes nothing, ever.
 
 ---
 
@@ -236,11 +269,15 @@ The kit defines two provenance states for every claim in the knowledge layer:
 - **`[inferred]`** — drafted by an agent or a deterministic tool. Treated as a plausible guess, not a fact. Agents can create and modify `[inferred]` content.
 - **`[verified]` (date)** — confirmed by a human operator, with the verification date. By the agent rules the kit installs, agents must never write this tag themselves; the `[verified]` flip is the human's signature. This is an instructional constraint (see §5.2), reinforced by the `/post-cold-start-verification` provenance-hygiene check — not a programmatic access control.
 
+The flip can be made by hand in an editor, or through the guided `audit` command (§4.8), which is the only kit code path that writes `[verified]` — and only after an explicit, interactive, per-row human confirmation that `--yes` cannot bypass.
+
 If a `[verified]` tag is found that the operator did not write, the project documentation instructs treating it as a process violation: revert the flip, remind the agent, and report it as an issue.
 
 ### 5.2 Stability Markers and Provenance as Behavioral Constraints
 
 The stability column in `MODULE_MAP.md` functions as a behavioral constraint for agent edits, and the provenance discipline of §5.1 operates the same way. These rules are **advisory**: they are defined in the prompt instructions (`CLAUDE.md`, `AGENTS.md`) that the agent reads, not enforced by a programmatic access-control system. Their effectiveness depends on the agent faithfully following its instructions; the deterministic checks of §5.3 and the `/post-cold-start-verification` command act as *detective* controls that catch violations after the fact, not *preventive* ones.
+
+One boundary of this model moved in v0.2.0: on the kit's *own* write path, protection of `[verified]` work is now programmatic. The installer's child-lock (§3.6) mechanically refuses to overwrite any file carrying a human `[verified]` tag — even with `--force` — and the `audit` command refuses to accept `--yes` in place of a human confirmation. Agent edits to the knowledge layer remain governed by the advisory rules.
 
 | Stability | Expected agent behavior |
 |---|---|
@@ -251,7 +288,7 @@ The stability column in `MODULE_MAP.md` functions as a behavioral constraint for
 
 ### 5.3 Mechanical Honesty
 
-The `verify` and `drift` commands provide deterministic, LLM-free checks that the knowledge layer has not silently diverged from the codebase. When run with `--strict` in CI, they fail the build if any path claim is stale or if code has outgrown the map. This closes the loop: human judgment sets the trust boundaries, and deterministic automation enforces their mechanical integrity over time.
+The `verify` and `drift` commands provide deterministic, LLM-free checks that the knowledge layer has not silently diverged from the codebase. When run with `--strict` in CI, they fail the build if any path claim is stale or if code has outgrown the map; the stamped `ai-check.yml` workflow runs them on every push. With `--github-summary`, both commands additionally append a plain-English ✅/❌ summary to `$GITHUB_STEP_SUMMARY` (one line per problem), so CI failures read like guidance instead of raw logs. This closes the loop: human judgment sets the trust boundaries, and deterministic automation enforces their mechanical integrity over time.
 
 ---
 
@@ -261,13 +298,13 @@ The `verify` and `drift` commands provide deterministic, LLM-free checks that th
 
 The `verify` command extracts every backtick-quoted token from the knowledge documents that resembles a file or directory path. It specifically scans: `CLAUDE.md`, `AGENTS.md`, all `*.md` files in `ai/guide/`, and all `FEATURE_CATALOG*.md` files in `ai/analysis/`. The `extractClaims()` function filters out URLs, CLI flags, shell commands, template placeholders, globs, and common code idioms (the `VERIFY_NON_FILES` set includes `module.exports`, `process.env`, `console.log`, etc.).
 
-Each extracted claim is checked against a file-tree index built by a single traversal of the target directory (skipping directories in `VERIFY_IGNORED_DIRS`: `node_modules`, `.git`, `dist`, etc.). Results are categorized as:
+Each extracted claim is checked against a file-tree index built by a single traversal of the target directory (skipping directories in `VERIFY_IGNORED_DIRS`: `node_modules`, `.git`, `dist`, etc.; the disk probe is contained strictly inside the target repository). Results are categorized as:
 
 - **`confirmed`** — the path exists on disk.
 - **`moved`** — the exact path is gone but a file with the same basename exists elsewhere.
 - **`missing`** — the path cannot be found.
 
-Output: `VERIFICATION_MANIFEST.json` and `VERIFICATION_REPORT.md` in `ai/analysis/audit-reports/`.
+Output: `VERIFICATION_MANIFEST.json` and `VERIFICATION_REPORT.md` in `ai/analysis/audit-reports/`. The scan core is exported as a pure `computeVerification()` function consumed by `status` (§6.3); the CLI behavior is unchanged.
 
 ### 6.2 Drift
 
@@ -275,9 +312,15 @@ The `drift` command performs the reverse check — detecting where the codebase 
 
 - **`unmapped`** — code-bearing directories (containing source files, not just config or docs) that no `MODULE_MAP.md` row covers.
 - **`vanished`** — directories or entry points the map references that no longer exist on disk.
-- **`stale`** (with `--git`) — `[verified]` rows whose underlying source files have been modified since the verified commit. This is the only check that shells out to an external command: a local, read-only `git` invocation (`git rev-parse` to read `HEAD`, then `git diff --name-only <verified-commit> HEAD` to list the files changed since the verified commit). It never mutates the repository.
+- **`stale`** (with `--git`) — `[verified]` rows whose underlying source files have been modified since the verified commit. This check shells out only to a local, read-only `git` invocation (`git rev-parse` to read `HEAD`, then `git diff --name-only <verified-commit> HEAD` to list the files changed since the verified commit). It never mutates the repository.
 
-Output: `DRIFT_MANIFEST.json` and `DRIFT_REPORT.md`. Both commands support `--strict` (exit non-zero on any issue, for CI integration) and `--dry-run`.
+With `--suggest`, `drift` goes one step further than reporting: it appends ready-to-paste `MODULE_MAP.md` rows for every unmapped directory (with a deterministic entry-point guess — `index.*`/`main.*`, else the largest source file) and the exact line number to delete or fix for every vanished row, mirrored as a `suggestions` array in the manifest. It never edits `MODULE_MAP.md` itself; without the flag, output is unchanged.
+
+Output: `DRIFT_MANIFEST.json` and `DRIFT_REPORT.md`. Both `verify` and `drift` support `--strict` (exit non-zero on any issue, for CI integration), `--dry-run`, and `--github-summary` (§5.3). Like `verify`, the scan core is exported as a pure `computeDrift()` function.
+
+### 6.3 Status
+
+The `status` command condenses the health of the knowledge layer into a single verdict. It runs `verify`'s and `drift`'s core scans in-process (structural checks only — it never invokes git), counts the `[verified]`/`[inferred]` rows in `MODULE_MAP.md` and the newest audit date, and prints one of three verdicts: **`TRUSTED`**, **`NEEDS AUDIT`**, or **`DRIFTING`**. With `--json` it additionally writes `ai/analysis/audit-reports/STATUS.json` containing a shields.io-schema `badge` object, suitable for a README status badge.
 
 ---
 
@@ -285,10 +328,11 @@ Output: `DRIFT_MANIFEST.json` and `DRIFT_REPORT.md`. Both commands support `--st
 
 The kit's installer is designed to be minimal-trust:
 
-- **Zero dependencies.** Node.js standard library only. No external packages to audit.
-- **No network access.** Nothing is downloaded, fetched, or sent.
-- **No code execution.** The kit copies and stamps text files; it never runs the user's code or any third-party code. (Exception: `drift --git` runs local, read-only `git` — `git rev-parse` and `git diff` — which inspects history without modifying the repository.)
-- **No writes outside the target.** Only the directory passed as a CLI argument is modified. The `uninstall` command includes a path-traversal guard that verifies all deletions are strictly within the target directory.
+- **Zero dependencies.** Node.js standard library only. No external packages to audit. (The repository carries a `package-lock.json` solely so CI's `npm ci` works; the runtime dependency list is empty.)
+- **No network access.** Nothing is downloaded, fetched, or sent. The progress dashboard (§8.2) makes zero external requests.
+- **No code execution.** The kit copies and stamps text files; it never runs the user's code or any third-party code. (Exceptions: `drift --git`, `audit --git`, and `indepth`'s history analysis run local, read-only `git` — via `execFile`, with no shell — which inspects history without modifying the repository.)
+- **No writes outside the target.** Only the directory passed as a CLI argument is modified. The `uninstall` command includes a path-traversal guard that verifies all deletions are strictly within the target directory. (`demo` writes only to a fresh directory under the OS temporary folder.)
+- **Human signatures are mechanically protected.** The child-lock (§3.6) prevents the installer from overwriting any file carrying a `[verified]` tag, even with `--force`; the `--force-verified` escape hatch requires typed consent and always takes backups. The `audit` command never accepts `--yes` in place of a human confirmation.
 - **Dry-run support.** `--dry-run` shows the full plan before any writes.
 - **Clean removal.** `uninstall` reads `ai/install-manifest.json` and deletes exactly the files recorded. Backup files created during Process 2 are explicitly preserved and their locations are reported to the user.
 
@@ -304,14 +348,16 @@ After installation and cold-start, the target repository contains:
 
 ```
 your-repo/
-├── CLAUDE.md                     # Agent instructions for Claude Code
+├── CLAUDE.md                     # Agent instructions for Claude Code (thin; points everywhere else)
 ├── AGENTS.md                     # Tool-agnostic agent rules
 ├── CLAUDE_bkp_*.md               # (Process 2 only) timestamped backup
 ├── AGENTS_bkp_*.md               # (Process 2 only) timestamped backup
 ├── ai/
 │   ├── INDEX.md                  # Role → path manifest
+│   ├── START-HERE.html           # Offline progress dashboard (see §8.2)
 │   ├── repo-profile.json         # Deterministic stack facts
-│   ├── install-manifest.json     # Written file record
+│   ├── repo-indepth.json         # (optional) indepth: dependency graph, metrics, health scores
+│   ├── install-manifest.json     # Written-file record + SHA-256 hashes
 │   ├── guide/                    # Human-verified navigation
 │   │   ├── MODULE_MAP.md         # Directory → responsibility → stability
 │   │   ├── ARCHITECTURE.md       # System architecture
@@ -321,22 +367,30 @@ your-repo/
 │   ├── analysis/                 # Generated on demand
 │   │   ├── FEATURE_CATALOG.md    # Feature index with touch lists
 │   │   ├── diagrams/             # Mermaid diagrams
-│   │   ├── audit-reports/        # Verify, drift, and maturity reports
+│   │   ├── audit-reports/        # Verify, drift, status, and maturity reports
 │   │   └── problems/             # Dated issue analyses
 │   └── lab/                      # Development intelligence
 │       ├── decisions/            # Architecture Decision Records
 │       ├── specs/                # Feature specifications
 │       ├── evaluations/          # Post-implementation reviews
 │       └── experiments/          # Agent approach trials
-└── .claude/
-    ├── commands/                 # 7 slash commands
-    ├── agents/                   # 3 subagent definitions
-    └── skills/                   # add-feature skill
+├── .claude/                      # Claude Code: 8 slash commands, 3 subagents,
+│                                   add-feature skill
+├── .github/                      # GitHub Copilot: copilot-instructions.md,
+│                                   prompts/*.prompt.md (same 8 commands),
+│                                   chatmodes/*.chatmode.md (same 3 personas),
+│                                   workflows/ai-check.yml (CI verify + drift)
+├── .agents/                      # Google Antigravity: workflows/*.md (same 8 commands),
+│                                   skills/add-feature/ (shared Agent Skills format)
+└── .cursor/                      # Cursor: rules/*.mdc (same 8 commands as native rules,
+                                    plus one always-on knowledge-layer index rule)
 ```
 
 ### 8.2 The `ai/` Knowledge Layer
 
 The `ai/` folder is the tool-agnostic core. Its `INDEX.md` maps roles to paths so that prompts and commands reference *roles* ("navigation guide," "feature catalog") rather than file paths. If paths change, only `INDEX.md` needs updating. The `guide/` subdirectory is loaded by the agent every session; `analysis/` and `lab/` are loaded on demand per task.
+
+The 0.2.0 cycle added a **living progress page**, `ai/START-HERE.html` — a fully offline dashboard the kit stamps into every target repo. It shows a five-step workflow checklist (reusing `doctor`'s stage detection), `[verified]`/`[inferred]` row counts, open drift items, and a small glossary. `lib/progress` regenerates it at the end of `install`, `verify`, `drift`, `status`, and `audit`; it makes zero external requests and works by double-click. `uninstall` removes it like any other stamped file, and the CLI commands work fine if it is ever deleted. Because its content legitimately changes on every run, the installer exempts it from the usual edited-file and child-lock detection.
 
 ### 8.3 The Root Agent Files
 
@@ -346,13 +400,13 @@ The `ai/` folder is the tool-agnostic core. Its `INDEX.md` maps roles to paths s
 
 ---
 
-## 9. Claude Code Integration
+## 9. Agent Integration
 
-The kit's automation layer is built specifically for Claude Code, leveraging its native support for slash commands, subagents, and skills. This section documents every artifact the kit stamps into the `.claude/` directory and how they compose into a complete agentic development workflow.
+The kit's automation layer delivers the same workflow in four native tool formats from a single install. The command *content* is authored once; the installer stamps it as Claude Code slash commands (`.claude/commands/*.md`), GitHub Copilot prompt files (`.github/prompts/*.prompt.md`), Google Antigravity workflows (`.agents/workflows/*.md`), and Cursor rules (`.cursor/rules/*.mdc`, `alwaysApply: false`, plus one always-on `ai-knowledge-layer.mdc` rule pointing at `ai/INDEX.md` and the provenance rule). Claude Code remains the deepest integration — it alone adds native subagent spawning and auto-triggered skills — so this section describes the commands in their Claude Code form; the other formats carry the same instructions.
 
-### 9.1 Slash Commands
+### 9.1 The Eight Workflow Commands
 
-Seven slash commands are stamped into `.claude/commands/`. Each is a Markdown file with YAML frontmatter (containing a `description` field) followed by detailed, structured instructions that Claude Code executes when the user types the command.
+Eight commands are stamped into `.claude/commands/` (and mirrored per tool as above). Each is a Markdown file with YAML frontmatter (containing a `description` field) followed by detailed, structured instructions that the agent executes when the user invokes the command.
 
 #### `/cold-start` — Bootstrap the Knowledge Layer
 
@@ -376,6 +430,10 @@ A concise command (~18 lines) that activates the `add-feature` skill (see §9.3)
 4. **Build surgically.** Smallest diff that satisfies the spec; match conventions and license headers.
 5. **Verify.** Run the test suites matching the change. Failing or unrun tests mean the task is not done.
 6. **Update knowledge.** Add `FEATURE_MAP` entries, catalog amendments, and `MODULE_MAP` updates — all tagged `[inferred]`.
+
+#### `/check-drift` — Mechanical Checks Plus a Bias Safeguard
+
+Added in v0.1.2. Runs the two deterministic integrity checks (`verify --strict`, then `drift --git --strict`), then runs `git status` as an explicit procedural safeguard against automation bias — catching newly added or modified files inside already-mapped directories that the mechanical directory-level checks can miss. If issues are found, the agent drafts `[inferred]` updates to `MODULE_MAP.md`/`FEATURE_MAP.md` and reports what needs the human's manual review. (The safeguard was motivated by a documented drift blind spot — see `docs/dev/lessons-learnt/drift-blindspots-and-automation-bias.md`.)
 
 #### `/create-feature-catalog` — Deep Feature Mining
 
@@ -433,9 +491,9 @@ Simulates adding a user-named feature *without writing a single line of code*. I
 
 Output is a friction report with per-phase scores, the specific missing knowledge that caused friction, estimated context cost, and a go/no-go recommendation. The command frames knowledge gaps found here as "the cheapest bugs you will ever fix."
 
-### 9.2 Subagents
+### 9.2 Subagents (and Their Copilot Chat-Mode Mirrors)
 
-Three subagent definitions are stamped into `.claude/agents/`. Each is a Markdown file with YAML frontmatter defining a `name`, `description`, and `tools` list. Claude Code spawns these as isolated helper processes, each with its own context window, so the main agent's working memory is preserved.
+Three subagent definitions are stamped into `.claude/agents/`. Each is a Markdown file with YAML frontmatter defining a `name`, `description`, and `tools` list. Claude Code spawns these as isolated helper processes, each with its own context window, so the main agent's working memory is preserved. For GitHub Copilot, the same three personas are stamped as chat modes (`.github/chatmodes/*.chatmode.md`); other tools do not support delegated helper agents.
 
 #### `repo-explorer` — Read-Only Codebase Scout
 
@@ -474,7 +532,7 @@ Runs builds and test suites and reports results faithfully. Its instructions enf
 
 ### 9.3 The `add-feature` Skill
 
-The `.claude/skills/add-feature/` directory contains a `SKILL.md` file and a `reference/` subdirectory. Skills in Claude Code are more structured than slash commands: they are automatically triggered when relevant and provide multi-step automation logic.
+The `.claude/skills/add-feature/` directory contains a `SKILL.md` file and a `reference/` subdirectory. Skills in Claude Code are more structured than slash commands: they are automatically triggered when relevant and provide multi-step automation logic. Because Google Antigravity supports the same shared Agent Skills (`SKILL.md`) format, the skill is also stamped to `.agents/skills/add-feature/` for Antigravity users.
 
 The skill encodes a six-phase contract:
 
@@ -489,7 +547,7 @@ The skill's stated contract is: "no code before a spec, no edits to frozen code,
 
 ### 9.4 How the Pieces Compose
 
-The slash commands, subagents, and skill form a layered system designed around context-window preservation and separation of concerns:
+The workflow commands, subagents, and skill form a layered system designed around context-window preservation and separation of concerns:
 
 ```
 Developer → /cold-start ─┬→ repo-explorer (heavy reading)
@@ -500,7 +558,7 @@ Developer → /add-feature ─→ add-feature skill ─┬→ repo-explorer (loc
                                                 └→ test-runner (verify)
 ```
 
-The main agent orchestrates; subagents do the context-heavy work in isolated windows. The skill encodes the multi-phase contract so the agent follows it consistently. Slash commands provide the user-facing entry points. Together they form the workflow from onboarding (`/cold-start`) through verification (`/review-agent-config`, `/post-cold-start-verification`, `/verify-ai-readiness`) to safeguarded development (`/add-feature`) and quality assurance (`/perform-feature-add-simulation`).
+The main agent orchestrates; subagents do the context-heavy work in isolated windows. The skill encodes the multi-phase contract so the agent follows it consistently. The workflow commands provide the user-facing entry points. Together they form the workflow from onboarding (`/cold-start`) through verification (`/check-drift`, `/review-agent-config`, `/post-cold-start-verification`, `/verify-ai-readiness`) to safeguarded development (`/add-feature`) and quality assurance (`/perform-feature-add-simulation`).
 
 ---
 
@@ -522,28 +580,28 @@ The `orient` command detects stacks by probing marker files at the repository ro
 | Ruby | `Gemfile` | Bundler (`bundle install` / `bundle exec rake test`) |
 | PHP | `composer.json` | Composer commands |
 
-Multiple stacks are detected simultaneously for polyglot repositories. Detection operates only at the repository root; this is a documented limitation for monorepos with nested build systems. The FAQ provides workarounds: explicit `--build`/`--test` overrides, per-package `MODULE_MAP.md` rows via the audit, or separate kit installations per sub-repo.
+Multiple stacks are detected simultaneously for polyglot repositories, and v0.2.0's test hardening added a detector matrix covering every supported stack. Detection operates only at the repository root; this is a documented limitation for monorepos with nested build systems. The FAQ provides workarounds: explicit `--build`/`--test` overrides, per-package `MODULE_MAP.md` rows via the audit, or separate kit installations per sub-repo.
 
 ### 10.2 Tool Compatibility
 
-The kit's knowledge layer (`ai/` and `AGENTS.md`) is tool-agnostic. The automation layer (`.claude/`) is Claude Code-specific. The following table summarizes what each tool receives:
+The kit's knowledge layer (`ai/` and `AGENTS.md`) is tool-agnostic. The automation layer is stamped natively for four tools; the remainder drive the workflow manually. The following table summarizes what each tool receives:
 
-| Feature | Claude Code | Cursor / Copilot / Codex / Windsurf |
-|---|---|---|
-| `AGENTS.md` rules | ✓ (via `CLAUDE.md` `@import`) | ✓ (read natively) |
-| `ai/` knowledge layer | ✓ | ✓ |
-| Provenance tags (`[inferred]`/`[verified]`) | ✓ | ✓ |
-| Slash commands (7 commands) | ✓ (native — type `/cold-start`) | Manual (paste command body as prompt, removing YAML frontmatter) |
-| Subagents (3 agents) | ✓ (native spawning) | Not available |
-| Skills (`add-feature`) | ✓ (auto-triggered) | Not available |
+| Feature | Claude Code | GitHub Copilot | Google Antigravity | Cursor | Codex / Windsurf |
+|---|---|---|---|---|---|
+| `AGENTS.md` rules | ✓ (via `CLAUDE.md` `@import`) | ✓ (+ `copilot-instructions.md`) | ✓ | ✓ | ✓ (read natively) |
+| `ai/` knowledge layer | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Provenance tags (`[inferred]`/`[verified]`) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| The 8 workflow commands | ✓ native slash commands | ✓ native prompt files | ✓ native workflows | ✓ native rules (`.mdc`) | Manual (paste command body as prompt) |
+| Helper-agent personas (3) | ✓ native subagent spawning | ✓ chat modes (mirrors) | — | — | — |
+| `add-feature` skill | ✓ (auto-triggered) | — | ✓ (shared Agent Skills format) | — | — |
 
 ---
 
-## 11. Bundled Examples
+## 11. Bundled Examples and the Demo Command
 
 ### 11.1 legacy-calculator
 
-A minimal JavaScript repository (five files: `calculator.js`, `test.js`, `package.json`, `.gitignore`, and a `README.md` walkthrough) used to demonstrate the full before-and-after transformation. Users can run `node install.mjs shazam examples/legacy-calculator` to see the kit produce the complete `ai/` knowledge layer and `.claude/` scaffolding.
+A minimal JavaScript repository (five files: `calculator.js`, `test.js`, `package.json`, `.gitignore`, and a `README.md` walkthrough) used to demonstrate the full before-and-after transformation. Users can run `node install.mjs shazam examples/legacy-calculator` to see the kit produce the complete `ai/` knowledge layer and multi-tool scaffolding. As of the 0.2.0 cycle, `examples/legacy-calculator/` is included in `package.json`'s `files` list, fixing a packaging gap where the example was silently absent under `npx`.
 
 ### 11.2 value-demo
 
@@ -555,37 +613,51 @@ A deterministic measurement tool that quantifies the context reduction provided 
 
 The measurement uses no model and no network — `measure.mjs` counts file bytes and applies a rough ~4 bytes/token estimate. These numbers come from a deliberately small sample app; the value-demo README notes that 3× is "the floor, not the ceiling" because the map's fixed cost stays constant while the full-crawl cost grows linearly with repository size.
 
+### 11.3 The `demo` Command
+
+For a zero-risk first contact, `node install.mjs demo` (no target argument) copies the bundled `legacy-calculator` example into a fresh directory under the OS temporary folder and runs `orient` + `install` there in-process, then prints a short tour of what was created and the suggested next step. Nothing in the user's own repositories is touched.
+
 ---
 
-## 12. Testing
+## 12. Testing and Release Engineering
 
-The kit includes a smoke-test suite (`test/run-tests.mjs`) that verifies:
+### 12.1 Test Suites
 
-- Node.js installer behavior
-- Stack detection across multiple marker-file configurations
+The kit includes a smoke-test suite (`test/run-tests.mjs`, `npm test`) that verifies:
+
+- Installer behavior, including incremental re-runs (write / refresh / keep classification), the child-lock, and `--force-verified`
+- Stack detection across a full detector matrix of every supported stack
 - Process 1 and Process 2 installation paths
 - Maturity check scoring and process assignment
 - Backup creation and content preservation
 - Kit-footer detection and exclusion logic
-- Verify and drift operations
+- Verify and drift operations (including CLI edge cases), plus `indepth` per-ecosystem dependency analysis
 - Uninstall completeness and backup file preservation
 - **Documentation link integrity** — every local link in the human-facing docs (`README.md`, `docs/**`, `examples/**`) is checked to ensure it resolves on disk, extending the honesty guarantee from the knowledge layer to the project's own prose
 
-The suite reports roughly 87 assertions per run; about 30 of these were added specifically to cover dual-mode (Process 2) installation. CI runs on Linux, macOS, and Windows.
+The suite currently reports on the order of 330 checks per run (332 at the time of writing) — up from roughly 87 at v0.1.0 — after a coverage-driven hardening pass in v0.2.0 that raised installer line coverage from 78.6% to 85.8% and established a CI coverage floor (83% lines / 73% branches, measured via `npm run coverage`). CI runs on Linux, macOS, and Windows.
+
+A separate **deep-test** suite (`test/run-deep-test.mjs`, `npm run deep-test`, added in v0.1.2) verifies repository health, standards compliance, placeholder leaks, and documentation/claim integrity on the kit's own repo.
+
+### 12.2 The Deterministic Release Gate
+
+v0.2.0 introduced `npm run release-check` (`test/release-check.mjs`) — a deterministic release gate that verifies version synchronization across files, gates on a complete changelog section, produces a changed-files coverage report, and checks that every CLI command is documented in `docs/CLI-REFERENCE.md`. The gate is enforced on every `v*` tag by the `.github/workflows/release-check.yml` workflow, and the kit's own repository must pass it (the smoke suite asserts this).
 
 ---
 
 ## 13. Current Status and Limitations
 
-### 13.1 Version
+### 13.1 Version and Report Scope
 
-The project is at version 0.1.0 (first public release, 2026-06-25). It is pre-v1.0 and maintained by a single author.
+The project is at version 0.2.0, released 2026-07-03 (v0.1.0, the first public release and the Zenodo-deposited version, was 2026-06-25; v0.1.1 and v0.1.2 were interim consolidation releases). It is pre-v1.0 and maintained by a single author.
+
+**Scope note.** A number of additions landed on the `main` branch immediately after the v0.2.0 tag, within the same development cycle, and are listed under *Unreleased* in the changelog: the `demo`, `doctor`, `status`, and `audit` commands; `drift --suggest`; the `--github-summary` flag; the `ai/START-HERE.html` progress page; AI-tool detection in the intake wizard; and the native Cursor rule assets. Because the repository's README documents them as part of the current toolset, this report describes them alongside the tagged v0.2.0 features; they will be formally released in the next version.
 
 ### 13.2 Known Limitations
 
 1. **Root-only detection.** The `orient` command inspects only the repository root for marker files. Monorepos with per-package manifests in subdirectories are detected as a single project. Workarounds are documented in the FAQ.
-2. **Claude Code coupling.** The automation layer (slash commands, subagents, skill) is Claude Code-specific. While the knowledge layer and agent rules are tool-agnostic, users of other tools must drive workflows manually by pasting command file contents as prompts and cannot use subagent delegation.
-3. **Advisory stability and provenance enforcement.** Stability markers and the `[verified]` discipline are behavioral constraints defined in agent instructions, not programmatic access controls. Their effectiveness depends on the AI agent faithfully following its instructions; deterministic and agent-driven checks catch violations after the fact rather than preventing them.
+2. **Uneven automation depth across tools.** The workflow commands are native in Claude Code, Copilot, Antigravity, and Cursor, but subagent delegation is native only in Claude Code (mirrored as Copilot chat modes), and the auto-triggered skill format is shared only between Claude Code and Antigravity. Codex and Windsurf users drive the workflows manually by pasting command file contents as prompts.
+3. **Advisory stability and provenance enforcement for agents.** Stability markers and the `[verified]` discipline are behavioral constraints defined in agent instructions, not programmatic access controls on the agent. Their effectiveness depends on the AI agent faithfully following its instructions; deterministic and agent-driven checks catch violations after the fact rather than preventing them. (The kit's *own* write path is now mechanically constrained — the child-lock and the `audit` command's consent requirements of §3.6 and §4.8 — but this does not bind third-party agents editing files directly.)
 4. **No automated semantic verification.** The `verify` and `drift` commands check structural integrity (file paths, directory existence). Semantic accuracy of descriptions depends on the human audit and optional agent-driven checks (`/post-cold-start-verification`).
 
 ### 13.3 Planned Work
@@ -599,7 +671,7 @@ The release checklist and documentation reference planned but not-yet-present it
 
 ## 14. Differentiation
 
-The README identifies six design pillars that distinguish this toolkit:
+The README identifies seven design pillars that distinguish this toolkit:
 
 | Design Pillar | Implementation |
 |---|---|
@@ -607,8 +679,9 @@ The README identifies six design pillars that distinguish this toolkit:
 | **Provenance tracking** | The `[inferred]` → `[verified]` progression ensures every claim has a known trust level. |
 | **Fork-aware stability** | Stability markers (`frozen` / `stable` / `ours` / `?`) prevent agents from touching upstream or legacy modules. |
 | **Active verification** | `verify` cross-checks path claims deterministically (no LLM); agent workflows cover semantic checks. |
-| **Drift detection** | `drift` catches the reverse problem — code the map no longer covers, entries that vanished, and (with `--git`) stale verified rows. |
+| **Drift detection** | `drift` catches the reverse problem — code the map no longer covers, entries that vanished, and (with `--git`) stale verified rows — so the map ages with the repo instead of silently rotting. |
 | **Dual-mode installation** | Automatic detection of legacy vs. modern repos. Process 2 preserves prior knowledge through timestamped backups and feeds it into `/cold-start` as seed intelligence. |
+| **Incremental re-runs (child-lock)** | Re-running `install`/`shazam` is safe by construction: a hash-verified three-way compare brings in new kit assets, refreshes untouched kit files, and keeps anything the user edited. Files carrying a human `[verified]` tag are never overwritten — even with `--force`. |
 
 ---
 
@@ -617,15 +690,18 @@ The README identifies six design pillars that distinguish this toolkit:
 ai-fication-kit provides a structured method for making any existing codebase navigable by AI coding agents while preserving human authority over trust decisions. Its core contributions are:
 
 1. **A provenance-tracked knowledge layer** (`ai/`) where every claim carries an explicit trust tag (`[inferred]` or `[verified]`).
-2. **A strict separation** between deterministic observation (the `orient`/`verify`/`drift` pipeline) and model inference (agent-driven `/cold-start` and `/add-feature`).
+2. **A strict separation** between deterministic observation (the `orient`/`indepth`/`verify`/`drift` pipeline) and model inference (agent-driven `/cold-start` and `/add-feature`).
 3. **Stability markers** (`frozen` / `stable` / `ours` / `?`) that function as behavioral constraints for agent edits.
-4. **Mechanical integrity checks** (`verify` and `drift`) that keep the knowledge layer honest as the codebase evolves, with CI-compatible `--strict` modes.
-5. **A deeply integrated Claude Code automation layer** — seven slash commands, three subagents, and a multi-phase skill — composing into a complete agentic workflow from onboarding through safeguarded feature delivery.
-6. **A zero-dependency Node.js implementation** that never executes user code or accesses the network.
-7. **Dual onboarding value** — the verified `ai/` folder serves both AI agents and human engineers as instant, trustworthy repository documentation.
+4. **Mechanical integrity checks** (`verify` and `drift`) that keep the knowledge layer honest as the codebase evolves, with CI-compatible `--strict` modes, plain-English CI summaries, and a one-command `status` verdict.
+5. **A multi-tool native automation layer** — eight workflow commands, three helper-agent personas, and a multi-phase skill — stamped for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install, composing into a complete agentic workflow from onboarding through safeguarded feature delivery.
+6. **Mechanically protected human signatures** — hash-verified incremental re-runs whose child-lock never overwrites `[verified]` work, and a guided `audit` command that writes a `[verified]` tag only after explicit per-row human consent.
+7. **A zero-dependency Node.js implementation** that never executes user code or accesses the network.
+8. **Dual onboarding value** — the verified `ai/` folder serves both AI agents and human engineers as instant, trustworthy repository documentation.
 
 The kit transforms a legacy repository into an AI-native workspace through a single `shazam` command, then relies on the human audit to convert scaffolding into a verified knowledge-base that serves both AI agents and human engineers.
 
 ---
 
-*Revision v4 (2026-06-28): incorporates corrections from an independent technical review — provenance-enforcement wording (advisory/instructional, not "structural"); the `drift --git` command description (`git rev-parse` / `git diff`, not `git log`); the Step 5 (Verify) workflow definition and an explicit Step 6 subsection; the `CLAUDE.md`/`AGENTS.md` duplication description; the maturity-score 95 ceiling; the test-suite figures; the Ruby default command; the legacy-calculator file count; and several minor precision fixes.*
+*Revision v5 (2026-07-04): updated for the 0.2.0 release cycle — Node-only runtime; incremental re-runs with hash provenance, the child-lock, and `--force-verified`; native GitHub Copilot, Google Antigravity, and Cursor automation assets; the eighth workflow command (`/check-drift`) and the `indepth`, `demo`, `doctor`, `status`, and `audit` commands; `drift --suggest` and `--github-summary`; the `ai/START-HERE.html` progress page; AI-tool detection in the intake wizard; the deterministic release gate; updated test-suite and coverage figures; and the README's revised goal/why/how framing. See §13.1 for the scope note on post-tag additions.*
+
+*Revision v4 (2026-06-28): incorporated corrections from an independent technical review — provenance-enforcement wording (advisory/instructional, not "structural"); the `drift --git` command description (`git rev-parse` / `git diff`, not `git log`); the Step 5 (Verify) workflow definition and an explicit Step 6 subsection; the `CLAUDE.md`/`AGENTS.md` duplication description; the maturity-score 95 ceiling; the test-suite figures; the Ruby default command; the legacy-calculator file count; and several minor precision fixes.*
