@@ -348,8 +348,19 @@ close the loop fully; explicitly out of scope here.)
 `prompts/list` → `{ "prompts": [...] }`. Serve the tool-agnostic workflow files
 installed in the target repo at `.agents/workflows/*.md`. Enumerate that
 directory fresh per call; each `NAME.md` becomes
-`{ "name": "NAME", "description": "<first markdown heading line of the file, stripped of #>" }`.
+`{ "name": "NAME", "description": "<extracted per the rule below>" }`.
 Directory missing → `{ "prompts": [] }` (success).
+
+**Description extraction rule (in this order — these files start with YAML
+frontmatter and typically have NO leading `#` heading, so a heading-only rule
+yields empty descriptions):**
+1. If the file starts with a `---` line, read up to the closing `---`
+   (frontmatter); if a `description:` key exists there, use its value
+   (strip surrounding quotes if any).
+2. Else the first `#` heading line, stripped of leading `#` and whitespace.
+3. Else the first non-empty line that is not an HTML comment
+   (`<!-- ... -->`).
+4. Else the file name without `.md`.
 
 `prompts/get` params `{ "name": "NAME" }` (ignore extra fields). Reject names
 containing `/`, `\`, or `..` with `-32602` (traversal guard). Read
@@ -491,6 +502,7 @@ Target fixture: the repo produced by the existing `shazam --yes` fixture flow
 | T11 | installer round-trip | fresh install → `.mcp.json` exists with `mcpServers["repo-kb"]`, listed in `ai/install-manifest.json` `files` but NOT in `fileHashes`; pre-existing `.mcp.json` with another server key survives merge (both servers present); re-install is idempotent (other server still present after second install); `uninstall --yes` on the merged file removes only the `repo-kb` key (file remains with the user's server); `uninstall --yes` on a kit-only `.mcp.json` deletes the file |
 | T12 | tool error shape | `kb_check_stability` with `{"path":""}` → `isError:true` and `content[0].text` parses as JSON with an `error` key |
 | T13 | stdout purity | across all of the above, every stdout line of the server process parses as JSON with `jsonrpc === "2.0"` |
+| T14 | prompts | on the kit repo: `prompts/list` returns one entry per `.agents/workflows/*.md`, each with a **non-empty** `description`; the `add-feature` entry's description equals the `description:` value in that file's YAML frontmatter (frontmatter rule, not heading rule); `prompts/get {name:"add-feature"}` returns the full file text; `prompts/get {name:"../evil"}` → `-32602` |
 
 Also run `node install.mjs verify . --strict` after updating docs (§13) — zero
 missing claims.
