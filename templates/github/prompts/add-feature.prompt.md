@@ -18,3 +18,5 @@ in this repo). Summary of the contract:
 5. **Verify.** Run the suite(s) matching the change. Failing or unrun tests ⇒ not done.
 6. **Update knowledge.** FEATURE_MAP entry, catalog amendment, MODULE_MAP if layout
    changed — all tagged `[inferred]` for the human to verify.
+7. **Review & record.** Request `/review-change` on the diff (fresh context), then
+   append the work's row to `ai/lab/WORKLOG.md` linking spec, review, and commits.

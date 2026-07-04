@@ -229,8 +229,9 @@ node install.mjs verify /path/to/your/repo [--dry-run] [--strict] [--github-summ
 
 The mechanical half of "kept mechanically honest". Extracts every backtick-quoted
 token that looks like a path from the knowledge docs — `CLAUDE.md`, `AGENTS.md`,
-`ai/guide/*.md`, and `ai/analysis/FEATURE_CATALOG*.md` — and checks each claim
-against the real file tree. A claim is either on disk or it is not; no model, no
+`ai/guide/*.md`, `ai/analysis/FEATURE_CATALOG*.md`, and the work ledger
+`ai/lab/WORKLOG.md` (so a ledger row whose spec/review/eval vanished fails CI) —
+and checks each claim against the real file tree. A claim is either on disk or it is not; no model, no
 judgement. Results are counted as **confirmed**, **moved** (found elsewhere by
 basename), or **missing**, and written to
 `ai/analysis/audit-reports/VERIFICATION_MANIFEST.json` (machine-readable) and

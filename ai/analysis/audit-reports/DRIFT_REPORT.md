@@ -1,6 +1,6 @@
 # Drift report
 
-> Generated mechanically by ai-fication-kit `drift` on 2026-07-03.
+> Generated mechanically by ai-fication-kit `drift` on 2026-07-04.
 > Drift is where the repository has moved away from the knowledge layer. The
 > statuses are facts; closing the gap (re-map, fix the docs, re-audit) is your call.
 
@@ -11,3 +11,5 @@
 | stale | 0 | `[verified]` row whose code changed since the verified commit |
 
 No drift detected. The map matches the tree.
+
+> Stale check is opt-in — re-run with --git to compare against the last verified commit (local, read-only git).

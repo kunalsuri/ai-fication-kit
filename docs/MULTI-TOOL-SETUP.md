@@ -30,19 +30,21 @@ install time, and a mixed team can use different tools on the same repo:
 |---|---|---|
 | **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/` | slash commands + subagents, natively |
 | **GitHub Copilot** (VS Code) | `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`, `.github/chatmodes/*.chatmode.md` | prompts + chat modes in Copilot Chat |
-| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/add-feature/` | workflows in the Agent Manager |
+| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` | workflows in the Agent Manager |
 | **Cursor** | `.cursor/rules/*.mdc` | invoke a rule, same as any other Cursor rule |
 | **Codex** | (reads `AGENTS.md` natively — no dedicated tree needed) | manual: paste command bodies as prompts |
 
 ## The workflow commands, across tools
 
-All eight commands exist in every native integration — same names, same
+All ten commands exist in every native integration — same names, same
 behavior, different packaging:
 
 | Command | Claude Code | Copilot Chat | Antigravity | Cursor |
 |---|---|---|---|---|
 | `cold-start` — draft the maps | `/cold-start` | `/cold-start` (prompt) | `cold-start` workflow | `cold-start` rule |
 | `add-feature` — safeguarded development | `/add-feature` | `/add-feature` | `add-feature` workflow | `add-feature` rule |
+| `fix-bug` — reproduction-first bug fixing | `/fix-bug` | `/fix-bug` | `fix-bug` workflow | `fix-bug` rule |
+| `review-change` — fresh-context change review | `/review-change` | `/review-change` | `review-change` workflow | `review-change` rule |
 | `check-drift` — drift diagnostics | `/check-drift` | `/check-drift` | `check-drift` workflow | `check-drift` rule |
 | `create-feature-catalog` — mine implemented features | `/create-feature-catalog` | `/create-feature-catalog` | workflow | rule |
 | `post-cold-start-verification` — semantic gap audit | `/post-cold-start-verification` | `/post-cold-start-verification` | workflow | rule |
@@ -58,10 +60,10 @@ The helper personas exist across tools too:
 | `feature-builder` | subagent | chat mode | implements planned changes, surgical diffs |
 | `test-runner` | subagent | chat mode | runs builds/tests, reports faithfully |
 
-The `add-feature` **skill** is written once, in the shared Agent Skills
-(`SKILL.md`) format, under `.agents/skills/add-feature/` and
-`.claude/skills/add-feature/` — Copilot and Antigravity both discover the
-shared format, so nothing is duplicated per tool.
+The `add-feature` and `fix-bug` **skills** are written once, in the shared
+Agent Skills (`SKILL.md`) format, under `.agents/skills/` and
+`.claude/skills/` — Copilot and Antigravity both discover the shared format,
+so nothing is duplicated per tool.
 
 ---
 
@@ -82,21 +84,22 @@ Copilot reads three things the kit installed:
 
 - **`.github/copilot-instructions.md`** — repository-wide instructions, loaded
   automatically (Copilot's equivalent of `CLAUDE.md`).
-- **`.github/prompts/*.prompt.md`** — the eight commands. In Copilot Chat, type
+- **`.github/prompts/*.prompt.md`** — the ten commands. In Copilot Chat, type
   `/` and the prompt name, e.g. `/cold-start`.
 - **`.github/chatmodes/*.chatmode.md`** — the three personas. Switch the chat
   mode in the Copilot Chat mode picker to work as `repo-explorer`,
   `feature-builder`, or `test-runner`.
 
-Copilot also reads `AGENTS.md` and discovers the shared `add-feature` skill.
+Copilot also reads `AGENTS.md` and discovers the shared `add-feature` and
+`fix-bug` skills.
 
 ## Google Antigravity
 
 Antigravity reads the tool-agnostic `AGENTS.md` at the repo root natively — the
 kit ships no separate Antigravity rules file because none is needed. The
 commands are installed as **workflows** (`.agents/workflows/*.md`), invoked
-from the Agent Manager, and the `add-feature` skill is discovered from
-`.agents/skills/`.
+from the Agent Manager, and the `add-feature` and `fix-bug` skills are
+discovered from `.agents/skills/`.
 
 ## Cursor
 
