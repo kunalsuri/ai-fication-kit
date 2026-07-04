@@ -57,16 +57,26 @@ confident-sounding places.
 - If the spec has acceptance criteria, walk the list and mark each one
   explicitly: met / not met / blocked-on-question.
 
-### 5. Knowledge updates (part of the change, not an afterthought)
+### 5. Review gate (the engineering loop's Review step — not optional)
+- Request `/review-change` on the completed diff in a FRESH context (a session
+  that did not write the code), per `ai/lab/specs/SPEC_engineering-loop.md`.
+  You implement; you do not approve your own work.
+- The review lands in `ai/lab/reviews/` and its verdict is input to the human's
+  merge decision — implementation "done" without a review is not loop-complete.
+
+### 6. Knowledge updates (part of the change, not an afterthought)
 - Execute the spec's "knowledge update on completion" checklist. All new/changed
   rows and entries are tagged `[inferred]`.
 - NEVER flip `[inferred]` → `[verified]`, and never edit an existing
   `[verified]` signature. That is the human's move alone.
-- Append the WORKLOG entry linking spec, commits, and test evidence.
+- Append the WORKLOG entry linking spec, review, commits, and test evidence
+  (verify scans these links — broken ones fail `--strict`).
 
-### 6. Final report (in this order)
+### 7. Final report (in this order)
 1. Acceptance-criteria scorecard.
 2. Verbatim tail of `npm test` and `verify --strict` output.
 3. Deviations from the spec: list each one with its §2 report — the expected
    count is ZERO; anything else should already have stopped you.
 4. Files changed vs. the spec's touch list (must match exactly).
+5. Review status: link to the `/review-change` request/result for the human's
+   merge decision.
