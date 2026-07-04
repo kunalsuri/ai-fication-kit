@@ -62,3 +62,46 @@ spec's touch list — its absence here is expected, not a finding.
    ("this work shipped the review process itself"). Reasonable, but accepting a
    waiver written by the same agent that did the work is a judgement only the human
    can make.
+
+## Addendum — W-002 knowledge update (commit 8ca033a)
+
+**Reviewer:** agent, fresh session · **Date:** 2026-07-04
+
+**Scope.** Commit `8ca033a` on branch `claude/deep-codebase-audit-zmd328` — the
+knowledge-update step of W-002. It adds/updates "Gotchas" lines in
+`ai/guide/FEATURE_MAP.md` for the features touched by the R3 bug fixes (`orient`,
+`indepth`, `install`, `audit`) and corrects a stale `ci-checks` gotcha; it also
+bumps the confirmed count in `VERIFICATION_REPORT.md` (184 → 186) and checks a box
+in `BUGFIX_audit-R3-fixes.md`. Only the truth of each new gotcha claim against the
+current implementation was in scope. No non-doc code is touched by the commit.
+
+**Evidence table** (one row per gotcha claim checked):
+
+| Gotcha claim | Result | Evidence |
+|---|---|---|
+| orient — re-runs carry `humanContext` forward | ✅ | `install.mjs:233-242`: after real orient, reads prior profile and copies `humanContext` onto the fresh profile when the new one lacks it, before writing. |
+| indepth — `.gitignore` dir rule needs the slash; `build/` no longer over-matches `builder/` | ✅ | `lib/indepth.mjs:40-59`; regex reproduced live: `/(^\|\/)build(\/.*)?$/` → matches `build/main.js` & `build`, rejects `builder/main.js`, `builder`, `src/builder/x`. |
+| indepth — Cargo `[dev-dependencies]` booked as development | ✅ | `lib/indepth.mjs:287,293`: `[dev-dependencies]` sets section `dev` → `byCategory.development++`. |
+| indepth — Gemfile `group :development`/`:test` booked as development | ✅ | `lib/indepth.mjs:316-321`: `inDevGroup` set by `/:(development\|test)\b/`, dev gems increment `development`. |
+| indepth — `runCmd` takes an argv array (no shell/word-split) | ✅ | `lib/indepth.mjs:13-24`: `runCmd(argv,cwd)` destructures `[bin,...args]` into `execFile` (no shell). All git callers pass arrays. |
+| indepth — `topContributors[].email` actually holds names (open item) | ✅ | `lib/indepth.mjs:703-718`: pushes `email: parts[1]` from `git shortlog -sn` output (counts + names). Correctly flagged as open AUD-R2-27. |
+| install — child-lock keys on human-added `[verified]` lines, CRLF-stripped | ✅ | `lib/installer.mjs:111-121`: `humanVerified` = disk `[verified]` line NOT in `templateLines`, both compared via `stripCR`. Template prose therefore never locks. |
+| install — Process-2 backups copied only in write phase, after the confirm prompt; `--dry-run` reads "Would back up" | ✅ | Decided up front `:162-169` (`flags.dryRun ? "Would" : "Will"` at `:168`); copied at `:288` after `confirm` at `:280`; dry-run returns at `:267` and both abort paths (`:276`,`:281`) precede the copy loop. |
+| audit — offers to move anchor to HEAD only under `--git`, human confirms, via exported `updateAnchorLine`; reminder otherwise | ✅ | `lib/audit.mjs:210-225`: `if (flags.git)` → `confirm(...)` → `updateAnchorLine`; `else` prints the reminder. `updateAnchorLine` exported at `:123`. |
+| audit — `updateAnchorLine` consumes a multi-line parenthetical note whole | ✅ | `lib/audit.mjs:131-138`: net paren-depth walk over blockquote continuation lines, single `splice` of the whole span. (Matches finding 1's fix.) |
+| ci-checks — corrected: template uses `npm install -g github:kunalsuri/ai-fication-kit`, not npm-registry form | ✅ | `templates/github/workflows/ai-check.yml.tmpl:26`: `run: npm install -g github:kunalsuri/ai-fication-kit`. |
+
+**Verify.** `node install.mjs verify . --strict` → **186 confirmed, 0 moved, 0
+missing** (12 docs). Every backticked path introduced by the new gotchas resolves;
+no claim broke the strict verify. This matches the commit's own `186/186` note and
+the `VERIFICATION_REPORT.md` bump.
+
+**Findings.** None. All eleven gotcha claims are accurate against the current code.
+Nit (not a finding, no change requested): finding 4 of the main review flagged a
+pre-fix "Will back up" tense under `--dry-run`; the current tree emits "Would back
+up" there (`installer.mjs:168`), and the new `install` gotcha correctly documents
+that wording — so the addendum's claim and the code now agree.
+
+**Verdict: approve.** The gotchas are true, surgical, provenance-clean (all remain
+`[inferred]`), and materially useful to the next agent. Confidently-wrong gotcha
+risk: none observed.
