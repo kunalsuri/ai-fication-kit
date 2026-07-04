@@ -152,8 +152,13 @@ disk at call time** (re-check existence per call — C4). Fields per entry:
 ### 5.4 `resources/read`
 Params: `{ "uri": "kb://..." }`. Look the uri up in the table above (exact string
 match — **never** map arbitrary uris to paths; this is the path-traversal guard).
-Unknown uri → error `-32602` with message `Unknown resource uri: <uri>`. Known
-uri whose file is missing → error `-32602` with message `Resource not on disk: <relative path>`.
+Unknown uri, and known uri whose file is missing, both return the MCP
+resource-not-found error — code `-32002` (NOT `-32602`; the MCP spec reserves
+`-32002` for this case), message `Resource not found`, and the uri echoed in
+`error.data`:
+```json
+{"jsonrpc":"2.0","id":N,"error":{"code":-32002,"message":"Resource not found","data":{"uri":"<requested uri>"}}}
+```
 Success:
 ```json
 {"jsonrpc":"2.0","id":N,"result":{"contents":[{"uri":"<uri>","mimeType":"<mimeType>","text":"<full file text>"}]}}
@@ -433,7 +438,7 @@ Target fixture: the repo produced by the existing `shazam --yes` fixture flow
 | T1 | handshake | `initialize` → result has `serverInfo.name === "ai-fication-kit-kb"`, `protocolVersion` echoed; `notifications/initialized` produces no output line |
 | T2 | tools/list | exactly the 7 tool names of §6; every tool has an `inputSchema` object |
 | T3 | resources/list + read | every listed uri reads back non-empty text; `resources/read` of `kb://guide/module-map` equals the file on disk byte-for-byte |
-| T4 | unknown uri | `resources/read {uri:"kb://../etc/passwd"}` → JSON-RPC error `-32602`, server still answers a following `ping` |
+| T4 | unknown uri | `resources/read {uri:"kb://../etc/passwd"}` → JSON-RPC error `-32002` with `error.data.uri` echoed, server still answers a following `ping` |
 | T5 | unknown method | request `foo/bar` → `-32601`; unknown notification → no output |
 | T6 | kb_check_stability | on the kit repo: `lib/verify.mjs` → `stability:"ours"`; `no/such/path.js` → `stability:"unknown"`, `effective:"frozen"`; unit-test `matchStability` longest-claim precedence with a synthetic two-row map (`templates/` stable + `templates/ai/` frozen → query `templates/ai/x.md` returns frozen) |
 | T7 | parity | `kb_verify` counts equal a direct `computeVerification(target)` call; `kb_status` verdict equals `computeStatus(target).verdict` |
