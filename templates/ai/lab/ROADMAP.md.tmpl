@@ -19,7 +19,8 @@
 2. Implement it via `/add-feature` (features) — the loop ends by moving the row here.
 3. **On ship:** move the row from Planned to Shipped; append a `ai/lab/WORKLOG.md`
    row citing the feature ID; fill the Shipped row's **Spec**, **WORKLOG**, and
-   **PR** cells. Backtick the Spec/WORKLOG paths so `verify --strict` checks them.
+   **PR** cells. Backtick the **Spec** path so `verify --strict` checks it (the
+   WORKLOG cell holds a row ID like `W-1`, which `verify` does not treat as a path).
 4. Forward-looking or illustrative detail (example paths, not-yet-created files) can
    be fenced with `verify-ignore` markers so it is not treated as a broken claim.
 

@@ -4,7 +4,7 @@
 > **Author:** AI draft `[inferred]` (from the maintainer's 2026-07-05 direction:
 > consolidate the two `docs/dev/` feature files into one lifecycle-aware document
 > inside the shared knowledge layer, and make the planned→spec→worklog→PR trace
-> explicit) · **Date:** 2026-07-05 · **Revision:** 1
+> explicit) · **Date:** 2026-07-05 · **Revision:** 2
 
 This spec is written to be implemented **without further design decisions**. The
 design rationale (why one file, why `ai/lab/`, why cross-link instead of copy)
@@ -32,13 +32,13 @@ WORKLOG row(s), and its PR — by **feature ID**, never by copying fields.
 ## 2. Hard constraints (violating any of these fails the review)
 | # | Constraint |
 |---|---|
-| C1 | No CLI/code behaviour change. This is a docs + knowledge-layer move only. |
+| C1 | No behaviour change to existing CLI commands or exit codes. `verify` gains one additive capability — it scans `ai/lab/ROADMAP.md` and honours `verify-ignore` fences; no existing claim result changes (Rev 2). |
 | C2 | Faithful migration: the C1–C8 detailed specs and the shared engineering contract are copied verbatim (link targets re-pointed for the new location), never paraphrased or stubbed. |
 | C3 | License header (HTML-comment form) as the first line of every new `.md`. |
 | C4 | Surgical diffs: touch only the files in §5; no reformatting of untouched prose. |
 | C5 | Delete **only** `docs/dev/features-upcoming-implemented/`. `docs/dev/lessons-learnt/` and `docs/dev/general-prompts/` are not touched. |
 | C6 | `node install.mjs verify . --strict` passes after the change (the WORKLOG row's backticked paths all resolve). |
-| C7 | Command-matrix wiring (`/add-feature`, `/implement-spec`) is **out of scope** — deferred to a follow-up per the maintainer's session decision. |
+| C7 | Backfilling WORKLOG rows for the wave-2 features stays out of scope (retrofitting is out per `SPEC_engineering-loop.md`). Command-matrix wiring and `verify` enforcement, deferred in Rev 1, are implemented in Rev 2 (see §3). |
 
 ## 3. Scope & glossary
 **In:** create `ai/lab/ROADMAP.md`; migrate both `docs/dev/features-*` files into

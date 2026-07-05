@@ -91,7 +91,7 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 
 ---
 
-# Planned
+## Planned
 
 > Wave 3 (C series, targets v0.3.x). Ordering principle: **first make the existing
 > promises true** (C1–C3 fix moments where a user following instructions perfectly
@@ -99,7 +99,7 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 > proof** (C5, C6), **then polish the lifecycle** (C7, C8). C4 is the first slice
 > of the monorepo work parked as A4 in wave 2.
 
-## Tracking table
+### Tracking table
 
 <!-- The implementing agent updates ONE row per finished feature; on ship, move the
      row to the Shipped table below. Date format: YYYY-MM-DD. -->
@@ -117,7 +117,7 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 
 Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dropped`).
 
-## How each feature helps the end user (the one-breath version)
+### How each feature helps the end user (the one-breath version)
 
 - **C1** — a Python/Java/Go beginner's first `verify` is green instead of reporting phantom breakage; trust in the tool survives minute one.
 - **C2** — the first `status` says *where you are on the path*, not that your brand-new repo is "DRIFTING"; anxiety becomes orientation.
@@ -130,9 +130,9 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 
 <!-- verify-ignore:start -->
 
-## Detailed specifications
+### Detailed specifications
 
-### C1 · Stack-aware agent instructions — kill the `package.json` false positive
+#### C1 · Stack-aware agent instructions — kill the `package.json` false positive
 
 **Need (P2 beginner, P1 tech lead — evidence F2).** The stamped `CLAUDE.md` /
 `AGENTS.md` "No Phantom Bugs & Configuration Churn" rule names `package.json`
@@ -171,7 +171,7 @@ template content.
 
 ---
 
-### C2 · Stage-aware `status` verdict
+#### C2 · Stage-aware `status` verdict
 
 **Need (P2 — evidence F3).** `status` renders one of three verdicts
 (`lib/status.mjs:60-72`), and on a freshly scaffolded repo it picks the scariest.
@@ -208,7 +208,7 @@ anything.
 
 ---
 
-### C3 · `audit` stamps the verified-commit baseline
+#### C3 · `audit` stamps the verified-commit baseline
 
 **Need (P1, P2 — evidence F4).** `drift --git`'s stale detection — a headline
 differentiator ("[verified] rows whose code changed since the audit") — never
@@ -263,7 +263,7 @@ line from any command other than `audit`.
 
 ---
 
-### C4 · Monorepo Phase 1 — workspace-aware `orient` (A4, first slice)
+#### C4 · Monorepo Phase 1 — workspace-aware `orient` (A4, first slice)
 
 **Need (P4 — evidence F1, FAQ "My repo is a monorepo").** Workspace repos are the
 kit's *most* valuable targets (large, legacy, tribal knowledge) and today `orient`
@@ -333,7 +333,7 @@ detection.
 
 ---
 
-### C5 · `drift --deep` — file-level coverage inside mapped directories
+#### C5 · `drift --deep` — file-level coverage inside mapped directories
 
 **Need (agent, P1 — evidence F5 + the lessons-learnt incident).** `drift` maps at
 directory-segment level: once `test/` has one row, *anything* added inside is
@@ -377,7 +377,7 @@ territory and stays row-level); watching mode; any git execution beyond what
 
 ---
 
-### C6 · `value` — context-savings report for your own repo
+#### C6 · `value` — context-savings report for your own repo
 
 **Need (P1 — evidence F6).** The kit's core claim ("agents spend context on your
 task instead of rediscovery") is demonstrated only on a bundled toy
@@ -422,7 +422,7 @@ totals stable across two runs on an unchanged tree; `--dry-run` writes nothing.
 
 ---
 
-### C7 · Kit-version awareness in `doctor` and `status`
+#### C7 · Kit-version awareness in `doctor` and `status`
 
 **Need (P2 — evidence F7).** `ai/INDEX.md` in installed repos records the
 installing kit version (this very repo says 0.1.0 under a 0.2.0 CLI), and
@@ -456,7 +456,7 @@ strictly local file vs local constant).
 
 ---
 
-### C8 · `onboard` — export the verified knowledge-base as one offline page
+#### C8 · `onboard` — export the verified knowledge-base as one offline page
 
 **Need (P3 — the README's own promise).** The README sells "the fastest
 onboarding doc a new teammate will ever read", but consuming `ai/` today means
@@ -504,7 +504,7 @@ the full lab).
 
 ---
 
-## Sequencing and dependency notes
+### Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
   trust-breaking moment — together they make an honest v0.2.1 patch wave), then
@@ -517,7 +517,7 @@ the full lab).
 - One feature per branch, per session, per CHANGELOG bullet — same cadence that
   shipped wave 2 cleanly.
 
-## Deliberately NOT on this roadmap (and why)
+### Deliberately NOT on this roadmap (and why)
 
 Recorded so future planning sessions don't re-litigate:
 
@@ -538,7 +538,7 @@ Recorded so future planning sessions don't re-litigate:
 
 ---
 
-# Shipped
+## Shipped
 
 > Wave 2 (A/B series), shipped 2026-07-03 as the v0.2.x feature wave. These
 > predate `ai/lab/WORKLOG.md` (the ledger starts at W-001, 2026-07-03), so their
@@ -546,7 +546,7 @@ Recorded so future planning sessions don't re-litigate:
 > per [`ai/lab/specs/SPEC_engineering-loop.md`](specs/SPEC_engineering-loop.md).
 > Each row's full detail lives in its spec.
 
-## Tracking table
+### Tracking table
 
 | ID | Feature | Spec | WORKLOG | PR / release | Shipped |
 |---|---|---|---|---|---|
@@ -564,7 +564,7 @@ Recorded so future planning sessions don't re-litigate:
 **superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned
 section above.
 
-## Triage notes (historical, wave 2)
+### Triage notes (historical, wave 2)
 
 - Suggested order was: B1 → A3 → B4 (P1s are independent), then A2 before B5.
 - A3/B1 both needed the MODULE_MAP parser exported from `lib/drift.mjs` — whichever
