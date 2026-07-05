@@ -270,12 +270,12 @@ your-repo/
 │                                 evaluations/, experiments/
 ├── .claude/                    # Claude Code: commands (/cold-start, /add-feature, …),
 │                                 subagents (repo-explorer, feature-builder, test-runner),
-│                                 the add-feature skill, and native rules/ (an
+│                                 the add-feature & fix-bug skills, and native rules/ (an
 │                                 always-on index rule + a path-scoped ai/ guard)
 ├── .github/                    # GitHub Copilot: copilot-instructions.md, prompts/*.prompt.md
 │                                 (same commands), chatmodes/*.chatmode.md (same subagents)
 ├── .agents/                    # Google Antigravity: workflows/*.md (same commands),
-│                                 skills/add-feature/ (shared Agent Skills format)
+│                                 skills/ (add-feature, fix-bug — shared Agent Skills format)
 └── .cursor/                    # Cursor: rules/*.mdc (same commands as native rules,
                                   alwaysApply: false, plus one always-on index rule)
 ```
@@ -290,7 +290,7 @@ your-repo/
 * **Lab Space (`ai/lab/`):** A dedicated area for specifications (RFCs), architecture decision records (ADRs), and evaluations.
 * **Agent Operations (`.claude/`, `.github/`, `.agents/`, `.cursor/`):** Reusable workflow commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills — stamped natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install.
 
-### The Eight Workflow Commands
+### The Ten Workflow Commands
 
 Every command ships in four native formats — Claude Code slash command (`.claude/commands/`), Copilot prompt (`.github/prompts/`), Antigravity workflow (`.agents/workflows/`), and Cursor rule (`.cursor/rules/*.mdc`):
 
@@ -298,8 +298,10 @@ Every command ships in four native formats — Claude Code slash command (`.clau
 |:---------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
 | `/cold-start`                      | Bootstrap the `ai/guide/` maps and diagrams; drafts everything as `[inferred]` for a human to audit.           |
 | `/add-feature`                     | Safeguarded implementation: spec first, locate via the maps, surgical diffs, tests before done, knowledge updated after. |
+| `/fix-bug`                         | Safeguarded bug fix: reproduce first, add a failing regression test, root-cause via the maps, surgical fix, knowledge updated after. |
 | `/check-drift`                     | Run the `verify` + `drift` checks and report missing documentation or stale references.                        |
 | `/create-feature-catalog`          | Deep-mine the source to discover implemented features; writes `ai/analysis/FEATURE_CATALOG.md`.                |
+| `/review-change`                   | Review a completed change against its spec in fresh context — evidence-based checks, severity-ranked findings, a merge verdict for the human. |
 | `/review-agent-config`             | Read-only diagnostic of `CLAUDE.md`/`AGENTS.md` for completeness, consistency, and stale artifacts.            |
 | `/post-cold-start-verification`    | Audit every `ai/` file for gaps, stale placeholders, and inconsistencies after cold-start.                     |
 | `/verify-ai-readiness`             | Holistic assessment of the knowledge layer on a 5-level maturity scale; flags agent-blocking gaps.             |
