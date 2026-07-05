@@ -166,6 +166,7 @@ async function testInstaller(label, exec, script) {
     path.join("ai", "lab", "specs", "BUGFIX_TEMPLATE.md"),
     path.join(".claude", "commands", "cold-start.md"),
     path.join(".claude", "commands", "check-drift.md"),
+    path.join(".claude", "commands", "adversarial-audit.md"),
     path.join(".claude", "commands", "fix-bug.md"),
     path.join(".claude", "commands", "review-change.md"),
     path.join(".claude", "agents", "repo-explorer.md"),
@@ -175,6 +176,7 @@ async function testInstaller(label, exec, script) {
     path.join(".github", "copilot-instructions.md"),
     path.join(".github", "prompts", "cold-start.prompt.md"),
     path.join(".github", "prompts", "check-drift.prompt.md"),
+    path.join(".github", "prompts", "adversarial-audit.prompt.md"),
     path.join(".github", "chatmodes", "repo-explorer.chatmode.md"),
     path.join(".github", "chatmodes", "feature-builder.chatmode.md"),
     path.join(".github", "chatmodes", "test-runner.chatmode.md"),
@@ -182,12 +184,14 @@ async function testInstaller(label, exec, script) {
     path.join(".github", "prompts", "review-change.prompt.md"),
     path.join(".agents", "workflows", "cold-start.md"),
     path.join(".agents", "workflows", "add-feature.md"),
+    path.join(".agents", "workflows", "adversarial-audit.md"),
     path.join(".agents", "workflows", "fix-bug.md"),
     path.join(".agents", "workflows", "review-change.md"),
     path.join(".agents", "skills", "add-feature", "SKILL.md"),
     path.join(".agents", "skills", "fix-bug", "SKILL.md"),
     path.join(".cursor", "rules", "cold-start.mdc"),
     path.join(".cursor", "rules", "add-feature.mdc"),
+    path.join(".cursor", "rules", "adversarial-audit.mdc"),
     path.join(".cursor", "rules", "fix-bug.mdc"),
     path.join(".cursor", "rules", "review-change.mdc"),
     path.join(".cursor", "rules", "ai-knowledge-layer.mdc"),
@@ -1185,6 +1189,7 @@ console.log("\n— indepth git history —");
 console.log("\n— doctor —");
 {
   const { diagnose } = await import(pathToFileURL(path.join(kitRoot, "lib", "doctor.mjs")).href);
+  const { shellQuote } = await import(pathToFileURL(path.join(kitRoot, "lib", "util.mjs")).href);
 
   async function treeHash(dir) {
     const parts = [];
@@ -1209,7 +1214,9 @@ console.log("\n— doctor —");
     const before = await treeHash(d);
     const result = await diagnose(d);
     ok(result.step === 1 && /shazam/.test(result.action), `step 1: no profile → run shazam`);
-    ok(result.action.includes(`"${d}"`), `step 1 action quotes the target path (regression: spaces-safe)`);
+    // Platform-aware quoting (Copilot PR review, PR #38): POSIX single-quotes,
+    // Windows double-quotes — a fixed quote style breaks on the other platform.
+    ok(result.action.includes(shellQuote(d)), `step 1 action quotes the target path (regression: spaces-safe)`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 1)`);
     await fs.rm(d, { recursive: true, force: true });
   }
@@ -1275,9 +1282,10 @@ console.log("\n— doctor —");
     ok(result.step === 4 && /verify/.test(result.action) && /drift/.test(result.action),
       `step 4: no manifests yet → run verify --strict / drift --strict`);
     // regression (Copilot PR review): the action must be one shell-safe,
-    // copy/paste-able command, with the target path quoted (spaces-safe).
+    // copy/paste-able command, with the target path quoted (spaces-safe) using
+    // this platform's quoting convention (PR #38).
     ok(!result.action.includes("(then)") && result.action.includes("&&") &&
-      result.action.includes(`"${d}"`),
+      result.action.includes(shellQuote(d)),
       `step 4 action is a single copy/paste-safe command with the path quoted: ${result.action}`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 4)`);
     await fs.rm(d, { recursive: true, force: true });

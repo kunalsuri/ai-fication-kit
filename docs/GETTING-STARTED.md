@@ -103,6 +103,8 @@ The full field guide, with worked examples and common mistakes, is
 
 > [!TIP]
 > **Check your config and knowledge layer health.** Once you are done auditing and before proceeding, you can run `/review-agent-config` in Claude Code to perform a quick diagnostic check on the structure and cross-file consistency of `CLAUDE.md` and `AGENTS.md`. You can also run `/post-cold-start-verification` to perform a semantic check of the drafted `ai/` documents.
+>
+> **Deeper, less frequent checks.** `/adversarial-audit` is a heavier, judgement-based pass that hunts for defects the checks above can't reach — stale comments describing behavior a later change broke, unescaped shell interpolation, cross-module assumptions that rotted. It's not a CI gate; run it before a release or after a large refactor.
 
 
 ---

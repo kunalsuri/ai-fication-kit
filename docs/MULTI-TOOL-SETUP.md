@@ -36,7 +36,7 @@ install time, and a mixed team can use different tools on the same repo:
 
 ## The workflow commands, across tools
 
-All ten commands exist in every native integration — same names, same
+All eleven commands exist in every native integration — same names, same
 behavior, different packaging:
 
 | Command | Claude Code | Copilot Chat | Antigravity | Cursor |
@@ -51,6 +51,7 @@ behavior, different packaging:
 | `review-agent-config` — config consistency gate | `/review-agent-config` | `/review-agent-config` | workflow | rule |
 | `verify-ai-readiness` — maturity rating | `/verify-ai-readiness` | `/verify-ai-readiness` | workflow | rule |
 | `perform-feature-add-simulation` — dry-run friction check | `/perform-feature-add-simulation` | `/perform-feature-add-simulation` | workflow | rule |
+| `adversarial-audit` — judgement-based deep defect hunt | `/adversarial-audit` | `/adversarial-audit` | workflow | rule |
 
 The helper personas exist across tools too:
 
