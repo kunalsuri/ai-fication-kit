@@ -150,3 +150,10 @@
 - **Gotchas:** Uses `--strict` flags matching CI for consistency. Instructs the agent to mark changes as `[inferred]`.
 - **Related:** `verify`, `drift`, `ci-checks`
 
+### adversarial-audit (Claude/Copilot/Antigravity/Cursor command)  `[inferred]`
+- **Business goal:** A judgement-based deep audit that catches defects `verify`/`drift` categorically cannot — stale comments/docs describing behavior a later change silently broke, unescaped shell/regex interpolation, POSIX-only platform assumptions, generated-file ownership conflicts, and cross-module assumptions that were never re-validated after later edits. Appends to the same `DEFECT_TRACEABILITY.md` ledger the R2/R3 audits established.
+- **Touches:** `templates/claude/commands/adversarial-audit.md`, `templates/agents/workflows/adversarial-audit.md`, `templates/cursor/rules/adversarial-audit.mdc`, `templates/github/prompts/adversarial-audit.prompt.md`
+- **Verify with:** `npm test` (checks the four stamped files exist across tool flavors)
+- **Gotchas:** Deliberately full-repo scope on every run (no diff-since-last-audit yet) and not deterministic — never wire it into `verify --strict`/`drift --strict` CI gates. Read-only except for the dated report and traceability-ledger entries it writes to `ai/analysis/audit-reports/`; findings are `[inferred]` until a human reviews them.
+- **Related:** `verify`, `drift`, `review-agent-config`, `post-cold-start-verification`, `fix-bug`
+

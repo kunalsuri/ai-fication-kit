@@ -27,6 +27,7 @@ type `/` in chat to see them:
 - `/post-cold-start-verification` — deep audit of the drafted `ai/` docs
 - `/review-agent-config` — structural check of `CLAUDE.md` / `AGENTS.md`
 - `/verify-ai-readiness` — score this repo's AI-readiness maturity
+- `/adversarial-audit` — judgement-based deep defect hunt (stale docs, unescaped interpolation, platform gaps, cross-module rot); run periodically, not in CI
 
 Custom chat modes under `.github/chatmodes/` mirror the kit's subagents
 (`repo-explorer`, `feature-builder`, `test-runner`) — switch to them from the

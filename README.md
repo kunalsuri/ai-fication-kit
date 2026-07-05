@@ -292,7 +292,7 @@ your-repo/
 * **Lab Space (`ai/lab/`):** A dedicated area for specifications (RFCs), architecture decision records (ADRs), change reviews, and evaluations — plus `WORKLOG.md`, the append-only ledger that records one row per unit of work.
 * **Agent Operations (`.claude/`, `.github/`, `.agents/`, `.cursor/`):** Reusable workflow commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills — stamped natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install.
 
-### The Ten Workflow Commands
+### The Eleven Workflow Commands
 
 Every command ships in four native formats — Claude Code slash command (`.claude/commands/`), Copilot prompt (`.github/prompts/`), Antigravity workflow (`.agents/workflows/`), and Cursor rule (`.cursor/rules/*.mdc`):
 
@@ -308,6 +308,7 @@ Every command ships in four native formats — Claude Code slash command (`.clau
 | `/post-cold-start-verification`    | Audit every `ai/` file for gaps, stale placeholders, and inconsistencies after cold-start.                     |
 | `/verify-ai-readiness`             | Holistic assessment of the knowledge layer on a 5-level maturity scale; flags agent-blocking gaps.             |
 | `/perform-feature-add-simulation`  | Dry-run the add-feature workflow for a proposed feature — friction report and readiness score, no code written. |
+| `/adversarial-audit`               | Judgement-based deep audit: stale cross-references, unescaped interpolation, platform gaps, generated-file ownership conflicts, cross-module consistency rot. Run periodically, not in CI. |
 
 ### The Engineering Loop & `/implement-spec`
 
