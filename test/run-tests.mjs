@@ -2142,6 +2142,133 @@ console.log("\n— audit R3 regressions —");
       !u2.includes("signatures below") && !u2.includes("PR #22") && u2.includes("| a | b | c |"),
       `updateAnchorLine consumes a multi-line parenthetical anchor note whole`);
   }
+
+  // ---------- update mode: shazam on an already-installed repo ----------
+
+  // Unit: semver comparison and Keep-a-Changelog parsing (lib/update.mjs).
+  {
+    const { compareSemver, parseChangelog, changelogDigest } =
+      await import(pathToFileURL(path.join(kitRoot, "lib", "update.mjs")).href);
+    ok(compareSemver("0.1.0", "0.2.0") < 0 && compareSemver("0.2.0", "0.2.0") === 0 &&
+      compareSemver("0.10.0", "0.9.9") > 0 && compareSemver(undefined, "0.1.0") < 0,
+      `compareSemver orders versions numerically (0.10.0 > 0.9.9; unknown = oldest)`);
+    const changelog = [
+      "# Changelog", "",
+      "## [Unreleased]", "### Added", "- **Never shown** — unreleased work",
+      "## [0.3.0] — 2099-01-01", "### Added",
+      "- **MCP server** — serve the knowledge base over MCP",
+      "  - nested bullet must not become a headline",
+      "## [0.2.0] — 2026-07-03", "### Fixed", "- **A fix** — details here",
+      "## [0.1.0] — 2026-06-25", "### Added", "- plain bullet with no dash separator",
+    ].join("\n");
+    const releases = parseChangelog(changelog);
+    ok(releases.length === 3 && releases[0].version === "0.3.0" && releases[0].date === "2099-01-01",
+      `parseChangelog keeps only released [x.y.z] sections (${releases.length} found)`);
+    ok(releases[0].bullets.length === 1 && releases[0].bullets[0].headline === "MCP server" &&
+      releases[0].bullets[0].category === "Added",
+      `bullets: top-level only, bold+em-dash headline extraction, category tracked`);
+    ok(releases[2].bullets[0].headline === "plain bullet with no dash separator",
+      `bullets without an em-dash keep their full (trimmed) text`);
+    const digest = changelogDigest(releases, "0.1.0", "0.3.0");
+    ok(digest.length === 2 && digest[0].version === "0.2.0" && digest[1].version === "0.3.0",
+      `changelogDigest: strictly-after-from, up-to-to, oldest first`);
+    ok(changelogDigest(releases, "0.3.0", "0.3.0").length === 0,
+      `changelogDigest: same version → empty digest`);
+  }
+
+  // Unit: the rename registry (empty today, but the lookup must be safe).
+  {
+    const { renameTargetFor, RENAMES } =
+      await import(pathToFileURL(path.join(kitRoot, "lib", "migrations.mjs")).href);
+    ok(Array.isArray(RENAMES) && renameTargetFor("ai/never-existed.md") === null,
+      `renameTargetFor returns null for unmapped paths (registry has ${RENAMES.length} entries)`);
+  }
+
+  // E2E: fresh install seeds manifest v2; a version jump switches shazam to
+  // update mode, prints the digest, and records history exactly once.
+  {
+    const { KIT_VERSION } = await import(pathToFileURL(path.join(kitRoot, "lib", "util.mjs")).href);
+    const d = await makeBareFixture("update-mode", {
+      "package.json": JSON.stringify({ name: "update-mode", version: "1.0.0" }) + "\n",
+      "README.md": "# update-mode\n\nFixture for update-mode tests.\n",
+    });
+    const manifestPath = path.join(d, "ai", "install-manifest.json");
+    const readManifest = async () => JSON.parse(await fs.readFile(manifestPath, "utf8"));
+
+    let r = run(process.execPath, [script, "shazam", d, "--yes"]);
+    let m = await readManifest();
+    ok(r.code === 0 && m.kitVersion === KIT_VERSION && m.firstInstalled === m.installed &&
+      Array.isArray(m.history) && m.history.length === 0,
+      `fresh install writes manifest v2 (firstInstalled === installed, empty history)`);
+
+    // Simulate a repo installed by kit v0.1.0 back in March.
+    m.kitVersion = "0.1.0";
+    m.installed = "2026-03-03T10:00:00.000Z";
+    delete m.firstInstalled;
+    delete m.history;
+    await fs.writeFile(manifestPath, JSON.stringify(m, null, 2) + "\n");
+
+    r = run(process.execPath, [script, "update", d, "--yes"]);
+    m = await readManifest();
+    ok(r.code === 0 && /update mode/.test(r.out) && new RegExp(`v0\\.1\\.0 → v${KIT_VERSION.replace(/\./g, "\\.")}`).test(r.out),
+      `update on an old install announces the version transition`);
+    ok(/What changed since v0\.1\.0/.test(r.out) && /v0\.2\.0/.test(r.out),
+      `update prints the CHANGELOG digest for the versions being jumped`);
+    ok(/Preflight \(read-only\)/.test(r.out) && /Postflight/.test(r.out) && /no worse than preflight/.test(r.out),
+      `update brackets the write with pre/postflight health snapshots`);
+    ok(m.kitVersion === KIT_VERSION && m.firstInstalled === "2026-03-03T10:00:00.000Z" &&
+      m.history.length === 1 && m.history[0].from === "0.1.0" && m.history[0].to === KIT_VERSION,
+      `manifest records the jump: firstInstalled preserved (pre-v2 seed), history has the 0.1.0 → ${KIT_VERSION} row`);
+
+    // Same-version re-run: no new history row, still succeeds.
+    r = run(process.execPath, [script, "update", d, "--yes"]);
+    m = await readManifest();
+    ok(r.code === 0 && m.history.length === 1 && /already on v/.test(r.out),
+      `same-version update repairs without appending history`);
+
+    // Obsolete files: one kit-owned (hash matches), one edited. --yes must NOT delete.
+    const crypto = await import("node:crypto");
+    const ownedContent = "old template content\n";
+    await fs.writeFile(path.join(d, "ai", "OLD_OWNED.md"), ownedContent);
+    await fs.writeFile(path.join(d, "ai", "OLD_EDITED.md"), "the human changed this\n");
+    m.files.push("ai/OLD_OWNED.md", "ai/OLD_EDITED.md", "ai/OLD_GONE.md");
+    m.fileHashes["ai/OLD_OWNED.md"] = crypto.createHash("sha256").update(ownedContent, "utf8").digest("hex");
+    m.fileHashes["ai/OLD_EDITED.md"] = "0".repeat(64); // recorded hash ≠ disk → edited
+    m.fileHashes["ai/OLD_GONE.md"] = "1".repeat(64);   // in manifest, not on disk
+    await fs.writeFile(manifestPath, JSON.stringify(m, null, 2) + "\n");
+
+    r = run(process.execPath, [script, "shazam", d, "--yes"]);
+    m = await readManifest();
+    ok(r.code === 0 && /obsolete \(no longer shipped/.test(r.out) && /OLD_OWNED\.md/.test(r.out),
+      `obsolete kit-owned file is reported in the plan`);
+    ok(/deletion needs an interactive run/.test(r.out) && await exists(path.join(d, "ai", "OLD_OWNED.md")),
+      `--yes does NOT delete obsolete files (interactive consent only)`);
+    ok(/obsolete but EDITED — kept/.test(r.out) && await exists(path.join(d, "ai", "OLD_EDITED.md")),
+      `obsolete edited file is kept and called out as edited`);
+    ok(m.files.includes("ai/OLD_OWNED.md") && m.files.includes("ai/OLD_EDITED.md") &&
+      !m.files.includes("ai/OLD_GONE.md") && !("ai/OLD_GONE.md" in m.fileHashes),
+      `kept obsolete files stay tracked; already-deleted ones are dropped from the manifest`);
+
+    // Downgrade guard: installed version newer than the running kit.
+    m.kitVersion = "9.9.9";
+    await fs.writeFile(manifestPath, JSON.stringify(m, null, 2) + "\n");
+    r = run(process.execPath, [script, "update", d, "--yes"]);
+    ok(r.code !== 0 && /Refusing to downgrade/.test(r.out),
+      `update refuses a downgrade without --force`);
+    r = run(process.execPath, [script, "update", d, "--yes", "--force"]);
+    ok(r.code === 0, `--force overrides the downgrade guard (protections still apply)`);
+
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // E2E: `update` on a repo with no manifest refuses with a pointer to shazam.
+  {
+    const d = await makeBareFixture("update-fresh", { "package.json": "{}\n" });
+    const r = run(process.execPath, [script, "update", d, "--yes"]);
+    ok(r.code !== 0 && /isn't installed here yet/.test(r.out) && /shazam/.test(r.out),
+      `update on a never-installed repo refuses and points at shazam`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
 }
 
 console.log(`\n${checks - failures}/${checks} checks passed`);

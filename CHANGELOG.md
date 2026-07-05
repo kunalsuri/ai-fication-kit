@@ -7,6 +7,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **Shazam update mode + `update` command** — re-running `shazam` on an
+  already-installed repo now behaves like a real updater, deterministically
+  (manifest fields, numeric semver comparison, `CHANGELOG.md` parsing — no LLM):
+  - **Version awareness** — prints installed vs. running kit version, first-install
+    and last-update dates; `ai/install-manifest.json` gains `firstInstalled` and a
+    `history` of `{from, to, date}` version jumps (old manifests seed cleanly).
+  - **What-changed digest** — headline bullets parsed from the shipped
+    `CHANGELOG.md` for every version being jumped across (`lib/update.mjs`).
+  - **Pre/postflight health bracket** — `status`'s pure compute runs before and
+    after the write; the run ends with an explicit "no worse than preflight"
+    verdict (or loud guidance when findings increased).
+  - **Obsolete-file handling** — files recorded by a previous install that the
+    current kit no longer ships are detected: hash-proven kit-owned ones are
+    offered for deletion behind a real interactive y/N prompt (`--yes` does NOT
+    unlock deletion, mirroring `audit`); edited ones are reported, never touched;
+    already-deleted ones are dropped from the manifest. `lib/migrations.mjs` adds
+    a declarative rename registry so future releases can say where a file moved.
+  - **Downgrade guard** — a manifest recording a newer kit version refuses to
+    proceed without `--force`.
+  - **`update` command** — explicit alias for update mode that refuses when the
+    kit was never installed in the target.
 - **The engineering loop** — the method's steady state once a repo is AI-native:
   every unit of work (feature or bug) runs Spec → Decide → Implement → Review →
   Evaluate → Record, documented in `docs/METHODOLOGY.md` §7. Ships as:

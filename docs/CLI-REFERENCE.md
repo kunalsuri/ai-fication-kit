@@ -32,6 +32,7 @@ any command**. Model inference only happens later, inside your agent, via
 | Command | One line | Writes |
 |---|---|---|
 | [`shazam`](#shazam) | One-shot: maturity check → orient → wizard → install | profile, manifest, all templates |
+| [`update`](#update) | Update mode explicitly — `shazam` for an already-installed repo | same as `shazam` |
 | [`orient`](#orient) | Deterministic stack detection | `ai/repo-profile.json` |
 | [`indepth`](#indepth) | Comprehensive Tier-2 repo analysis | `ai/repo-indepth.json` |
 | [`install`](#install) | Stamp the kit's templates into the repo | templates + `ai/install-manifest.json` |
@@ -79,6 +80,46 @@ stops exactly where inference begins, handing the next steps to you and your age
 **Options:** `--dry-run`, `--yes`, `--skip-prompt`, `--analysis-level`, `--indepth`,
 `--force`, `--force-verified`, and the profile overrides (`--name`,
 `--description`, `--build`, `--test`, `--upstream`).
+
+### Update mode — re-running `shazam` on an installed repo
+
+When `ai/install-manifest.json` already exists, `shazam` switches to **update
+mode** automatically. Everything it adds is deterministic — manifest fields,
+numeric version comparison, `CHANGELOG.md` sections, and the same hash-provenance
+file plan `install` always used:
+
+1. **Version header** — installed kit version vs. this one, first-install and
+   last-update dates (the manifest now records `firstInstalled` and a `history`
+   of version jumps).
+2. **What-changed digest** — headline bullets parsed from the shipped
+   `CHANGELOG.md` for every version being jumped across.
+3. **Preflight** (read-only) — `status`'s verdict, broken claims, and drift items
+   *before* anything is written.
+4. **The normal install plan** — new kit files arrive, kit-owned files (hash
+   provenance) refresh, edited files are kept, `[verified]` files stay
+   child-locked. Files a newer kit no longer ships are listed as **obsolete**:
+   hash-proven kit-owned ones are offered for deletion (a real y/N prompt —
+   `--yes` does **not** unlock deletion, mirroring `audit`); edited ones are only
+   reported, never touched.
+5. **Postflight** — the same health snapshot again, with an explicit
+   "no worse than preflight" verdict.
+
+A manifest recording a **newer** kit version than the one running refuses to
+downgrade unless `--force` is given.
+
+---
+
+<a id="update"></a>
+## `update` — update mode, explicitly
+
+```bash
+node install.mjs update /path/to/your/repo [options]
+```
+
+Exactly `shazam`'s update mode (see above), but refuses to run when the kit was
+never installed in the target (no `ai/install-manifest.json`) — so scripts and
+docs can say "update" and never accidentally perform a first install. Takes the
+same options as `shazam`.
 
 ---
 
