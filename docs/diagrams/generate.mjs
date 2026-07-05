@@ -212,8 +212,11 @@ class Diagram {
     const texts = this.els.filter((e) => e.type === 'text');
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const e of this.els) {
-      minX = Math.min(minX, e.x); minY = Math.min(minY, e.y);
-      maxX = Math.max(maxX, e.x + (e.width || 0)); maxY = Math.max(maxY, e.y + (e.height || 0));
+      // Consider both corners: arrows can carry negative width/height (they run
+      // left/up), so e.x+width may be smaller than e.x. Min/max over both ends.
+      const x2 = e.x + (e.width || 0), y2 = e.y + (e.height || 0);
+      minX = Math.min(minX, e.x, x2); minY = Math.min(minY, e.y, y2);
+      maxX = Math.max(maxX, e.x, x2); maxY = Math.max(maxY, e.y, y2);
     }
     const pad = 24;
     const vb = `${Math.floor(minX - pad)} ${Math.floor(minY - pad)} ${Math.ceil(maxX - minX + 2 * pad)} ${Math.ceil(maxY - minY + 2 * pad)}`;
