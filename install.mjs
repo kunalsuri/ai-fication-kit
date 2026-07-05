@@ -115,7 +115,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-import { KIT_VERSION, PROFILE_REL, banner, die, exists, info, readText, style, choose, isInteractive } from "./lib/util.mjs";
+import { KIT_VERSION, MANIFEST_REL, PROFILE_REL, banner, die, exists, info, readText, style, choose, isInteractive } from "./lib/util.mjs";
 import { orient, printProfile } from "./lib/orient.mjs";
 import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
@@ -133,7 +133,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit", "demo"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "update", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit", "demo"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -191,6 +191,11 @@ if (!command || !target) {
 
 Usage:
   node install.mjs shazam    <path-to-your-repo>   one-shot: orient + install + next steps
+                                                   (already installed? switches to update
+                                                   mode: version check, what-changed digest,
+                                                   pre/postflight health, safe refresh)
+  node install.mjs update    <path-to-your-repo>   update mode explicitly — same as shazam
+                                                   but refuses when nothing is installed
   node install.mjs orient    <path-to-your-repo>   detect stack, write ai/repo-profile.json
   node install.mjs indepth   <path-to-your-repo>   run comprehensive indepth analysis
   node install.mjs install   <path-to-your-repo>   stamp templates into the repo
@@ -305,9 +310,31 @@ if (command === "orient") {
   }
   if (!profile) profile = await orient(targetAbs, flags);
   await install(targetAbs, profile, flags);
-} else if (command === "shazam") {
+} else if (command === "shazam" || command === "update") {
   banner();
-  info("  " + style.amber("⚡ shazam") + style.gray(" — orient · install · then hand you the audit. No magic past this point."));
+  // Update mode: an install manifest on disk means shazam has run here before.
+  // Everything below is deterministic — manifest fields, semver comparison,
+  // CHANGELOG.md sections, and the same hash-provenance plan install always used.
+  const { readInstallManifest, compareSemver, printUpdateHeader,
+    healthSnapshot, printPreflight, printPostflight } = await import("./lib/update.mjs");
+  const prevManifest = await readInstallManifest(targetAbs);
+  if (command === "update" && !prevManifest) {
+    die(`No ${MANIFEST_REL} found in ${targetAbs} — the kit isn't installed here yet.\n  First run: node install.mjs shazam "${target}"`);
+  }
+  const updateMode = Boolean(prevManifest);
+  let preflight = null;
+  if (updateMode) {
+    if (compareSemver(prevManifest.kitVersion ?? "0.0.0", KIT_VERSION) > 0 && !flags.force) {
+      die(`This repo was installed with kit v${prevManifest.kitVersion} — NEWER than this kit (v${KIT_VERSION}).\n` +
+        `  Refusing to downgrade. Update your kit copy instead, or re-run with --force to downgrade anyway\n` +
+        `  (the usual protections still apply: edited files kept, [verified] files child-locked).`);
+    }
+    await printUpdateHeader(prevManifest);
+    preflight = await healthSnapshot(targetAbs);
+    printPreflight(preflight);
+  } else {
+    info("  " + style.amber("⚡ shazam") + style.gray(" — orient · install · then hand you the audit. No magic past this point."));
+  }
 
   const level = await chooseAnalysisLevel(flags);
 
@@ -344,9 +371,23 @@ if (command === "orient") {
   }
 
   // Step 4: Install (process-aware: backs up on Process 2)
-  await install(targetAbs, profile, flags);
+  const wrote = await install(targetAbs, profile, flags);
 
-  if (!flags.dryRun) {
+  // Step 5 (update mode): prove the update left the repo no worse than preflight.
+  if (updateMode && wrote) {
+    printPostflight(preflight, await healthSnapshot(targetAbs));
+  }
+
+  if (updateMode) {
+    if (wrote) {
+      const fromV = prevManifest.kitVersion ?? "unknown";
+      info("\n" + style.bold("Update complete.") +
+        (fromV !== KIT_VERSION ? ` v${fromV} → v${KIT_VERSION} recorded in ${MANIFEST_REL}.` : ""));
+      info(`  · New files above (${style.gray("write (new)")}) are ready to use; refreshed kit-owned files are current.`);
+      info(`  · Edited and ${style.green("[verified]")} files were kept — your audit work is untouched.`);
+      info(`  · Next: node install.mjs doctor "${target}"   ${style.gray("(tells you if anything needs a human)")}`);
+    }
+  } else if (!flags.dryRun) {
     const isProcess2 = profile.maturity?.process === 2;
     const step = (n) => style.coral(`${n}.`);
     const primaryTool = profile.humanContext?.primaryTool;

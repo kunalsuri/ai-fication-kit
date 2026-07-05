@@ -4,7 +4,7 @@
 > **Index only.** Find the area here, then open the entry file directly. Don't crawl
 > the tree. The directory list can be regenerated; **Responsibility** and **Stability**
 > are judgement and must be audited by a human.
-> Last verified: 2026-07-04 @ commit 825b00f (drift baseline re-anchored 2026-07-04: the audit-R3 fix commits 206e24e, 2b5d0b6, and the Copilot-review fix 825b00f — spec `ai/lab/specs/BUGFIX_audit-R3-fixes.md`, review `ai/lab/reviews/REVIEW_W-002.md`, verdict approve — touched `/`, `lib/`, `templates/`, `test/`, and `.github/` after the previous 4bbf46c baseline; this re-anchor accompanies that PR for human review at merge time, and the per-row human audit dates below remain the authoritative signatures. Future audits can move this anchor via `audit --git`, which now offers the update after the human confirms — AUD-R2-11.)
+> Last verified: 2026-07-05 @ commit d6b06c0 (drift baseline re-anchored 2026-07-05: the merges since the previous 825b00f baseline — main PRs #31–#33 (commands/skills audit report, SPEC_TEMPLATE rewrite, README/docs staleness sync, local-only /check-docs) and PR #34's shazam update mode (`lib/update.mjs`, `lib/migrations.mjs`, installer manifest v2 + obsolete-file pass, CLI `update` command, tests, `docs/CLI-REFERENCE.md`) — touched `/`, `lib/`, `templates/`, `test/`, and `docs/`; this re-anchor accompanies PR #34 for human review at merge time, and the per-row human audit dates below remain the authoritative signatures. Future audits can move this anchor via `audit --git`, which offers the update after the human confirms — AUD-R2-11.)
 
 > Status: drafted by an `[inferred]` cold-start pass on this repo (the kit dogfooding
 > itself), then audited by a human on 2026-06-25 who set each row's Stability to `ours`
