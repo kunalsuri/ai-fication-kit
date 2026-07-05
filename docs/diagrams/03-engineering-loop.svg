@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 0 1251 794" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="6" y="0" width="1251" height="794" fill="#ffffff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>
+<rect x="30" y="660" width="1110" height="110" rx="12" fill="#e9ecef" stroke="#495057" stroke-width="1"  opacity="0.22"/>
+<rect x="455" y="135" width="260" height="110" rx="12" fill="#a5d8ff" stroke="#1971c2" stroke-width="2"  opacity="1"/>
+<rect x="637" y="240" width="260" height="110" rx="12" fill="#99e9f2" stroke="#0c8599" stroke-width="2"  opacity="1"/>
+<rect x="637" y="450" width="260" height="110" rx="12" fill="#b2f2bb" stroke="#2f9e44" stroke-width="2"  opacity="1"/>
+<rect x="455" y="555" width="260" height="110" rx="12" fill="#ffec99" stroke="#f08c00" stroke-width="2"  opacity="1"/>
+<rect x="273" y="450" width="260" height="110" rx="12" fill="#ffc9c9" stroke="#e03131" stroke-width="2"  opacity="1"/>
+<rect x="273" y="240" width="260" height="110" rx="12" fill="#d0bfff" stroke="#6741d9" stroke-width="2"  opacity="1"/>
+<rect x="465" y="338" width="240" height="124" rx="12" fill="#e9ecef" stroke="#495057" stroke-width="2"  opacity="1"/>
+<rect x="48" y="700" width="350" height="56" rx="12" fill="#ffec99" stroke="#f08c00" stroke-width="2"  opacity="1"/>
+<rect x="410" y="700" width="350" height="56" rx="12" fill="#ffc9c9" stroke="#e03131" stroke-width="2"  opacity="1"/>
+<rect x="772" y="700" width="350" height="56" rx="12" fill="#b2f2bb" stroke="#2f9e44" stroke-width="2"  opacity="1"/>
+<polyline points="685.5304468496249,247.99833472093746 666.4695531503751,237.00166527906254" fill="none" stroke="#495057" stroke-width="2.5"  marker-end="url(#ah)" />
+<polyline points="767,356 767,444" fill="none" stroke="#495057" stroke-width="2.5"  marker-end="url(#ah)" />
+<polyline points="666.4695531503751,562.9983347209375 685.5304468496249,552.0016652790625" fill="none" stroke="#495057" stroke-width="2.5"  marker-end="url(#ah)" />
+<polyline points="484.469553150375,552.0016652790625 503.530446849625,562.9983347209375" fill="none" stroke="#495057" stroke-width="2.5"  marker-end="url(#ah)" />
+<polyline points="403,444 403,356" fill="none" stroke="#495057" stroke-width="2.5"  marker-end="url(#ah)" />
+<polyline points="503.530446849625,237.00166527906254 484.469553150375,247.99833472093746" fill="none" stroke="#495057" stroke-width="2.5"  marker-end="url(#ah)" />
+<text x="40" y="53" font-size="30" font-weight="700" text-anchor="start" fill="#1e1e1e">The engineering loop</text>
+<text x="40" y="80" font-size="15" font-weight="400" text-anchor="start" fill="#495057">The steady state after the map is trusted. Every feature or bugfix runs the same closed loop; each stage leaves a durable artifact in ai/lab/.</text>
+<text x="585" y="170" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">1. SPEC</text>
+<text x="585" y="187" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">specification-driven</text>
+<text x="585" y="203" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">ai/lab/specs/SPEC_* · BUGFIX_*</text>
+<text x="585" y="219" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">gate: no code before the human OKs it</text>
+<text x="767" y="275" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">2. DECIDE</text>
+<text x="767" y="292" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">decision records</text>
+<text x="767" y="308" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">ai/lab/decisions/ADR_*</text>
+<text x="767" y="324" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">gate: non-obvious choices written down</text>
+<text x="767" y="485" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">3. IMPLEMENT</text>
+<text x="767" y="502" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">surgical diffs</text>
+<text x="767" y="518" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">/add-feature · /fix-bug · /implement-spec</text>
+<text x="767" y="534" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">gate: Stability — frozen/? needs approval</text>
+<text x="585" y="590" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">4. REVIEW</text>
+<text x="585" y="607" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">review-driven — fresh context</text>
+<text x="585" y="623" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">ai/lab/reviews/REVIEW_*</text>
+<text x="585" y="639" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">gate: never the implementing session</text>
+<text x="403" y="485" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">5. EVALUATE</text>
+<text x="403" y="502" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">evaluation-driven</text>
+<text x="403" y="518" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">ai/lab/evaluations/EVAL_*</text>
+<text x="403" y="534" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">what went well / poorly, audit cost</text>
+<text x="403" y="275" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">6. RECORD</text>
+<text x="403" y="292" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">memory</text>
+<text x="403" y="308" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">one row in ai/lab/WORKLOG.md</text>
+<text x="403" y="324" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">links spec ↔ review ↔ eval ↔ commits</text>
+<text x="585" y="359" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">ONE UNIT OF WORK</text>
+<text x="585" y="374" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">feature added or bug fixed</text>
+<text x="585" y="389" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="585" y="404" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">mirrors how the kit thinks:</text>
+<text x="585" y="419" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">ai/guide = semantic memory</text>
+<text x="585" y="434" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">ai/lab = episodic memory</text>
+<text x="585" y="449" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">WORKLOG = the episodic index</text>
+<text x="48" y="686" font-size="15" font-weight="700" text-anchor="start" fill="#495057">THREE PROPERTIES KEEP THE LOOP HONEST</text>
+<text x="223" y="724" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">Reviewer ≠ implementer</text>
+<text x="223" y="739" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">review runs in a fresh session and re-runs the suites</text>
+<text x="585" y="724" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">Reproduction before fix</text>
+<text x="585" y="739" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">a failing regression test proves the bug is understood</text>
+<text x="947" y="724" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">The ledger cannot rot</text>
+<text x="947" y="739" font-size="12" font-weight="400" text-anchor="middle" fill="#1e1e1e">verify --strict checks every WORKLOG artifact path</text>
+</svg>
