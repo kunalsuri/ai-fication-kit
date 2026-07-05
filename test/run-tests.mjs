@@ -627,13 +627,18 @@ async function testInstaller(label, exec, script) {
   // regression: a backticked API/method reference shaped like name.ext
   // (`util.inspect`, `array.map`) must NOT be treated as a filename claim — its
   // "extension" is not a real file extension — so it can never fail verify
-  // --strict. A real filename claim alongside it is still checked and confirmed.
+  // --strict. Real filename claims alongside it are still checked and confirmed,
+  // including supported marker/build filenames like `go.mod` / `*.sln` /
+  // `*.csproj`.
   {
     const arepo = await makeBareFixture(`${label}-verify-api-ref`, {
       "app.ts": "export {};\n",
+      "go.mod": "module example.com/m\n",
+      "kit.sln": "Microsoft Visual Studio Solution File, Format Version 12.00\n",
+      "App.csproj": "<Project/>\n",
       "ai/guide/MODULE_MAP.md":
         "# Module map\n\n" +
-        "Formatting goes through `util.inspect` and `array.map`; the entry is `app.ts`.\n",
+        "Formatting goes through `util.inspect` and `array.map`; the entries are `app.ts`, `go.mod`, `kit.sln`, and `App.csproj`.\n",
     });
     r = run(exec, [script, "verify", arepo, "--strict"]);
     let am = { claims: [] };
@@ -644,8 +649,9 @@ async function testInstaller(label, exec, script) {
     const aClaims = am.claims.map(c => c.claim);
     ok(r.code === 0 && !aClaims.includes("util.inspect") && !aClaims.includes("array.map"),
       `API refs util.inspect / array.map are not path claims, so verify --strict passes: ${JSON.stringify(aClaims)}`);
-    ok(am.claims.some(c => c.claim === "app.ts" && c.status === "confirmed"),
-      `a real filename claim (app.ts) is still checked and confirmed alongside the ignored API refs`);
+    ok(["app.ts", "go.mod", "kit.sln", "App.csproj"].every(name =>
+      am.claims.some(c => c.claim === name && c.status === "confirmed")),
+    `real filename claims remain checked and confirmed alongside ignored API refs: ${JSON.stringify(am.claims)}`);
     await fs.rm(arepo, { recursive: true, force: true });
   }
 
