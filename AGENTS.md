@@ -40,7 +40,9 @@ kit's `orient` step — trust it for stack facts, verify before relying on comma
 The `ai/` folder is the single source of truth for repository intelligence. It is
 tool-agnostic: any AI coding agent (Claude, Cursor, Copilot, Codex) reads the same
 verified maps, architecture docs, and feature catalogs. New features, refactors, and
-onboarding all start here.
+onboarding all start here. A tool's private per-machine memory (e.g. Claude Code
+auto-memory) is not shared — record durable knowledge in the committed `ai/` layer so
+every agent and teammate sees it.
 
 If backup files (e.g. `CLAUDE_bkp_*.md` / `AGENTS_bkp_*.md`) exist, they are the prior
 configuration. Knowledge was extracted from them during /cold-start — use `ai/guide/`

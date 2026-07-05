@@ -115,6 +115,30 @@ One workflow, and each step has a clear owner — deterministic script, AI agent
 
 ---
 
+## 🧭 Where this fits: context, harness & loop engineering
+
+The kit is a concrete implementation of three practices the agentic-coding field
+named in 2025–2026. If you have read about them, here is the mapping:
+
+- **Context engineering** — curating the *right* tokens for the model instead of
+  dumping everything into the prompt ([Anthropic, *Effective context engineering
+  for AI agents*](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)).
+  The `ai/` layer *is* curated context: thin root `CLAUDE.md`/`AGENTS.md` that
+  point to maps read **on demand**, so the agent loads only what a task needs.
+- **Harness engineering** — the systems, constraints, and feedback loops wrapped
+  around the model so a mistake never repeats. The human-audited `[verified]`
+  tags, the deterministic `verify`/`drift` gates in CI, and the append-only
+  `ai/lab/WORKLOG.md` ledger are that harness.
+- **Loop engineering** — designing the repeatable cycle the agent runs, with a
+  verifiable goal and a termination check. That is the engineering loop:
+  **Spec → Decide → Implement → Review → Evaluate → Record**, with tests and
+  `verify --strict` as the "done" signal.
+
+The point of the kit is that these are not vibes — they are files, gates, and a
+human signature you can audit.
+
+---
+
 ## ⚡ Quick Start
 
 Get up and running in under five minutes.
@@ -246,7 +270,8 @@ your-repo/
 │                                 evaluations/, experiments/
 ├── .claude/                    # Claude Code: commands (/cold-start, /add-feature, …),
 │                                 subagents (repo-explorer, feature-builder, test-runner),
-│                                 and the add-feature skill
+│                                 the add-feature skill, and native rules/ (an
+│                                 always-on index rule + a path-scoped ai/ guard)
 ├── .github/                    # GitHub Copilot: copilot-instructions.md, prompts/*.prompt.md
 │                                 (same commands), chatmodes/*.chatmode.md (same subagents)
 ├── .agents/                    # Google Antigravity: workflows/*.md (same commands),
