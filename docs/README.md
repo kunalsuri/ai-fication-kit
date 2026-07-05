@@ -30,7 +30,7 @@ Everything about *using* the kit and *understanding* the method lives here.
 - [IMPLEMENT-SPEC.md](IMPLEMENT-SPEC.md) — the `/implement-spec` command: spec-faithful implementation with a lighter model, inside the engineering loop.
 
 **Look up (reference):**
-- [CLI-REFERENCE.md](CLI-REFERENCE.md) — all 8 commands, all flags, what each writes, exit codes.
+- [CLI-REFERENCE.md](CLI-REFERENCE.md) — all 12 commands, all flags, what each writes, exit codes.
 - [GLOSSARY.md](GLOSSARY.md) — one-line definitions of every term the kit assumes.
 - [FUNCTIONALITY.md](FUNCTIONALITY.md) — the kit's own modules and functions (for contributors).
 - [system-diagrams/](system-diagrams/README.md) — Use Case, Class, Sequence, and State Machine diagrams; [system-diagrams/user-workflow.md](system-diagrams/user-workflow.md) for the end-to-end lifecycle.
