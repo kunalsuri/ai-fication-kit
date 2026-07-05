@@ -32,8 +32,10 @@ Derive, deterministically:
   `templates/cursor/rules/` (a command is "universal" only if present in all).
 - **Distributed skills** = the sub-directories of `templates/claude/skills/`
   and `templates/agents/skills/`.
-- **CLI commands** = the `command === "…"` branches routed in `install.mjs`
-  (and mirrored in the `docs/CLI-REFERENCE.md` "Command index" table).
+- **CLI commands** = the members of the authoritative `const COMMANDS = new Set([…])`
+  in `install.mjs` (the CLI's own routing source, also used by
+  `test/release-check.mjs`) — do **not** count `command === "…"` comparisons, which
+  also appear for sub-flows. Mirrored in the `docs/CLI-REFERENCE.md` "Command index" table.
 - **Stamped `ai/` tree** = the structure under `templates/ai/` plus the files
   `install.mjs` writes directly (`ai/repo-profile.json`,
   `ai/install-manifest.json`, optionally `ai/repo-indepth.json`).
@@ -61,8 +63,8 @@ finding must trace to one of these sources.
 ### Section E — CLI-command & stamped-tree drift
 | ID | Check | Severity |
 |----|-------|----------|
-| E1 | Every "all N commands" claim (e.g. docs/README.md's CLI-REFERENCE blurb) equals the number of CLI command branches in `install.mjs` | ❌ |
-| E2 | The `docs/CLI-REFERENCE.md` "Command index" table has one row per `install.mjs` command branch — none missing, none stale | ❌ |
+| E1 | Every "all N commands" claim (e.g. docs/README.md's CLI-REFERENCE blurb) equals the size of the `COMMANDS` set in `install.mjs` | ❌ |
+| E2 | The `docs/CLI-REFERENCE.md` "Command index" table has one row per member of the `COMMANDS` set in `install.mjs` — none missing, none stale | ❌ |
 | E3 | The README "What You Get" tree lists every path `templates/ai/` stamps and every directly-written `ai/` file (spot-check: `START-HERE.html`, `INDEX.md`, `lab/WORKLOG.md`, `lab/reviews/`, `guide/*`, `analysis/*`) | ❌ |
 | E4 | The technical-report §8.1 directory tree agrees with the same stamped-tree ground truth | ⚠️ |
 
