@@ -624,6 +624,37 @@ async function testInstaller(label, exec, script) {
     await fs.rm(lrepo, { recursive: true, force: true });
   }
 
+  // regression: a backticked API/method reference shaped like name.ext
+  // (`util.inspect`, `array.map`) must NOT be treated as a filename claim — its
+  // "extension" is not a real file extension — so it can never fail verify
+  // --strict. Real filename claims alongside it are still checked and confirmed,
+  // including supported marker/build filenames like `go.mod` / `*.sln` /
+  // `*.csproj`.
+  {
+    const arepo = await makeBareFixture(`${label}-verify-api-ref`, {
+      "app.ts": "export {};\n",
+      "go.mod": "module example.com/m\n",
+      "kit.sln": "Microsoft Visual Studio Solution File, Format Version 12.00\n",
+      "App.csproj": "<Project/>\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n\n" +
+        "Formatting goes through `util.inspect` and `array.map`; the entries are `app.ts`, `go.mod`, `kit.sln`, and `App.csproj`.\n",
+    });
+    r = run(exec, [script, "verify", arepo, "--strict"]);
+    let am = { claims: [] };
+    try {
+      am = JSON.parse(await fs.readFile(
+        path.join(arepo, "ai", "analysis", "audit-reports", "VERIFICATION_MANIFEST.json"), "utf8"));
+    } catch { /* missing manifest — caught by the assertion */ }
+    const aClaims = am.claims.map(c => c.claim);
+    ok(r.code === 0 && !aClaims.includes("util.inspect") && !aClaims.includes("array.map"),
+      `API refs util.inspect / array.map are not path claims, so verify --strict passes: ${JSON.stringify(aClaims)}`);
+    ok(["app.ts", "go.mod", "kit.sln", "App.csproj"].every(name =>
+      am.claims.some(c => c.claim === name && c.status === "confirmed")),
+    `real filename claims remain checked and confirmed alongside ignored API refs: ${JSON.stringify(am.claims)}`);
+    await fs.rm(arepo, { recursive: true, force: true });
+  }
+
   // ---------- drift: structural detection (unmapped / vanished) ----------
   const drepo = await makeFixture(`${label}-drift`, { fork: false });
   await fs.mkdir(path.join(drepo, "src"), { recursive: true });
@@ -721,6 +752,34 @@ async function testInstaller(label, exec, script) {
     `report includes the vanished-row line-number pointer`);
 
   await fs.rm(srepo, { recursive: true, force: true });
+
+  // regression: a FILE placed in the Directory column of a small/flat repo must
+  // NOT be reported "vanished" while it exists — drift must agree with verify
+  // (which counts the same path as confirmed). Before the fix, isDir() on the
+  // Directory column flagged every file-level row as vanished, contradicting
+  // verify's "confirmed".
+  {
+    const fr = await makeBareFixture(`${label}-drift-file-in-dircol`, {
+      "src/index.js": "module.exports = 1;\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/index.js` | entry | `src/index.js` | ours | [verified] (01/07/2026) |\n",
+    });
+    r = run(exec, [script, "drift", fr]);
+    let frm = { summary: {} };
+    try {
+      frm = JSON.parse(await fs.readFile(
+        path.join(fr, "ai", "analysis", "audit-reports", "DRIFT_MANIFEST.json"), "utf8"));
+    } catch { /* missing manifest — caught by the assertion */ }
+    ok(r.code === 0 && frm.summary.vanished === 0,
+      `an existing file in the Directory column is not "vanished": ${JSON.stringify(frm.summary)}`);
+    const vr = run(exec, [script, "verify", fr, "--strict"]);
+    ok(vr.code === 0,
+      `verify --strict agrees the same file-in-Directory-column path exists (no verify/drift contradiction)`);
+    await fs.rm(fr, { recursive: true, force: true });
+  }
 
   // ---------- --github-summary: friendly CI feedback ----------
   {
@@ -1185,6 +1244,35 @@ console.log("\n— indepth git history —");
   }
 }
 
+// ---------- shazam: default-branch warning when the wizard is skipped ----------
+console.log("\n— shazam branch guard —");
+{
+  const mkBranchRepo = async (name, headRef) => {
+    const d = path.join(here, `tmp-${name}-${process.pid}`);
+    await fs.rm(d, { recursive: true, force: true });
+    await fs.mkdir(path.join(d, ".git"), { recursive: true });
+    await fs.writeFile(path.join(d, ".git", "HEAD"), headRef + "\n");
+    await fs.writeFile(path.join(d, "package.json"), "{\"name\":\"x\"}\n");
+    return d;
+  };
+  const kit = path.join(kitRoot, "install.mjs");
+
+  // On master with the wizard skipped via --yes, the install must warn LOUDLY —
+  // never write 91 files onto the production branch silently (finding #2).
+  const onMaster = await mkBranchRepo("branchguard-master", "ref: refs/heads/master");
+  let r = run(process.execPath, [kit, "shazam", onMaster, "--yes"]);
+  ok(r.code === 0 && /Installing onto 'master'/.test(r.out) && /ai-fication-setup/.test(r.out),
+    `shazam --yes onto 'master' warns about installing on the default branch`);
+  await fs.rm(onMaster, { recursive: true, force: true });
+
+  // On a throwaway/feature branch, that warning must NOT fire.
+  const onFeature = await mkBranchRepo("branchguard-feature", "ref: refs/heads/feature/x");
+  r = run(process.execPath, [kit, "shazam", onFeature, "--yes"]);
+  ok(r.code === 0 && !/production\/default branch/.test(r.out),
+    `shazam --yes on a feature branch does not warn about the default branch`);
+  await fs.rm(onFeature, { recursive: true, force: true });
+}
+
 // ---------- doctor: read-only workflow-stage detector ----------
 console.log("\n— doctor —");
 {
@@ -1331,6 +1419,30 @@ console.log("\n— doctor —");
     ok(result.step === 5 && /trusted|maintenance/.test(result.action),
       `step 5: all verified + clean manifests → maintenance mode`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 5)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 3 (regression): a cold-started 4-column map whose rows end in Stability
+  // `?` with NO [inferred] tag, plus clean verify/drift manifests, must still be
+  // "needs audit" (step 3) — never "trusted" (step 5). Guards the doctor/status
+  // contradiction where doctor read an untagged draft as fully verified.
+  {
+    const d = await makeBareFixture("doctor-untagged-needs-audit", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability |\n" +
+        "|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ? |\n",
+      "src/app.ts": "export {};\n",
+      "ai/analysis/audit-reports/VERIFICATION_MANIFEST.json":
+        JSON.stringify({ summary: { confirmed: 1, moved: 0, missing: 0 } }),
+      "ai/analysis/audit-reports/DRIFT_MANIFEST.json":
+        JSON.stringify({ summary: { unmapped: 0, vanished: 0, stale: 0 } }),
+    });
+    const result = await diagnose(d);
+    ok(result.step === 3 && /audit/.test(result.action),
+      `untagged '?' rows + clean manifests → step 3 (needs audit), not step 5: got step ${result.step}`);
     await fs.rm(d, { recursive: true, force: true });
   }
 

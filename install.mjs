@@ -120,7 +120,7 @@ import { orient, printProfile } from "./lib/orient.mjs";
 import { install, uninstall } from "./lib/installer.mjs";
 import { verify } from "./lib/verify.mjs";
 import { drift } from "./lib/drift.mjs";
-import { runFirstRunWizard, coldStartInstructionFor } from "./lib/intake.mjs";
+import { runFirstRunWizard, coldStartInstructionFor, detectBranch } from "./lib/intake.mjs";
 import { diagnose, printDoctorReport } from "./lib/doctor.mjs";
 import { status } from "./lib/status.mjs";
 import { audit } from "./lib/audit.mjs";
@@ -366,7 +366,21 @@ if (command === "orient") {
     try { alreadyOnboarded = Boolean(existing && JSON.parse(existing).humanContext); } catch { /* ignore */ }
     if (!alreadyOnboarded) {
       const humanContext = await runFirstRunWizard(targetAbs, profile, flags);
-      if (humanContext) profile.humanContext = humanContext;
+      if (humanContext) {
+        profile.humanContext = humanContext;
+      } else {
+        // The wizard self-disables under --yes or a non-interactive shell, which
+        // also skips its branch-safety guard. Never let an install onto the
+        // production/default branch be *silent*: it is not blocked (automation
+        // must flow through), but it must be visible. This reads .git/HEAD as a
+        // plain file — no git is shelled out (same discipline as the wizard).
+        const branch = await detectBranch(targetAbs);
+        if (branch.versionControlled && /^(main|master)$/i.test(branch.name || "")) {
+          info("\n" + style.amber(`⚠️  Installing onto '${branch.name}'`) +
+            " — your production/default branch (the setup wizard was skipped via --yes / non-interactive).");
+          info("    A throwaway branch is safer: " + style.coral("git checkout -b ai-fication-setup"));
+        }
+      }
     }
   }
 
