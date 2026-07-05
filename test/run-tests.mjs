@@ -2152,6 +2152,10 @@ console.log("\n— audit R3 regressions —");
     ok(compareSemver("0.1.0", "0.2.0") < 0 && compareSemver("0.2.0", "0.2.0") === 0 &&
       compareSemver("0.10.0", "0.9.9") > 0 && compareSemver(undefined, "0.1.0") < 0,
       `compareSemver orders versions numerically (0.10.0 > 0.9.9; unknown = oldest)`);
+    // Copilot PR #34 review: the parse regex must be anchored — a pre-release
+    // or four-part string must NOT pass as its x.y.z prefix.
+    ok(compareSemver("1.2.3-beta", "0.0.1") < 0 && compareSemver("1.2.3.4", "0.0.1") < 0,
+      `compareSemver treats "1.2.3-beta" / "1.2.3.4" as malformed (0.0.0), not as 1.2.3`);
     const changelog = [
       "# Changelog", "",
       "## [Unreleased]", "### Added", "- **Never shown** — unreleased work",
@@ -2174,6 +2178,18 @@ console.log("\n— audit R3 regressions —");
       `changelogDigest: strictly-after-from, up-to-to, oldest first`);
     ok(changelogDigest(releases, "0.3.0", "0.3.0").length === 0,
       `changelogDigest: same version → empty digest`);
+  }
+
+  // Copilot PR #34 review: manifest paths are untrusted input — the loader must
+  // drop anything that could steer a later pass outside the target directory.
+  {
+    const { isSafeManifestPath } =
+      await import(pathToFileURL(path.join(kitRoot, "lib", "installer.mjs")).href);
+    const bad = ["../evil.md", "ai/../../evil.md", "/etc/passwd", "C:whoops.md",
+      "ai\\windows.md", "ai/\0nul.md", "ai//double.md", "./ai/dot.md", "", 42, null];
+    const good = ["ai/INDEX.md", ".claude/commands/cold-start.md", "ai/guide/MODULE_MAP.md"];
+    ok(bad.every(p => !isSafeManifestPath(p)) && good.every(p => isSafeManifestPath(p)),
+      `isSafeManifestPath rejects absolute/../NUL/backslash/empty-segment paths, keeps clean posix-relative ones`);
   }
 
   // Unit: the rename registry (empty today, but the lookup must be safe).
@@ -2210,7 +2226,7 @@ console.log("\n— audit R3 regressions —");
 
     r = run(process.execPath, [script, "update", d, "--yes"]);
     m = await readManifest();
-    ok(r.code === 0 && /update mode/.test(r.out) && new RegExp(`v0\\.1\\.0 → v${KIT_VERSION.replace(/\./g, "\\.")}`).test(r.out),
+    ok(r.code === 0 && /update mode/.test(r.out) && r.out.includes(`v0.1.0 → v${KIT_VERSION}`),
       `update on an old install announces the version transition`);
     ok(/What changed since v0\.1\.0/.test(r.out) && /v0\.2\.0/.test(r.out),
       `update prints the CHANGELOG digest for the versions being jumped`);
@@ -2248,6 +2264,22 @@ console.log("\n— audit R3 regressions —");
     ok(m.files.includes("ai/OLD_OWNED.md") && m.files.includes("ai/OLD_EDITED.md") &&
       !m.files.includes("ai/OLD_GONE.md") && !("ai/OLD_GONE.md" in m.fileHashes),
       `kept obsolete files stay tracked; already-deleted ones are dropped from the manifest`);
+
+    // Copilot PR #34 review (E2E): a planted path-traversal manifest entry must
+    // be scrubbed on load — never scanned, never listed, never rewritten.
+    const outsideAbs = path.join(path.dirname(d), `OUTSIDE-${process.pid}.md`);
+    await fs.writeFile(outsideAbs, "must never be touched\n");
+    m.files.push("../" + path.basename(outsideAbs));
+    m.fileHashes["../" + path.basename(outsideAbs)] = "2".repeat(64);
+    await fs.writeFile(manifestPath, JSON.stringify(m, null, 2) + "\n");
+    r = run(process.execPath, [script, "shazam", d, "--yes"]);
+    m = await readManifest();
+    ok(r.code === 0 && !r.out.includes("OUTSIDE-") &&
+      !m.files.some(f => f.startsWith("../")) &&
+      !Object.keys(m.fileHashes).some(f => f.startsWith("../")) &&
+      await exists(outsideAbs),
+      `"../" manifest entries are dropped on load and the outside file is untouched`);
+    await fs.rm(outsideAbs, { force: true });
 
     // Downgrade guard: installed version newer than the running kit.
     m.kitVersion = "9.9.9";
