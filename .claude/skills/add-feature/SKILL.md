@@ -39,4 +39,6 @@ Tell the user which tags await their `[verified]` flip.
 
 ## 7. Review & record
 Request `/review-change` on the diff (fresh context — not this session). Append
-the work's row to `ai/lab/WORKLOG.md` linking spec, review, and commits.
+the work's row to `ai/lab/WORKLOG.md` linking spec, review, and commits, and move the
+feature's `ai/lab/ROADMAP.md` row from Planned to Shipped (cross-link spec, WORKLOG
+row, and PR by feature ID).

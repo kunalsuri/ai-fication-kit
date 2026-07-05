@@ -30,6 +30,7 @@ change, update this one file.
 | Change reviews | `ai/lab/reviews/` | AI (fresh session) + human | pre-merge |
 | Evaluations | `ai/lab/evaluations/` | human | post-ship |
 | Experiments | `ai/lab/experiments/` | human + AI | when trying new agent approaches |
+| Feature roadmap | `ai/lab/ROADMAP.md` | maintainer (+ AI drafts) | when planning / picking the next feature |
 | Lessons learnt (kit dev) | `docs/dev/lessons-learnt/` | human + AI draft | when questioning the ai/ design |
 | Install manifest | `ai/install-manifest.json` | installer | uninstall only |
 | Maturity report | `ai/analysis/audit-reports/MATURITY_REPORT.json` | `check-repo-maturity` | on demand |

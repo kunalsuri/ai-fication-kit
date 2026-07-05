@@ -20,4 +20,6 @@ in this repo). Summary of the contract:
 6. **Update knowledge.** FEATURE_MAP entry, catalog amendment, MODULE_MAP if layout
    changed — all tagged `[inferred]` for the human to verify.
 7. **Review & record.** Request `/review-change` on the diff (fresh context), then
-   append the work's row to `ai/lab/WORKLOG.md` linking spec, review, and commits.
+   append the work's row to `ai/lab/WORKLOG.md` linking spec, review, and commits,
+   and move the feature's `ai/lab/ROADMAP.md` row from Planned to Shipped —
+   cross-linking the spec, the WORKLOG row, and the PR by feature ID.

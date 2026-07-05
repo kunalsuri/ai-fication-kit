@@ -33,6 +33,7 @@ Stack: JavaScript/TypeScript.
 - Conventions:            ai/guide/CONVENTIONS.md
 - Generated analysis:     ai/analysis/   (feature catalog, diagrams, audit reports)
 - Specs / ADRs / evals:   ai/lab/
+- Feature roadmap:        ai/lab/ROADMAP.md   (planned backlog + shipped index; cousin of WORKLOG)
 
 ## Token discipline
 - Locate via MODULE_MAP.md, then open only needed files. Don't crawl the tree.

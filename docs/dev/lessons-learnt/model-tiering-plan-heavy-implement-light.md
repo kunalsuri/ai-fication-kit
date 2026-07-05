@@ -18,7 +18,7 @@ both token waste and inconsistent code.
 While planning features for upcoming releases, the feature backlog was deliberately
 authored twice. A first draft was a plain idea list; it was then rewritten by the
 heavy model into an implementation-ready spec sheet —
-[docs/dev/upcoming-features.md](../upcoming-features.md) — designed so a lighter
+[ai/lab/ROADMAP.md](../../../ai/lab/ROADMAP.md) — designed so a lighter
 model can implement each feature in a later, separate session without re-deriving
 project context.
 
@@ -38,7 +38,7 @@ project context.
 
 ## 2. What the spec sheet must contain (the pattern)
 
-Learned while writing `upcoming-features.md`; reusable for any repo:
+Learned while writing the feature backlog (now `ai/lab/ROADMAP.md`); reusable for any repo:
 
 1. **An implementer protocol** — numbered steps the light model follows, including
    "implement only the one feature the human names" and a stop-and-ask escape

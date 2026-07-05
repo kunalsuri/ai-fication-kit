@@ -30,6 +30,7 @@ for the full rationale.
 | `evaluations/` | Post-implementation retrospectives | Human |
 | `experiments/` | AI-agent approach trials: prompts, configs, outcomes | Human + AI |
 | `WORKLOG.md` | The work ledger — one row per unit of work, linking all of the above | AI appends, human audits |
+| `ROADMAP.md` | The feature roadmap — Planned backlog + Shipped index, per feature (cousin of `WORKLOG.md`) | AI drafts, human audits |
 
 In the memory framing above: `WORKLOG.md` is the episodic *index* — the
 timeline that makes the episodes findable and citable (`W-<n>`).

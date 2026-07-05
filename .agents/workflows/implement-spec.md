@@ -71,6 +71,8 @@ confident-sounding places.
   `[verified]` signature. That is the human's move alone.
 - Append the WORKLOG entry linking spec, review, commits, and test evidence
   (verify scans these links — broken ones fail `--strict`).
+- If the spec implements a `ai/lab/ROADMAP.md` Planned feature, move its row from
+  Planned to Shipped, cross-linking the spec, the WORKLOG row, and the PR.
 
 ### 7. Final report (in this order)
 1. Acceptance-criteria scorecard.
