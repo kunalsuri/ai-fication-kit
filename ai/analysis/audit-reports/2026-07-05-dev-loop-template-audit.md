@@ -41,7 +41,8 @@ spec-faithful, zero-design-decision Implement variant.
 ### F1 · `/implement-spec` missing from all four template surfaces
 10 commands per surface ship; the kit's own `.claude/commands/` has 12
 (`implement-spec` + local-only `check-docs`). Even inside the kit repo the command is
-Claude-only — `.cursor/rules/` and `.github/prompts/` (10 files each) never had it.
+Claude-only — `.cursor/rules/` (10 command rules + the always-on `ai-knowledge-layer`
+rule, 11 files) and `.github/prompts/` (10 prompts) never had it.
 Consequence for end users: the loop's spec-faithful Implement lane — the piece built
 for lighter implementation models — is unavailable in every stamped repo.
 
