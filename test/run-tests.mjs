@@ -161,6 +161,7 @@ async function testInstaller(label, exec, script) {
     path.join("ai", "analysis", "FEATURE_CATALOG_BACKEND.md"),
     path.join("ai", "analysis", "FEATURE_CATALOG_FRONTEND.md"),
     path.join("ai", "lab", "WORKLOG.md"),
+    path.join("ai", "lab", "ROADMAP.md"),
     path.join("ai", "lab", "reviews", "REVIEW_TEMPLATE.md"),
     path.join("ai", "lab", "specs", "BUGFIX_TEMPLATE.md"),
     path.join(".claude", "commands", "cold-start.md"),

@@ -43,7 +43,7 @@ Everything about *using* the kit and *understanding* the method lives here.
 
 **Maintain:**
 - [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md) — release-day procedure (tagging, Zenodo, post-release).
-- [dev/upcoming-features.md](dev/upcoming-features.md) — the developer's idea backlog: candidate features for future releases, triaged step by step.
+- [../ai/lab/ROADMAP.md](../ai/lab/ROADMAP.md) — the feature roadmap: the planned backlog (spec-grade entries) and the shipped index, cousin of the work ledger.
 - `dev/` — development notes and reusable prompts; `images/` — figures used by the README and these docs.
 
 Reserved for the project's public materials:

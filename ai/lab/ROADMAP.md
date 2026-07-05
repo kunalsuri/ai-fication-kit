@@ -1,86 +1,123 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
-# Upcoming feature plan — wave 3 (targets v0.3.x)
+# Feature roadmap — ai-fication-kit
 
-> Product plan + implementation-ready specs for the kit's next release wave.
-> Drafted 2026-07-04 by a heavy planning model acting as product manager, following
-> the model-tiering pattern in
-> [lessons-learnt/model-tiering-plan-heavy-implement-light.md](lessons-learnt/model-tiering-plan-heavy-implement-light.md):
-> the expensive thinking (user research, journey simulation, trap-spotting) is done
-> once here, so a lighter autonomous coding agent can implement each feature in a
-> later session without re-deriving context. Triage and final say rest with the
-> maintainer.
+> The kit's single living feature roadmap, and the **cousin of
+> [`ai/lab/WORKLOG.md`](WORKLOG.md)**. Two sections: **Planned** (rich,
+> spec-grade entries so a lighter coding model can implement a feature cold,
+> following the model-tiering pattern in
+> [`docs/dev/lessons-learnt/model-tiering-plan-heavy-implement-light.md`](../../docs/dev/lessons-learnt/model-tiering-plan-heavy-implement-light.md))
+> and **Shipped** (thin pointer rows).
 >
-> Relationship to [upcoming-features.md](upcoming-features.md): that file was
-> **wave 2** (A/B series — doctor, status, audit, demo, Cursor rules, …) and is
-> fully shipped except A4 (monorepo), which was parked "until its own spec exists".
-> This file is **wave 3** (C series). C4 below *is* that missing A4 spec, Phase 1.
+> **Lifecycle of one feature:** born in **Planned** with a spec-grade entry →
+> when work starts, its detail migrates into `ai/lab/specs/SPEC_<id>.md` → when it
+> ships, its Planned row collapses to a **Shipped** pointer that cross-links its
+> spec, its `WORKLOG.md` row(s), and its PR — by **feature ID**, never by copying
+> fields. WORKLOG is *per-work-unit* (a feature may span several rows); this file
+> is *per-feature*. Everything here is `[inferred]` until a human audits it.
+>
+> The product-management rationale behind the Planned features (personas, journey
+> simulations) lives in
+> [`docs/dev/lessons-learnt/feature-planning-personas-and-simulation.md`](../../docs/dev/lessons-learnt/feature-planning-personas-and-simulation.md).
 
 ---
 
-## 1 · Product context: who uses this kit, and for what
+## How to use this file (the linking protocol)
 
-The kit's promise: *give AI coding agents — and new human teammates — a compact,
-human-verified map of a repository, so context is spent on the task, not on
-rediscovery.* Every feature below is judged against the personas who hire the kit
-for that job:
+1. The human names **ONE feature ID**. Implement only that one. Do not start another.
+2. Read the **Shared engineering contract** below — every rule applies to every
+   feature (runtime, layout, license headers, safety discipline, determinism,
+   provenance, report pattern, manifest coverage, tests, docs-ride-along).
+   Re-read it before coding.
+3. Read the feature's **Touchpoints** files *before* writing code; copy their style.
+4. **Draft a spec first:** copy `ai/lab/specs/SPEC_TEMPLATE.md` to
+   `ai/lab/specs/SPEC_<feature-id>.md`, fill it from the Planned entry below, put
+   the spec path in the Planned row's **Spec** cell, then implement via the
+   `/add-feature` discipline (spec → surgical diff → tests → knowledge update →
+   ledger row).
+5. **Definition of done** (run all, in the kit repo): `npm test` passes ·
+   `node install.mjs verify . --strict` passes · command/flag appears in
+   `docs/CLI-REFERENCE.md` index · CHANGELOG entry under `[Unreleased]`.
+6. **On ship — the cross-link (this is the trace):**
+   - move the feature's row from **Planned** to **Shipped**;
+   - the `SPEC_<id>.md` you drafted is now the detail of record — the Planned
+     prose does not need to be re-transcribed anywhere;
+   - append a row to [`ai/lab/WORKLOG.md`](WORKLOG.md) whose title cites the
+     feature ID and links the spec, the review, and the commits;
+   - fill the Shipped row's **Spec**, **WORKLOG**, and **PR** cells so the
+     `ID → spec → work-unit → PR` chain is followable in both directions.
+7. If a spec conflicts with what you find in the code, **STOP and ask the human** —
+   do not improvise around the conflict.
 
-| # | Persona | Job they hire the kit for | What loses them |
-|---|---|---|---|
-| P1 | **Cautious tech lead** — owns a legacy/enterprise repo, evaluating AI adoption | Prove to themselves (and their team) that agent output can be *trusted* on this codebase | False alarms from the kit's own checks; claims of value with no numbers |
-| P2 | **AI-curious beginner** — first agent, first "AI-native" repo | A guided, safe path from zero to a working map without jargon | Red ❌ they can't interpret; steps that silently depend on manual bookkeeping |
-| P3 | **New teammate / onboarder** — joins a repo that already has a verified `ai/` layer | Read one thing and be productive on day one | Knowledge locked inside agent-session workflows; no shareable artifact |
-| P4 | **Monorepo maintainer** — npm/pnpm workspaces, polyglot backend+frontend | A map that reflects the *packages*, not one flat root | `orient` seeing one npm project where there are twelve packages and a Java service |
+> The Shipped `Spec` cells are backticked repo-relative paths, so `verify --strict`
+> checks them (`ai/lab/ROADMAP.md` is in its source list). The forward-looking
+> Planned detailed specs are fenced with `verify-ignore` markers, so their
+> illustrative and not-yet-created paths are not treated as claims.
 
-A fifth "user" is the **coding agent itself**: features that make the mechanical
-checks more honest (fewer blindspots, fewer false positives) directly improve every
-agent session downstream.
+## Shared engineering contract (applies to every feature)
 
-## 2 · Simulation evidence (what was actually run, 2026-07-04)
+- **Runtime:** Node ≥ 18, ESM `.mjs`, **stdlib only — zero npm dependencies.** If you
+  are about to `npm install` anything, you have misread the task.
+- **Layout:** `install.mjs` is CLI parsing/dispatch only; logic lives in `lib/<name>.mjs`.
+  A new command = add its name to the `COMMANDS` set in `install.mjs` (~line 95), add a
+  dispatch branch, create `lib/<name>.mjs`. New flags must be added to the flag parser
+  (unknown `--flags` are fatal by design). Reuse helpers from `lib/util.mjs`
+  (`die`, `info`, `style`, `readText`, `isFile`, `isDir`, `ask`, `choose`, `confirm`,
+  `isInteractive`, `KIT_VERSION`).
+- **License header:** first line of every new file:
+  `// Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.` (`.mjs`) or the
+  HTML-comment equivalent (`.md`, templates).
+- **Safety discipline (non-negotiable):** no code execution, no network, no writes
+  outside the target directory. The only sanctioned exceptions are local read-only
+  git behind an explicit opt-in flag (pattern: `drift --git`) — a new exception must
+  be opt-in, documented in the command's `docs/CLI-REFERENCE.md` section, and called
+  out in `SECURITY.md`. Every command that writes must support `--dry-run`.
+- **Deterministic:** no LLM calls in the CLI, ever. Same input ⇒ same output.
+- **Provenance:** anything the kit or an agent writes into a target's `ai/` is tagged
+  `[inferred]`. Only feature A1 may write `[verified]`, and only after an explicit
+  interactive human confirmation (that IS the human's signature).
+- **Generated artifacts** (reports/manifests) go to `ai/analysis/audit-reports/` in the
+  target repo, as a JSON manifest + MD report pair — copy the pattern in `lib/verify.mjs`.
+- **Files stamped into target repos** must be listed in the install manifest so
+  `uninstall` removes them — follow how `lib/installer.mjs` records `fileHashes`.
+- **Tests:** extend `test/run-tests.mjs` (fixture-repo pattern, `ok()` assertions).
+  Interactive prompts must self-skip without a TTY / with `--yes` so CI passes.
+- **Docs ride along in the same commit:** `docs/CLI-REFERENCE.md` (command index table
+  + a section), `CHANGELOG.md` under `[Unreleased]`, and `README.md`/
+  `docs/MULTI-TOOL-SETUP.md` only if user-facing behavior changes.
 
-All findings below were reproduced with the real CLI (kit v0.2.0, this commit) on
-fixture repos — not hypothesized. Reproduction steps are exact.
+**Definition of done (run all, in the kit repo):**
+`npm test` passes · `node install.mjs verify . --strict` passes · new command appears
+in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updated.
 
-| ID | Journey simulated | Finding | Feeds feature |
-|---|---|---|---|
-| F1 | `orient` on an npm-workspaces monorepo (`packages/api`, `packages/web`, plus `backend/pom.xml`) | Detected as a **single flat npm project**. Workspaces not listed, the Java backend invisible, `testCmd` left as `<fill in>` even though both packages define test scripts. Matches the FAQ's known limitation. | C4 |
-| F2 | `shazam --yes` on a **Python** repo (`pyproject.toml`, `src/`, `tests/`), then `verify` | **Fails out of the box: 2 missing claims.** The stamped `CLAUDE.md:22` and `AGENTS.md:24` hard-code `package.json` in the "No Phantom Bugs" rule; a Python repo has none, so the very first `verify` a beginner runs reports broken claims they didn't cause. | C1 |
-| F3 | `status` on the same freshly scaffolded repo (correct usage, nothing wrong yet) | Verdict **"DRIFTING"** in red, before `/cold-start` has even run. `doctor` correctly says "step 2 of 5", but `status` has no notion of journey stage — a brand-new user's first health check tells them their repo is rotting. | C2 |
-| F4 | Cold-start rows added, one row flipped `[verified]`, code changed, then `drift --git --suggest` | Stale check **silently skipped**: "MODULE_MAP records no verified commit". The flagship staleness detection only works if a human hand-edits `Last verified: … @ commit <sha>` in an exact regex-matched format (`lib/drift.mjs:68`). The `audit` command does not stamp it. | C3 |
-| F5 | New file added inside an already-mapped directory, then `drift` | Not flagged — `drift` maps at directory-segment level, so anything new inside a mapped dir is invisible. Already documented as a real incident in [lessons-learnt/drift-blindspots-and-automation-bias.md](lessons-learnt/drift-blindspots-and-automation-bias.md). | C5 |
-| F6 | Value story: `examples/value-demo/measure.mjs` | Works — but only for the **bundled sample app**. A tech lead cannot produce the "map vs raw tree" context-savings number for *their own repo*, which is exactly the number they need to justify adoption internally. | C6 |
-| F7 | This kit's own `ai/INDEX.md` footer | Reads "Installed by ai-fication-kit **0.1.0**" while the CLI is 0.2.0. Nothing ever tells a user their installed layer predates the current kit or that re-running `shazam` is a safe upgrade. | C7 |
-| F8 | `demo`, `doctor`, `audit` (non-TTY refusal), maturity check | All behaved well — clear copy, correct stage detection, correct refusal. Wave 2 quality is good; wave 3 should build on it, not rework it. | — |
+---
 
-**Fixture recipes** (for regression tests): F1 = root `package.json` with
-`"workspaces": ["packages/*"]`, two member packages with their own `package.json`
-(+ test scripts), one `backend/pom.xml`. F2 = `pyproject.toml` + `src/app/views.py`
-+ `tests/test_views.py`, git-initialized, then `shazam --yes`.
+# Planned
 
-## 3 · The wave-3 features at a glance
+> Wave 3 (C series, targets v0.3.x). Ordering principle: **first make the existing
+> promises true** (C1–C3 fix moments where a user following instructions perfectly
+> still sees red), **then widen the audience** (C4), **then deepen honesty and
+> proof** (C5, C6), **then polish the lifecycle** (C7, C8). C4 is the first slice
+> of the monorepo work parked as A4 in wave 2.
 
-Ordering principle: **first make the existing promises true** (C1–C3 fix moments
-where a user following instructions perfectly still sees red), **then widen the
-audience** (C4), **then deepen honesty and proof** (C5, C6), **then polish the
-lifecycle** (C7, C8).
+## Tracking table
 
-### Tracking table
+<!-- The implementing agent updates ONE row per finished feature; on ship, move the
+     row to the Shipped table below. Date format: YYYY-MM-DD. -->
 
-<!-- The implementing agent updates ONE row per finished feature. Date format: YYYY-MM-DD. -->
-
-| ID | Feature | Persona | Priority | Effort | Depends on | Status | Implemented | Added | Completed | Commit / PR |
-|---|---|---|---|---|---|---|---|---|---|---|
-| C1 | Stack-aware agent instructions (kill the `package.json` false positive) | P2, P1 | P1 | S | — | idea | ☐ | 2026-07-04 | — | — |
-| C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | P2 | P1 | S | — | idea | ☐ | 2026-07-04 | — | — |
-| C3 | `audit` stamps the verified-commit baseline (make `drift --git` actually fire) | P1, P2 | P1 | S–M | — | idea | ☐ | 2026-07-04 | — | — |
-| C4 | Monorepo Phase 1 — workspace-aware `orient` (the parked A4, first slice) | P4 | P2 | M | — | idea | ☐ | 2026-07-04 | — | — |
-| C5 | `drift --deep` — file-level coverage inside mapped directories | agent, P1 | P2 | M | — | idea | ☐ | 2026-07-04 | — | — |
-| C6 | `value` — context-savings report for *your own* repo | P1 | P2 | M | — | idea | ☐ | 2026-07-04 | — | — |
-| C7 | Kit-version awareness in `doctor`/`status` ("your layer is from 0.1.0 — upgrade is safe") | P2 | P3 | S | — | idea | ☐ | 2026-07-04 | — | — |
-| C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | P3 | M | C6 helpful | idea | ☐ | 2026-07-04 | — | — |
+| ID | Feature | Priority | Effort | Depends on | Spec | Status |
+|---|---|---|---|---|---|---|
+| C1 | Stack-aware agent instructions (kill the `package.json` false positive) | P1 | S | — | — | idea |
+| C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | P1 | S | — | — | idea |
+| C3 | `audit` stamps the verified-commit baseline (make `drift --git` actually fire) | P1 | S–M | — | — | idea |
+| C4 | Monorepo Phase 1 — workspace-aware `orient` (the parked A4, first slice) | P2 | M | — | — | idea |
+| C5 | `drift --deep` — file-level coverage inside mapped directories | P2 | M | — | — | idea |
+| C6 | `value` — context-savings report for *your own* repo | P2 | M | — | — | idea |
+| C7 | Kit-version awareness in `doctor`/`status` | P3 | S | — | — | idea |
+| C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
 
 Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dropped`).
 
-### How each feature helps the end user (the one-breath version)
+## How each feature helps the end user (the one-breath version)
 
 - **C1** — a Python/Java/Go beginner's first `verify` is green instead of reporting phantom breakage; trust in the tool survives minute one.
 - **C2** — the first `status` says *where you are on the path*, not that your brand-new repo is "DRIFTING"; anxiety becomes orientation.
@@ -91,33 +128,9 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 - **C7** — users learn their knowledge layer is out of date and that re-running `shazam` is a safe, incremental upgrade (today they'd never know).
 - **C8** — the verified knowledge-base becomes a shareable, double-clickable onboarding page for humans who will never open an agent or a terminal.
 
-## 4 · Instructions for the implementing agent
+<!-- verify-ignore:start -->
 
-1. The human names **ONE feature ID**. Implement only that one. Do not start another.
-2. The **Shared engineering contract** in [upcoming-features.md](upcoming-features.md)
-   applies verbatim to every C feature — runtime (Node ≥ 18, ESM, **zero npm
-   dependencies**), layout (`install.mjs` dispatch only, logic in `lib/<name>.mjs`),
-   license headers, safety discipline (no execution, no network, no writes outside
-   the target, `--dry-run` on every writing command), determinism (no LLM calls,
-   ever), provenance (`[inferred]` only — the human's flip is sacred), report
-   pattern (JSON manifest + MD report in `ai/analysis/audit-reports/`), manifest
-   coverage for stamped files, tests in `test/run-tests.mjs`, docs riding along in
-   the same commit. Re-read it before coding; it is not repeated here.
-3. Read the feature's **Touchpoints** files *before* writing code; copy their style.
-4. Draft a spec first: copy `ai/lab/specs/SPEC_TEMPLATE.md` to
-   `ai/lab/specs/SPEC_<feature-id>.md`, fill it from the entry below, then implement
-   via the `/add-feature` discipline (spec → surgical diff → tests → knowledge
-   update → ledger row in `ai/lab/WORKLOG.md`).
-5. **Definition of done** (run all, in the kit repo): `npm test` passes ·
-   `node install.mjs verify . --strict` passes · command/flag appears in
-   `docs/CLI-REFERENCE.md` index · CHANGELOG entry under `[Unreleased]` · tracking
-   table row above updated.
-6. If a spec conflicts with what you find in the code, **STOP and ask the human** —
-   do not improvise around the conflict.
-
----
-
-## 5 · Detailed specifications
+## Detailed specifications
 
 ### C1 · Stack-aware agent instructions — kill the `package.json` false positive
 
@@ -300,7 +313,7 @@ the deterministic Phase 1 (profile facts only) so a light model can ship it.
 is 209 lines; keep the addition proportionate), `lib/intake.mjs` (display only),
 `docs/CLI-REFERENCE.md` orient section, `docs/FAQ.md` monorepo answer (rewrite the
 "known limitation" paragraph to describe Phase 1 behavior + remaining limits),
-`test/run-tests.mjs` (F1 fixture recipe from §2).
+`test/run-tests.mjs` (F1 fixture recipe from the simulation-evidence lesson).
 
 **Acceptance.**
 - F1 fixture: `workspaces.detected === true`, both members listed with test
@@ -491,7 +504,7 @@ the full lab).
 
 ---
 
-## 6 · Sequencing and dependency notes
+## Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
   trust-breaking moment — together they make an honest v0.2.1 patch wave), then
@@ -504,7 +517,7 @@ the full lab).
 - One feature per branch, per session, per CHANGELOG bullet — same cadence that
   shipped wave 2 cleanly.
 
-## 7 · Deliberately NOT on this roadmap (and why)
+## Deliberately NOT on this roadmap (and why)
 
 Recorded so future planning sessions don't re-litigate:
 
@@ -518,5 +531,43 @@ Recorded so future planning sessions don't re-litigate:
 - **VS Code / IDE extension** — wrong altitude for a pre-1.0 single-maintainer
   kit; the four stamped tool integrations already meet users inside their tools.
 - **Monorepo Phases 2–3** (drift per member, per-package MODULE_MAP sections) —
-  parked until Phase 1 ships and real workspace feedback exists; needs its own
-  spec against the post-C4 codebase.
+  parked until Phase 1 (C4) ships and real workspace feedback exists; needs its
+  own spec against the post-C4 codebase.
+
+<!-- verify-ignore:end -->
+
+---
+
+# Shipped
+
+> Wave 2 (A/B series), shipped 2026-07-03 as the v0.2.x feature wave. These
+> predate `ai/lab/WORKLOG.md` (the ledger starts at W-001, 2026-07-03), so their
+> **WORKLOG** cell is `—`; retrofitting ledger rows for past work is out of scope
+> per [`ai/lab/specs/SPEC_engineering-loop.md`](specs/SPEC_engineering-loop.md).
+> Each row's full detail lives in its spec.
+
+## Tracking table
+
+| ID | Feature | Spec | WORKLOG | PR / release | Shipped |
+|---|---|---|---|---|---|
+| B1 | `doctor` — state-aware next step | [`ai/lab/specs/SPEC_B1-doctor.md`](specs/SPEC_B1-doctor.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| A3 | `drift --suggest` — ready-to-paste fixes | [`ai/lab/specs/SPEC_A3-drift-suggest.md`](specs/SPEC_A3-drift-suggest.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| B4 | Friendly CI feedback (step summary) | [`ai/lab/specs/SPEC_B4-github-summary.md`](specs/SPEC_B4-github-summary.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| A2 | `status` — health snapshot + badge | [`ai/lab/specs/SPEC_A2-status.md`](specs/SPEC_A2-status.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| A1 | `audit` — guided human audit | [`ai/lab/specs/SPEC_A1-audit.md`](specs/SPEC_A1-audit.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| B3 | `demo` — zero-risk playground | [`ai/lab/specs/SPEC_B3-demo.md`](specs/SPEC_B3-demo.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| A5 | Native Cursor rules assets | [`ai/lab/specs/SPEC_A5-cursor-rules.md`](specs/SPEC_A5-cursor-rules.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| B2 | AI-tool detection in wizard | [`ai/lab/specs/SPEC_B2-tool-detection.md`](specs/SPEC_B2-tool-detection.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| B5 | Living progress page in target `ai/` | [`ai/lab/specs/SPEC_B5-progress-page.md`](specs/SPEC_B5-progress-page.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+
+**A4 · Monorepo / workspace support** — parked in wave 2 pending its own spec;
+**superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned
+section above.
+
+## Triage notes (historical, wave 2)
+
+- Suggested order was: B1 → A3 → B4 (P1s are independent), then A2 before B5.
+- A3/B1 both needed the MODULE_MAP parser exported from `lib/drift.mjs` — whichever
+  shipped first did that refactor; the second reused it.
+- One feature per branch and per CHANGELOG bullet; one feature per session for the
+  implementing model.
