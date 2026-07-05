@@ -31,7 +31,8 @@ Stack: JavaScript/TypeScript.
 + gotchas), `ai/guide/CONVENTIONS.md` (how to write code here).
 
 **Generated analysis (on demand):** `ai/analysis/` — feature catalog, audit reports,
-diagrams. **Development intelligence:** `ai/lab/` — specs, ADRs, evaluations.
+diagrams. **Development intelligence:** `ai/lab/` — specs, ADRs, evaluations, and
+the feature roadmap (`ai/lab/ROADMAP.md`, planned backlog + shipped index).
 
 **Machine-readable facts:** `ai/repo-profile.json` (produced deterministically by the
 kit's `orient` step — trust it for stack facts, verify before relying on commands).

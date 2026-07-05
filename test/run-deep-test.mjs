@@ -168,7 +168,13 @@ try {
       continue;
     }
     const content = await fs.readFile(file, "utf8");
-    if (placeholderRegex.test(content)) {
+    // Prose that quotes a token in backticks or a fenced code block is discussing
+    // it, not leaking it — a real unresolved placeholder appears in plain stamped
+    // text. Strip those spans so illustrative mentions don't trip the check.
+    const scannable = content
+      .replace(/```[\s\S]*?```/g, "")
+      .replace(/`[^`\n]*`/g, "");
+    if (placeholderRegex.test(scannable)) {
       placeholderFiles.push(relPath);
     }
   }

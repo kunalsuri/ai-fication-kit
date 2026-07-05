@@ -7,6 +7,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 ## [Unreleased]
 
 ### Added
+- **Feature roadmap + lifecycle trace (`ai/lab/ROADMAP.md`)** — a single living
+  roadmap (Planned backlog + Shipped index), cousin of the work ledger.
+  `/add-feature` and `/implement-spec` move a feature's row Planned→Shipped on
+  ship, cross-linking its spec, WORKLOG row, and PR by feature ID. `verify
+  --strict` now checks the roadmap's spec links (a `verify-ignore` fence exempts
+  forward-looking illustrative paths), and adopters receive a stamped
+  `ai/lab/ROADMAP.md` template. The deep-test placeholder check no longer
+  false-positives on tokens quoted in backticks or code fences.
 - **Shazam update mode + `update` command** — re-running `shazam` on an
   already-installed repo now behaves like a real updater, deterministically
   (manifest fields, numeric semver comparison, `CHANGELOG.md` parsing — no LLM):
