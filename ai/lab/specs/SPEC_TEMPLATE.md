@@ -8,7 +8,9 @@
      into numbered subsections — see the MCP KB server spec
      (SPEC_mcp-kb-server.md in the ai-fication-kit repo) for the
      implementation-grade example this template is modeled on.
-     Do NOT delete sections: §2 and §5–§8 are consumed by /implement-spec.
+     Do NOT delete sections: §2 and §5–§8 are the hand-off contract any
+     spec-faithful implementer reads first (in the kit's own repo, the
+     kit-only /implement-spec command consumes them mechanically).
      The human flips Status draft → approved; implementation starts only from
      an approved spec. -->
 
