@@ -108,7 +108,7 @@ let releaseSectionText = null;
 if (changelog === null) {
   fail("CHANGELOG.md not found");
 } else if (version) {
-  const esc = version.replace(/\./g, "\\.");
+  const esc = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const sectionRe = new RegExp(`^## \\[${esc}\\]\\s*[—–-]+\\s*(\\d{4}-\\d{2}-\\d{2})`, "m");
   const dated = changelog.match(sectionRe);
   const linkRef = new RegExp(`^\\[${esc}\\]:\\s*http`, "m").test(changelog);
