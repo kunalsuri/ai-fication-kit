@@ -44,7 +44,9 @@ Stack: JavaScript/TypeScript.
 The `ai/` folder is the single source of truth for repository intelligence. It is
 tool-agnostic: any AI coding agent (Claude, Cursor, Copilot, Codex) reads the same
 verified maps, architecture docs, and feature catalogs. New features, refactors, and
-onboarding all start here.
+onboarding all start here. Claude Code's auto-memory is machine-local and unshared —
+the committed `ai/` layer is the source of truth every agent and teammate reads, so
+record durable knowledge there.
 
 If `CLAUDE_bkp_*.md` exists, it is the prior configuration. Knowledge was extracted
 from it during /cold-start — do not re-read it; use `ai/guide/` instead.

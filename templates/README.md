@@ -8,9 +8,10 @@ Rules:
 - All other files are copied verbatim.
 - `templates/claude/**` installs to `.claude/**` (kept visible here so the kit's own
   tree is browsable): Claude Code slash commands, subagents, the `add-feature`
-  and `fix-bug` skills, and `rules/ai-knowledge-layer.md` — an always-on rule (no
-  `paths:` frontmatter) that is the native Claude Code twin of the Cursor
-  `alwaysApply: true` rule.
+  and `fix-bug` skills, and two native `rules/` — `ai-knowledge-layer.md`, an
+  always-on rule (no `paths:` frontmatter) that is the twin of the Cursor
+  `alwaysApply: true` rule, and `provenance.md`, a path-scoped guard
+  (`paths: ["ai/**"]`) that loads only when the agent edits the `ai/` layer.
 - `templates/github/**` installs to `.github/**`: the CI/CD workflow template, plus
   GitHub Copilot assets — `copilot-instructions.md` (repo-wide instructions),
   `prompts/*.prompt.md` (slash-command equivalents of the Claude commands), and

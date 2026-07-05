@@ -31,22 +31,34 @@ Cursor carry the same two invariants (provenance + record) natively.
   frontmatter, carries the `ai/INDEX.md` pointer + provenance + record).
 - `CHECKSUMS.txt` regenerated (covers `templates/`).
 
-**Out (explicitly):** path-scoped `.claude/rules/` guards (e.g. an `ai/**`
-provenance guard) — deferred, CLAUDE.md already carries the invariants and extra
-always-on rules cost context; the auto-memory clarifier and README
-harness/loop/context framing (optional enhancements #2/#3, declined this pass).
+Second pass (same re-audit unit of work — enhancements #2, #3, and the
+path-scoped guard, approved after the first commit):
+- **Path-scoped guard** `templates/claude/rules/provenance.md` (+ dogfood twin),
+  `paths: ["ai/**"]` — loads only when the agent edits the `ai/` layer,
+  reinforcing provenance at write-time. Asserted path-scoped in tests.
+- **Auto-memory clarifier** (#2): one line in `CLAUDE.md`/`AGENTS.md` and their
+  templates — auto-memory is machine-local; the committed `ai/` layer is the
+  shared source of truth.
+- **README framing** (#3): a "Where this fits" section mapping the kit to
+  context / harness / loop engineering, with source links.
+
+**Out (explicitly):** nothing further from this re-audit — the four gaps it
+surfaced are all now closed.
 
 ## Touch list
 | Layer | Location | Change |
 |---|---|---|
 | rule (kit) | `templates/claude/rules/ai-knowledge-layer.md` | new always-on rule |
 | rule (dogfood) | `.claude/rules/ai-knowledge-layer.md` | byte-identical twin |
-| docs | `templates/README.md`, `README.md`, `docs/MULTI-TOOL-SETUP.md` | mention the new rule |
-| tests | `test/run-tests.mjs` | installed-file check + always-on assertions |
+| guard (kit) | `templates/claude/rules/provenance.md` | new path-scoped `ai/**` guard |
+| guard (dogfood) | `.claude/rules/provenance.md` | byte-identical twin |
+| config | `CLAUDE.md`, `AGENTS.md`, `templates/CLAUDE.md.tmpl`, `templates/AGENTS.md.tmpl` | auto-memory clarifier line (#2) |
+| docs | `templates/README.md`, `README.md`, `docs/MULTI-TOOL-SETUP.md` | mention the rules; README "Where this fits" section (#3) |
+| tests | `test/run-tests.mjs` | installed-file checks + always-on & path-scoped assertions |
 | ledger | `ai/lab/WORKLOG.md` | row W-006 |
 | spec | `ai/lab/specs/SPEC_claude-rules-parity.md` | this file |
 | checksums | `CHECKSUMS.txt` | regenerated |
-| manifest | `ai/install-manifest.json` | record the dogfood twin |
+| manifest | `ai/install-manifest.json` | record the dogfood twins |
 
 ## Acceptance criteria
 1. `install` writes `.claude/rules/ai-knowledge-layer.md`; the file has no
@@ -69,5 +81,4 @@ harness/loop/context framing (optional enhancements #2/#3, declined this pass).
 
 ## Knowledge update on completion
 - [x] WORKLOG row W-006 appended (`[inferred]`)
-- [ ] Human audit: flip W-006 to `[verified]`; decide whether to also ship the
-      deferred path-scoped guards
+- [ ] Human audit: flip W-006 to `[verified]`

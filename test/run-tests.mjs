@@ -191,6 +191,7 @@ async function testInstaller(label, exec, script) {
     path.join(".cursor", "rules", "review-change.mdc"),
     path.join(".cursor", "rules", "ai-knowledge-layer.mdc"),
     path.join(".claude", "rules", "ai-knowledge-layer.md"),
+    path.join(".claude", "rules", "provenance.md"),
     path.join("ai", "START-HERE.html"),
     path.join("ai", "install-manifest.json")]) {
     ok(await exists(path.join(repo, f)), `installed ${f}`);
@@ -218,6 +219,11 @@ async function testInstaller(label, exec, script) {
   ok(claudeAlwaysRule.includes("ai/INDEX.md") && /\[inferred\]/.test(claudeAlwaysRule)
     && /\[verified\]/.test(claudeAlwaysRule) && claudeAlwaysRule.includes("ai/lab/WORKLOG.md"),
     `the Claude always-on rule points at ai/INDEX.md and states the provenance + record rules`);
+  const claudePathRule = await fs.readFile(path.join(repo, ".claude", "rules", "provenance.md"), "utf8");
+  ok(/^---\n[\s\S]*?paths:[\s\S]*?ai\/\*\*[\s\S]*?---/.test(claudePathRule),
+    `.claude/rules/provenance.md is path-scoped to ai/** via paths: frontmatter`);
+  ok(/\[inferred\]/.test(claudePathRule) && /\[verified\]/.test(claudePathRule),
+    `the path-scoped guard states the provenance rule for ai/ writes`);
 
   // ---------- ai/START-HERE.html: the living progress page ----------
   const progressPath = path.join(repo, "ai", "START-HERE.html");
