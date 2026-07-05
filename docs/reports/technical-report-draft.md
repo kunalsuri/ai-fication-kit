@@ -43,7 +43,7 @@ AI coding agents — tools such as Claude Code, Cursor, GitHub Copilot, and Open
 
 **ai-fication-kit** addresses this problem by scaffolding a structured knowledge layer into any existing repository. The kit produces a compact `ai/` directory — a map of modules, architecture, conventions, and features — that AI agents read instead of re-crawling source. Every claim in this map carries an explicit **provenance tag**: `[inferred]` (drafted by an agent or tool, not yet verified) or `[verified]` (confirmed by a human operator). Provenance tracking means knowing *who* produced a claim and *whether a human checked it*. By the agent rules the kit installs, agents must never promote their own drafts to `[verified]`; that flip is reserved as the human operator's signature. This is an instructional constraint enforced by the agent rules (and reinforced by a detective post-cold-start check), not a programmatic access control — see §5. (The kit's own guided `audit` command is the one sanctioned writer of `[verified]` tags, and it only writes one after an explicit per-row human confirmation — see §4.8.)
 
-The knowledge layer (`ai/` folder and `AGENTS.md`) is tool-agnostic — readable by any AI coding agent. As of v0.2.0, the kit's automation layer is no longer Claude Code-only: a single install stamps the same eight workflow commands, three helper-agent personas, and the multi-phase add-feature skill **natively for four tools** — Claude Code (`.claude/`: slash commands, subagents, skills), GitHub Copilot (`.github/`: `copilot-instructions.md`, prompt files, chat modes), Google Antigravity (`.agents/`: workflows plus the skill in the shared Agent Skills format), and Cursor (`.cursor/rules/*.mdc` rules). Claude Code remains the most deeply integrated runtime (native subagent spawning and auto-triggered skills); users of Codex or Windsurf can still use the provenance-tracked knowledge layer and agent rules, driving the workflows manually by pasting command file contents as prompts.
+The knowledge layer (`ai/` folder and `AGENTS.md`) is tool-agnostic — readable by any AI coding agent. As of v0.2.0, the kit's automation layer is no longer Claude Code-only: a single install stamps the same ten workflow commands, three helper-agent personas, and two multi-phase skills (`add-feature`, `fix-bug`) **natively for four tools** — Claude Code (`.claude/`: slash commands, subagents, skills), GitHub Copilot (`.github/`: `copilot-instructions.md`, prompt files, chat modes), Google Antigravity (`.agents/`: workflows plus the skills in the shared Agent Skills format), and Cursor (`.cursor/rules/*.mdc` rules). Claude Code remains the most deeply integrated runtime (native subagent spawning and auto-triggered skills); users of Codex or Windsurf can still use the provenance-tracked knowledge layer and agent rules, driving the workflows manually by pasting command file contents as prompts.
 
 The result is a dual-purpose artifact. For AI agents, the `ai/` folder provides a trusted navigation layer that reduces context-window consumption and prevents unsafe edits to frozen code. For human engineers, the same verified knowledge-base serves as instant onboarding documentation — a single source of truth about module responsibilities, stability boundaries, and feature locations.
 
@@ -81,7 +81,7 @@ The v0.2.0 README distills this into a three-part framing: **context and memory 
 
 The system rests on three pillars:
 
-1. **Agent Scaffolding.** The kit stamps agent instruction files (`CLAUDE.md`, `AGENTS.md`), eight workflow commands (`/cold-start`, `/add-feature`, …), helper-agent definitions (`repo-explorer`, `feature-builder`, `test-runner`), reusable skills, and a CI check (`ai-check.yml`) into the target repository — natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install.
+1. **Agent Scaffolding.** The kit stamps agent instruction files (`CLAUDE.md`, `AGENTS.md`), ten workflow commands (`/cold-start`, `/add-feature`, `/fix-bug`, …), helper-agent definitions (`repo-explorer`, `feature-builder`, `test-runner`), reusable skills, and a CI check (`ai-check.yml`) into the target repository — natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install.
 
 2. **Repository Context.** The kit generates a structured `ai/` folder containing human-readable maps of conventions, architecture, modules, and features. Agents query this folder instead of crawling raw source each session.
 
@@ -370,19 +370,22 @@ your-repo/
 │   │   ├── audit-reports/        # Verify, drift, status, and maturity reports
 │   │   └── problems/             # Dated issue analyses
 │   └── lab/                      # Development intelligence
+│       ├── WORKLOG.md            # Append-only work ledger (one row per unit of work)
 │       ├── decisions/            # Architecture Decision Records
-│       ├── specs/                # Feature specifications
+│       ├── specs/                # Feature specifications and bugfix docs
+│       ├── reviews/              # Fresh-context change reviews (/review-change)
 │       ├── evaluations/          # Post-implementation reviews
 │       └── experiments/          # Agent approach trials
-├── .claude/                      # Claude Code: 8 slash commands, 3 subagents,
-│                                   add-feature skill
+├── .claude/                      # Claude Code: 10 slash commands, 3 subagents,
+│                                   add-feature + fix-bug skills, rules/ (always-on
+│                                   index rule + path-scoped ai/ provenance guard)
 ├── .github/                      # GitHub Copilot: copilot-instructions.md,
-│                                   prompts/*.prompt.md (same 8 commands),
+│                                   prompts/*.prompt.md (same 10 commands),
 │                                   chatmodes/*.chatmode.md (same 3 personas),
 │                                   workflows/ai-check.yml (CI verify + drift)
-├── .agents/                      # Google Antigravity: workflows/*.md (same 8 commands),
-│                                   skills/add-feature/ (shared Agent Skills format)
-└── .cursor/                      # Cursor: rules/*.mdc (same 8 commands as native rules,
+├── .agents/                      # Google Antigravity: workflows/*.md (same 10 commands),
+│                                   skills/ (add-feature, fix-bug — shared Agent Skills format)
+└── .cursor/                      # Cursor: rules/*.mdc (same 10 commands as native rules,
                                     plus one always-on knowledge-layer index rule)
 ```
 
@@ -404,9 +407,9 @@ The 0.2.0 cycle added a **living progress page**, `ai/START-HERE.html` — a ful
 
 The kit's automation layer delivers the same workflow in four native tool formats from a single install. The command *content* is authored once; the installer stamps it as Claude Code slash commands (`.claude/commands/*.md`), GitHub Copilot prompt files (`.github/prompts/*.prompt.md`), Google Antigravity workflows (`.agents/workflows/*.md`), and Cursor rules (`.cursor/rules/*.mdc`, `alwaysApply: false`, plus one always-on `ai-knowledge-layer.mdc` rule pointing at `ai/INDEX.md` and the provenance rule). Claude Code remains the deepest integration — it alone adds native subagent spawning and auto-triggered skills — so this section describes the commands in their Claude Code form; the other formats carry the same instructions.
 
-### 9.1 The Eight Workflow Commands
+### 9.1 The Ten Workflow Commands
 
-Eight commands are stamped into `.claude/commands/` (and mirrored per tool as above). Each is a Markdown file with YAML frontmatter (containing a `description` field) followed by detailed, structured instructions that the agent executes when the user invokes the command.
+Ten commands are stamped into `.claude/commands/` (and mirrored per tool as above). Each is a Markdown file with YAML frontmatter (containing a `description` field) followed by detailed, structured instructions that the agent executes when the user invokes the command. (An eleventh command, `/implement-spec`, is currently dogfooded in the kit's own repository only and is not yet stamped into target repos — it is described with the engineering loop in §9.5.)
 
 #### `/cold-start` — Bootstrap the Knowledge Layer
 
@@ -431,6 +434,18 @@ A concise command (~18 lines) that activates the `add-feature` skill (see §9.3)
 5. **Verify.** Run the test suites matching the change. Failing or unrun tests mean the task is not done.
 6. **Update knowledge.** Add `FEATURE_MAP` entries, catalog amendments, and `MODULE_MAP` updates — all tagged `[inferred]`.
 
+#### `/fix-bug` — Reproduction-First Bug Fixing
+
+The defect-side counterpart to `/add-feature`, activating the `fix-bug` skill (§9.3). It encodes a reproduce-before-fix contract designed to make the fix provable rather than plausible:
+
+1. **Reproduce first.** Draft `ai/lab/specs/BUGFIX_<name>.md` (symptom, exact steps) and get the user's OK before touching code.
+2. **Failing test before fix.** Turn the reproduction into a permanent regression test and watch it fail — that failing test is the proof the bug is understood.
+3. **Locate via the maps.** `MODULE_MAP` Stability → `FEATURE_MAP` gotchas → `WORKLOG.md` history (was this area just touched? is the behavior deliberate?).
+4. **Respect Stability.** A root cause inside `frozen` or `?` files requires explicit human approval in the conversation, recorded in the bugfix doc.
+5. **Root cause, then surgical fix.** Name the defect, not the symptom; the smallest diff that turns the regression test green, with no drive-by refactors.
+6. **Verify.** The regression test plus the suites covering the touched area must pass; failing or unrun tests mean the bug is not fixed.
+7. **Review and record.** Request `/review-change` on the diff, then append the `bugfix` row to `ai/lab/WORKLOG.md` and the `FEATURE_MAP` gotcha — all `[inferred]`.
+
 #### `/check-drift` — Mechanical Checks Plus a Bias Safeguard
 
 Added in v0.1.2. Runs the two deterministic integrity checks (`verify --strict`, then `drift --git --strict`), then runs `git status` as an explicit procedural safeguard against automation bias — catching newly added or modified files inside already-mapped directories that the mechanical directory-level checks can miss. If issues are found, the agent drafts `[inferred]` updates to `MODULE_MAP.md`/`FEATURE_MAP.md` and reports what needs the human's manual review. (The safeguard was motivated by a documented drift blind spot — see `docs/dev/lessons-learnt/drift-blindspots-and-automation-bias.md`.)
@@ -444,6 +459,17 @@ Instructs the agent to build a comprehensive feature catalog — described as "t
 3. Cluster and name features as a *user* would name them, not by module names.
 
 Output is `ai/analysis/FEATURE_CATALOG.md` containing per-feature entries with: name, business goal, per-layer touch list, verifying tests, and related features. The catalog ends with two sections agents use most: a "where new code lives" decision tree and a "3-file rule" (the three files to read first to understand each feature). The command requires the agent to print a sampling guide — the five entries the human should spot-check first, selected by the agent's own confidence ranking.
+
+#### `/review-change` — Fresh-Context Change Review
+
+The review gate of the engineering loop (§9.5). It is designed to be run in a session that did **not** implement the change, on the premise that a reviewer sharing the implementer's context inherits the implementer's blind spots. The contract:
+
+1. **Pin the scope.** Identify the exact diff (commits / branch / files) and the spec or bugfix doc in `ai/lab/specs/` that authorized it. No spec is finding #1, severity blocker: unspecced work.
+2. **Copy the template.** `ai/lab/reviews/REVIEW_TEMPLATE.md` → `ai/lab/reviews/REVIEW_<work-id>.md`.
+3. **Check with evidence, not assertions.** For each check — spec conformance, surgical diff, Stability respected, tests, conventions, knowledge updated, provenance clean — record where you looked and what you saw, and re-run the suites the spec names rather than trusting the implementer's report.
+4. **File findings by severity.** Any blocker or major finding means verdict `request-changes` and the list goes back to the implementer; minor/nit findings can ship with notes.
+5. **Verdict and hand-off.** Fill in "what the human should double-check" — the judgement calls a mechanical check cannot make. The review is `[inferred]`; the human's merge decision is the real approval, and this document is its evidence.
+6. **Record.** Link the review from the work's `ai/lab/WORKLOG.md` row and set that row's Status to `in-review`.
 
 #### `/review-agent-config` — Configuration Diagnostic
 
@@ -530,9 +556,9 @@ Runs builds and test suites and reports results faithfully. Its instructions enf
 - Never mark a failure as "probably unrelated" without evidence (e.g., the same failure on the unmodified base). Flaky does not mean unrelated.
 - Do not fix code. Diagnose and report; fixing is `feature-builder`'s job.
 
-### 9.3 The `add-feature` Skill
+### 9.3 The `add-feature` and `fix-bug` Skills
 
-The `.claude/skills/add-feature/` directory contains a `SKILL.md` file and a `reference/` subdirectory. Skills in Claude Code are more structured than slash commands: they are automatically triggered when relevant and provide multi-step automation logic. Because Google Antigravity supports the same shared Agent Skills (`SKILL.md`) format, the skill is also stamped to `.agents/skills/add-feature/` for Antigravity users.
+The `.claude/skills/add-feature/` and `.claude/skills/fix-bug/` directories each contain a `SKILL.md` file and a `reference/` subdirectory. Skills in Claude Code are more structured than slash commands: they are automatically triggered when relevant and provide multi-step automation logic. Because Google Antigravity supports the same shared Agent Skills (`SKILL.md`) format, both skills are also stamped to `.agents/skills/` for Antigravity users. The `/add-feature` and `/fix-bug` commands (§9.1) are the thin, explicit entry points that invoke them.
 
 The skill encodes a six-phase contract:
 
@@ -545,6 +571,8 @@ The skill encodes a six-phase contract:
 
 The skill's stated contract is: "no code before a spec, no edits to frozen code, no 'done' without green tests, no merge without a knowledge update."
 
+The `fix-bug` skill shares that spec → locate → gate → implement → verify → record shape but is built around one extra discipline: **a failing regression test before any fix.** Its contract turns the reproduction into a permanent test and requires the agent to watch it fail first — that failing test is the proof the defect is understood — then names the root cause (not the symptom) and writes the smallest diff that turns the test green. Locating the defect additionally consults `WORKLOG.md` history (was this code just changed? is the behavior deliberate?), and the fix ends in the engineering loop's review-and-record step (§9.5). Its stated contract: "no fix before a failing test, root cause not symptom, and the regression test stays."
+
 ### 9.4 How the Pieces Compose
 
 The workflow commands, subagents, and skill form a layered system designed around context-window preservation and separation of concerns:
@@ -556,9 +584,24 @@ Developer → /cold-start ─┬→ repo-explorer (heavy reading)
 Developer → /add-feature ─→ add-feature skill ─┬→ repo-explorer (locate)
                                                 ├→ feature-builder (implement)
                                                 └→ test-runner (verify)
+
+Developer → /fix-bug ─────→ fix-bug skill ─────┬→ failing regression test first
+                                                ├→ feature-builder (surgical fix)
+                                                └→ test-runner (verify green)
 ```
 
-The main agent orchestrates; subagents do the context-heavy work in isolated windows. The skill encodes the multi-phase contract so the agent follows it consistently. The workflow commands provide the user-facing entry points. Together they form the workflow from onboarding (`/cold-start`) through verification (`/check-drift`, `/review-agent-config`, `/post-cold-start-verification`, `/verify-ai-readiness`) to safeguarded development (`/add-feature`) and quality assurance (`/perform-feature-add-simulation`).
+The main agent orchestrates; subagents do the context-heavy work in isolated windows. The skills encode the multi-phase contracts so the agent follows them consistently. The workflow commands provide the user-facing entry points. Together they form the workflow from onboarding (`/cold-start`) through verification (`/check-drift`, `/review-agent-config`, `/post-cold-start-verification`, `/verify-ai-readiness`) to safeguarded development (`/add-feature`, `/fix-bug`), change review (`/review-change`), and quality assurance (`/perform-feature-add-simulation`).
+
+### 9.5 The Engineering Loop, the Work Ledger, and `/implement-spec`
+
+Steps 0–5 (§4) make a repository AI-native *once*; the **engineering loop** is the repeatable cycle every subsequent unit of work runs, so the map stays trustworthy as the code changes rather than decaying after the initial audit. Its six stages are **Spec → Decide → Implement → Review → Evaluate → Record**, with the test suites and `verify --strict` as the "done" signal (the full treatment is in `docs/METHODOLOGY.md` §7):
+
+- **Spec** authorizes the work (`ai/lab/specs/SPEC_*.md` for features, `BUGFIX_*.md` for defects); **Decide** records any non-obvious choice as an ADR under `ai/lab/decisions/`.
+- **Implement** is `/add-feature`, `/fix-bug`, or `/implement-spec`, always under the Stability gates.
+- **Review** is `/review-change`, run in a **fresh context that never shares the implementer's window** (§9.1) — blockers send the work back.
+- **Record** appends exactly one row to `ai/lab/WORKLOG.md`, the append-only **work ledger**: the repository's episodic memory of *what was done, when, and under which contract*, linking the spec, decisions, review, and commits for each change. Because `verify` checks the backtick-quoted artifact paths in each row against the tree, a row whose spec or review vanished fails CI instead of rotting silently.
+
+`/implement-spec <spec-path>` is the loop's dedicated implementation engine, built for the "plan with a heavy model, implement with a light one" split: it takes a finished, human-hardened spec and drives an agent — typically a cheaper model — through *faithful translation only*. Its prime rule is **stop-and-report, never improvise**: on any spec-vs-reality conflict (a signature differs, a file is missing, an example contradicts a rule) the agent must halt and ask rather than guess, because specs are `[inferred]` artifacts that are "mostly right, wrong in confident-sounding places." The spec's full test plan is the definition of done, and the run ends in the same `/review-change` gate and `[inferred]` knowledge updates as the other implementation paths. The command is currently dogfooded in the kit's own repository (`.claude/commands/`, `.agents/workflows/`) and not yet stamped into target repos — its promotion into `templates/` is a deferred product decision (see `docs/IMPLEMENT-SPEC.md`).
 
 ---
 
@@ -591,7 +634,7 @@ The kit's knowledge layer (`ai/` and `AGENTS.md`) is tool-agnostic. The automati
 | `AGENTS.md` rules | ✓ (via `CLAUDE.md` `@import`) | ✓ (+ `copilot-instructions.md`) | ✓ | ✓ | ✓ (read natively) |
 | `ai/` knowledge layer | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Provenance tags (`[inferred]`/`[verified]`) | ✓ | ✓ | ✓ | ✓ | ✓ |
-| The 8 workflow commands | ✓ native slash commands | ✓ native prompt files | ✓ native workflows | ✓ native rules (`.mdc`) | Manual (paste command body as prompt) |
+| The 10 workflow commands | ✓ native slash commands | ✓ native prompt files | ✓ native workflows | ✓ native rules (`.mdc`) | Manual (paste command body as prompt) |
 | Helper-agent personas (3) | ✓ native subagent spawning | ✓ chat modes (mirrors) | — | — | — |
 | `add-feature` skill | ✓ (auto-triggered) | — | ✓ (shared Agent Skills format) | — | — |
 
@@ -693,7 +736,7 @@ ai-fication-kit provides a structured method for making any existing codebase na
 2. **A strict separation** between deterministic observation (the `orient`/`indepth`/`verify`/`drift` pipeline) and model inference (agent-driven `/cold-start` and `/add-feature`).
 3. **Stability markers** (`frozen` / `stable` / `ours` / `?`) that function as behavioral constraints for agent edits.
 4. **Mechanical integrity checks** (`verify` and `drift`) that keep the knowledge layer honest as the codebase evolves, with CI-compatible `--strict` modes, plain-English CI summaries, and a one-command `status` verdict.
-5. **A multi-tool native automation layer** — eight workflow commands, three helper-agent personas, and a multi-phase skill — stamped for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install, composing into a complete agentic workflow from onboarding through safeguarded feature delivery.
+5. **A multi-tool native automation layer** — ten workflow commands, three helper-agent personas, and two multi-phase skills (`add-feature`, `fix-bug`) — stamped for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install, composing into a complete agentic workflow from onboarding through safeguarded feature delivery, defect fixing, and fresh-context review — the repeatable engineering loop that keeps the map trustworthy as the code evolves.
 6. **Mechanically protected human signatures** — hash-verified incremental re-runs whose child-lock never overwrites `[verified]` work, and a guided `audit` command that writes a `[verified]` tag only after explicit per-row human consent.
 7. **A zero-dependency Node.js implementation** that never executes user code or accesses the network.
 8. **Dual onboarding value** — the verified `ai/` folder serves both AI agents and human engineers as instant, trustworthy repository documentation.
@@ -701,6 +744,8 @@ ai-fication-kit provides a structured method for making any existing codebase na
 The kit transforms a legacy repository into an AI-native workspace through a single `shazam` command, then relies on the human audit to convert scaffolding into a verified knowledge-base that serves both AI agents and human engineers.
 
 ---
+
+*Revision v6 (2026-07-05): documented the engineering loop that the 0.2.0 cycle added on top of the one-time onboarding — the command roster grew from eight to ten (`/fix-bug`, `/review-change`), the second multi-phase skill (`fix-bug`), the append-only `ai/lab/WORKLOG.md` work ledger and `ai/lab/reviews/`, and the new §9.5 covering the Spec → Decide → Implement → Review → Evaluate → Record loop plus the kit-dogfood-only `/implement-spec` command (heavy-model plan / light-model implement, stop-and-report). Updated §8.1's `.claude/` rules and directory tree, §9.1/§9.3/§9.4, and the compatibility table to match; command/skill counts corrected throughout.*
 
 *Revision v5 (2026-07-04): updated for the 0.2.0 release cycle — Node-only runtime; incremental re-runs with hash provenance, the child-lock, and `--force-verified`; native GitHub Copilot, Google Antigravity, and Cursor automation assets; the eighth workflow command (`/check-drift`) and the `indepth`, `demo`, `doctor`, `status`, and `audit` commands; `drift --suggest` and `--github-summary`; the `ai/START-HERE.html` progress page; AI-tool detection in the intake wizard; the deterministic release gate; updated test-suite and coverage figures; and the README's revised goal/why/how framing. See §13.1 for the scope note on post-tag additions.*
 
