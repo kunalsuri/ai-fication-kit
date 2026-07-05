@@ -34,6 +34,7 @@ Everything about *using* the kit and *understanding* the method lives here.
 - [GLOSSARY.md](GLOSSARY.md) — one-line definitions of every term the kit assumes.
 - [FUNCTIONALITY.md](FUNCTIONALITY.md) — the kit's own modules and functions (for contributors).
 - [system-diagrams/](system-diagrams/README.md) — Use Case, Class, Sequence, and State Machine diagrams; [system-diagrams/user-workflow.md](system-diagrams/user-workflow.md) for the end-to-end lifecycle.
+- [diagrams/](diagrams/README.md) — three hand-editable Excalidraw big-picture views: what the kit is, the AI-native → spec+loop journey, and the engineering loop.
 
 **Understand (explanation):**
 - [METHODOLOGY.md](METHODOLOGY.md) — the trust model (`[inferred]` → `[verified]`), Process 1 vs 2, the 7-step workflow, how the map stays honest over time.
@@ -48,5 +49,5 @@ Everything about *using* the kit and *understanding* the method lives here.
 
 Reserved for the project's public materials:
 - `AI-fication-Kit-TR-2026-01.pdf` — the technical report (method, contribution statement, implemented/designed table). **Note: This file is a reserved placeholder; it is not present in v0.1.0.**
-- `diagrams/` — method figures used in the report and talks.
+- `diagrams/` — big-picture Excalidraw figures now live here (see [diagrams/](diagrams/README.md)); still the home for any additional method figures used in the report and talks.
 - Video walkthrough: linked from the README when published (hosted externally; Zenodo record keeps the link, not the file).

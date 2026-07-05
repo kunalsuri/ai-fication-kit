@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 0 1168 636" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="6" y="0" width="1168" height="636" fill="#ffffff"/>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>
+<rect x="610" y="150" width="540" height="430" rx="12" fill="#d0bfff" stroke="#6741d9" stroke-width="1"  opacity="0.22"/>
+<rect x="30" y="150" width="560" height="430" rx="12" fill="#a5d8ff" stroke="#1971c2" stroke-width="1"  opacity="0.22"/>
+<rect x="56" y="220" width="250" height="150" rx="12" fill="#a5d8ff" stroke="#1971c2" stroke-width="2"  opacity="1"/>
+<rect x="324" y="220" width="240" height="150" rx="12" fill="#a5d8ff" stroke="#1971c2" stroke-width="2"  opacity="1"/>
+<rect x="628" y="220" width="250" height="150" rx="12" fill="#d0bfff" stroke="#6741d9" stroke-width="2"  opacity="1"/>
+<rect x="896" y="220" width="238" height="150" rx="12" fill="#d0bfff" stroke="#6741d9" stroke-width="2"  opacity="1"/>
+<rect x="56" y="420" width="508" height="130" rx="12" fill="#a5d8ff" stroke="#1971c2" stroke-width="2"  opacity="1"/>
+<rect x="628" y="420" width="506" height="130" rx="12" fill="#d0bfff" stroke="#6741d9" stroke-width="2"  opacity="1"/>
+<polyline points="312,295 318,295" fill="none" stroke="#1971c2" stroke-width="3"  marker-end="url(#ah)" />
+<polyline points="570,295 622,295" fill="none" stroke="#495057" stroke-width="3"  marker-end="url(#ah)" />
+<polyline points="884,295 890,295" fill="none" stroke="#6741d9" stroke-width="3"  marker-end="url(#ah)" />
+<polyline points="570,485 622,485" fill="none" stroke="#e03131" stroke-width="3"  marker-end="url(#ah)" />
+<text x="40" y="53" font-size="30" font-weight="700" text-anchor="start" fill="#1e1e1e">The journey since v0.1.0</text>
+<text x="40" y="80" font-size="15" font-weight="400" text-anchor="start" fill="#495057">How ai-fication-kit grew from "make a legacy repo AI-native" into "spec + closed-loop engineering".</text>
+<text x="48" y="175" font-size="16" font-weight="700" text-anchor="start" fill="#1971c2">ERA 1 — AI-NATIVE MAPPING</text>
+<text x="48" y="194" font-size="13" font-weight="400" text-anchor="start" fill="#495057">stop the agent from guessing: give it a trusted map</text>
+<text x="628" y="175" font-size="16" font-weight="700" text-anchor="start" fill="#6741d9">ERA 2 — SPEC + LOOP ENGINEERING</text>
+<text x="628" y="194" font-size="13" font-weight="400" text-anchor="start" fill="#495057">once the map is trusted, make every change a disciplined loop</text>
+<text x="181" y="242" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">v0.1.0  ·  2026-06-25</text>
+<text x="181" y="259" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">First public release</text>
+<text x="181" y="275" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="181" y="291" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• orient / install / shazam</text>
+<text x="181" y="307" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• /cold-start drafts the map</text>
+<text x="181" y="324" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• verify + drift keep it honest</text>
+<text x="181" y="340" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• dual-mode (legacy + modern)</text>
+<text x="181" y="356" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• [inferred] → [verified]</text>
+<text x="444" y="242" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">v0.1.1 &amp; v0.1.2</text>
+<text x="444" y="259" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">2026-06-30</text>
+<text x="444" y="275" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="444" y="291" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• review-agent-config</text>
+<text x="444" y="307" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• indepth deep analysis</text>
+<text x="444" y="324" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• check-repo-maturity (11 checks)</text>
+<text x="444" y="340" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• drift CI (ai-check.yml)</text>
+<text x="444" y="356" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• automation-bias lessons</text>
+<text x="753" y="242" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">v0.2.0  ·  2026-07-03</text>
+<text x="753" y="259" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Hardening + reach</text>
+<text x="753" y="275" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="753" y="291" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• Node-only, zero-dep</text>
+<text x="753" y="307" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• hash re-runs + child-lock</text>
+<text x="753" y="324" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">  (protect [verified] work)</text>
+<text x="753" y="340" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• Copilot + Antigravity native</text>
+<text x="753" y="356" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• deterministic release gate</text>
+<text x="1016" y="242" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Unreleased</text>
+<text x="1016" y="259" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">The engineering loop</text>
+<text x="1016" y="275" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="1016" y="291" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• Spec→…→Record loop</text>
+<text x="1016" y="307" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• /fix-bug + /review-change</text>
+<text x="1016" y="324" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• WORKLOG ledger (verified)</text>
+<text x="1016" y="340" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• ROADMAP lifecycle trace</text>
+<text x="1016" y="356" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">• shazam update mode</text>
+<rect x="560" y="286" width="72" height="18" fill="#ffffff"/>
+<text x="596" y="299" font-size="13" font-weight="400" text-anchor="middle" fill="#495057">the pivot</text>
+<text x="310" y="448" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">THE OLD MINDSET  —  "AI-native"</text>
+<text x="310" y="465" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="310" y="481" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Goal: an agent that does not re-crawl or hallucinate.</text>
+<text x="310" y="497" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Deliverable: a compact, human-verified ai/ map.</text>
+<text x="310" y="513" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Win condition: the agent edits the right module and</text>
+<text x="310" y="530" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">respects what is frozen.</text>
+<text x="881" y="440" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">THE NEW MINDSET  —  "spec + loop"</text>
+<text x="881" y="457" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e"></text>
+<text x="881" y="473" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Goal: every unit of work is spec-first and reviewed.</text>
+<text x="881" y="489" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Deliverable: durable artifacts per change (spec, ADR,</text>
+<text x="881" y="505" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">review, eval, WORKLOG row).</text>
+<text x="881" y="522" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">Win condition: the loop stays honest — reproduce before</text>
+<text x="881" y="538" font-size="13" font-weight="400" text-anchor="middle" fill="#1e1e1e">fix, review in fresh context, ledger cannot rot.</text>
+<rect x="553" y="476" width="86" height="18" fill="#ffffff"/>
+<text x="596" y="489" font-size="13" font-weight="400" text-anchor="middle" fill="#e03131">evangelised</text>
+<text x="40" y="608" font-size="13" font-weight="400" text-anchor="start" fill="#868e96">The map was never the destination — it was the precondition. Trust in the map is what makes spec-driven, closed-loop agent engineering safe.</text>
+</svg>
