@@ -1,0 +1,15 @@
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+version: 2
+updates:
+  # The kit itself ships with zero runtime/dev dependencies (Node stdlib only,
+  # see SECURITY.md) — this entry is a floor against any dependency added later.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Keep pinned Actions (checkout, setup-node, etc.) patched.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
