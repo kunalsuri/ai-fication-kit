@@ -15,6 +15,7 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       security-events: write # to upload SARIF results
       id-token: write        # to sign the results with Sigstore
     steps:
