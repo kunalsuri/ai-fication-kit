@@ -8,8 +8,18 @@
 |---|---|---|
 | unmapped | 0 | code-bearing directory no MODULE_MAP row covers |
 | vanished | 0 | directory / entry point the map quotes is gone |
-| stale | 0 | `[verified]` row whose code changed since the verified commit |
+| stale | 9 | `[verified]` row whose code changed since the verified commit |
 
-No drift detected. The map matches the tree.
+## Stale verified rows (re-audit these)
 
-> Stale check is opt-in — re-run with --git to compare against the last verified commit (local, read-only git).
+| Row | MODULE_MAP line | Changed files since verified commit |
+|---|---|---|
+| `/` | 25 | `install.mjs` |
+| `lib/` | 26 | `lib/doctor.mjs`, `lib/drift.mjs`, `lib/util.mjs`, `lib/verify.mjs` |
+| `templates/` | 27 | `templates/agents/workflows/adversarial-audit.md`, `templates/ai/analysis/README.md.tmpl`, `templates/claude/commands/adversarial-audit.md`, `templates/cursor/rules/adversarial-audit.mdc`, `templates/github/copilot-instructions.md`, `templates/github/prompts/adversarial-audit.prompt.md` |
+| `templates/ai/` | 28 | `templates/ai/analysis/README.md.tmpl` |
+| `templates/claude/` | 29 | `templates/claude/commands/adversarial-audit.md` |
+| `templates/github/` | 30 | `templates/github/copilot-instructions.md`, `templates/github/prompts/adversarial-audit.prompt.md` |
+| `templates/agents/` | 31 | `templates/agents/workflows/adversarial-audit.md` |
+| `test/` | 32 | `test/release-check.mjs`, `test/run-tests.mjs` |
+| `docs/` | 33 | `docs/GETTING-STARTED.md`, `docs/MULTI-TOOL-SETUP.md`, `docs/README.md`, `docs/dev/lessons-learnt/full-stack-simulation-session.md` |
