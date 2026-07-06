@@ -114,6 +114,8 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 | C6 | `value` — context-savings report for *your own* repo | P2 | M | — | — | idea |
 | C7 | Kit-version awareness in `doctor`/`status` | P3 | S | — | — | idea |
 | C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
+| C9 | Detection-layer robustness on polyglot/monorepo targets (bun/uv locks, member manifests & test dirs, indepth deps, maturity checks, verify tokens) | P1 | M | — (first slice of C4) | `ai/lab/specs/SPEC_C9-detection-polyglot.md` | spec drafted |
+| C10 | Knowledge-template & workflow alignment (5-column MODULE_MAP everywhere, cold-start command-correction step, conditional license rule, blocked-env vocabulary) | P1 | S–M | — (wording must not collide with C1) | `ai/lab/specs/SPEC_C10-template-alignment.md` | spec drafted |
 
 Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dropped`).
 
@@ -127,6 +129,8 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 - **C6** — the tech lead gets a reproducible, no-API-key number — "an agent reads 38 KB with the map vs 4.1 MB without" — to justify the audit investment to their team.
 - **C7** — users learn their knowledge layer is out of date and that re-running `shazam` is a safe, incremental upgrade (today they'd never know).
 - **C8** — the verified knowledge-base becomes a shareable, double-clickable onboarding page for humans who will never open an agent or a terminal.
+- **C9** — a bun/uv monorepo's first profile states the real toolchain and test dirs instead of npm/pip guesses; the maturity panel stops denying lockfiles that exist.
+- **C10** — a fresh cold-start is counted as `[inferred]` by `status`/`doctor` instead of "unaudited", and the stamped rules stop asserting conventions the target doesn't have.
 
 <!-- verify-ignore:start -->
 
@@ -504,12 +508,53 @@ the full lab).
 
 ---
 
+#### C9 · Detection-layer robustness on polyglot/monorepo targets
+
+**Need (P1 — evidence: the 2026-07-06 full-stack simulation, findings F1/F3/F4/F5/F8).**
+On a bun + uv workspace repo, `orient` stamped four wrong build/test claims into the
+target's agent instructions, found no test dirs, `indepth` counted 0 of ~70
+dependencies, and `check-repo-maturity` denied the two lockfiles on disk.
+
+**Detail lives in the spec (implementation-grade, /implement-spec-ready):**
+`ai/lab/specs/SPEC_C9-detection-polyglot.md` — six work packages (W1 bun/uv locks,
+W2 workspace members + nested test dirs, W3 README description harvesting, W4
+workspace dependency counting, W5 maturity locks/dirs/panel, W6 verify scoped-package
+and pytest-selector tokens), each with exact anchors into `lib/orient.mjs`,
+`lib/indepth.mjs`, `lib/maturity.mjs`, `lib/verify.mjs` and a numbered test plan
+(T1–T8) for `test/run-tests.mjs`. First slice of C4; C4's later slices (per-package
+profiles) stay parked.
+
+---
+
+#### C10 · Knowledge-template & workflow alignment
+
+**Need (P1 — evidence: the 2026-07-06 full-stack simulation, findings F2/F6/F7/F9/F10).**
+The stamped MODULE_MAP template is 4-column while `parseModuleMap` and the kit's own
+dogfooded map read provenance from a 5th Status cell — every fresh cold-start counts
+as "0 [inferred], N unaudited". Cold-start verifies commands but no step owns fixing
+the stamped ones; stamped rules assert license headers unconditionally.
+
+**Detail lives in the spec (implementation-grade, /implement-spec-ready):**
+`ai/lab/specs/SPEC_C10-template-alignment.md` — five work packages (W1 5-column
+template + row shape in all 8 cold-start copies, W2 sanctioned command-correction
+step, W3 generated/vendored guidance in the Stability legend, W4 conditional
+license-header wording, W5 blocked-env vocabulary + W-001 ID consistency) with a
+copy-parity test plan (T1–T3). Wording must not collide with C1's
+`{{CONFIG_FILES}}` token work.
+
+---
+
 ### Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
   trust-breaking moment — together they make an honest v0.2.1 patch wave), then
   **C4** (the biggest audience unlock; isolated to `orient`), then **C5/C6** in
   either order, then **C7/C8**.
+- **C9 and C10 are spec-drafted and independent of the above** — either can ship
+  first. C9 subsumes the first slice of C4 (workspace-aware `orient`); if C9 ships,
+  re-scope C4 to the remaining slices. C10's W2/W4 wording touches the same
+  template lines C1 will parameterize — implement C10 before C1, or rebase C1's
+  `{{CONFIG_FILES}}` token onto the new sentences.
 - C6 before C8 is preferred (the onboarding page footer consumes the value
   headline) but not required — C8 degrades silently without it.
 - C2 and C7 both touch `lib/status.mjs`; if implemented in parallel sessions,

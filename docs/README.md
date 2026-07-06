@@ -40,7 +40,7 @@ Everything about *using* the kit and *understanding* the method lives here.
 - [METHODOLOGY.md](METHODOLOGY.md) — the trust model (`[inferred]` → `[verified]`), Process 1 vs 2, the 7-step workflow, how the map stays honest over time.
 - [PROBLEM-SOLUTION-STATEMENT.md](PROBLEM-SOLUTION-STATEMENT.md) — the one-page problem framing.
 - [reports/technical-report-draft.md](reports/technical-report-draft.md) — the academic treatment (draft).
-- [dev/lessons-learnt/](dev/lessons-learnt/drift-blindspots-and-automation-bias.md) — recorded lessons, e.g. drift blind spots and automation bias, [model tiering](dev/lessons-learnt/model-tiering-plan-heavy-implement-light.md) (plan with a heavy model, implement with a light one), and [two kinds of knowledge](dev/lessons-learnt/knowledge-kinds-memory-context-and-harness.md) (why `ai/lab/` belongs in a knowledge repo; memory, context, and the harness).
+- [dev/lessons-learnt/](dev/lessons-learnt/drift-blindspots-and-automation-bias.md) — recorded lessons, e.g. drift blind spots and automation bias, [model tiering](dev/lessons-learnt/model-tiering-plan-heavy-implement-light.md) (plan with a heavy model, implement with a light one), and [two kinds of knowledge](dev/lessons-learnt/knowledge-kinds-memory-context-and-harness.md) (why `ai/lab/` belongs in a knowledge repo; memory, context, and the harness), and the [full-stack simulation session](dev/lessons-learnt/full-stack-simulation-session.md) (what running the whole methodology on a real polyglot repo taught us).
 
 **Maintain:**
 - [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md) — release-day procedure (tagging, Zenodo, post-release).
