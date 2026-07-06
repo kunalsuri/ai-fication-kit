@@ -20,7 +20,7 @@
 
 <h2>Make any Codebase AI-native with Human-Verified Repo Intelligence that AI Coding Agents can Trust.</h2>
 
-<h3>Context Engineering + Harness Engineering for AI Coding Agents, with a Human-in-the-Loop.</h3>
+<h3>Context Engineering + Harness Engineering + Development Loop (Loop Engineering) for AI Coding Agents, with a Human-in-the-Loop for Validation.</h3>
 
 </div>
 
