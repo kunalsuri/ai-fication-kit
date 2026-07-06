@@ -1,0 +1,7 @@
+# Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved.
+# Require review on the code that runs on every user's machine and on CI
+# itself. See ai/guide/MODULE_MAP.md for the full directory-stability map.
+
+/install.mjs      @kunalsuri
+/lib/             @kunalsuri
+/.github/         @kunalsuri
