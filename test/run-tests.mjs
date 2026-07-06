@@ -1304,7 +1304,10 @@ console.log("\n— doctor —");
     ok(result.step === 1 && /shazam/.test(result.action), `step 1: no profile → run shazam`);
     // Platform-aware quoting (Copilot PR review, PR #38): POSIX single-quotes,
     // Windows double-quotes — a fixed quote style breaks on the other platform.
-    ok(result.action.includes(shellQuote(d)), `step 1 action quotes the target path (regression: spaces-safe)`);
+    // Rendered relative to cwd, never absolute (PR #39/#41 — doctor output is
+    // embedded into the committed ai/START-HERE.html).
+    ok(result.action.includes(shellQuote(path.relative(process.cwd(), d))),
+      `step 1 action quotes the target path (regression: spaces-safe)`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 1)`);
     await fs.rm(d, { recursive: true, force: true });
   }
@@ -1371,11 +1374,37 @@ console.log("\n— doctor —");
       `step 4: no manifests yet → run verify --strict / drift --strict`);
     // regression (Copilot PR review): the action must be one shell-safe,
     // copy/paste-able command, with the target path quoted (spaces-safe) using
-    // this platform's quoting convention (PR #38).
+    // this platform's quoting convention (PR #38) — and the path must be
+    // rendered RELATIVE to the caller's cwd, never absolute, because doctor
+    // output is embedded into the committed ai/START-HERE.html (PR #39/#41).
     ok(!result.action.includes("(then)") && result.action.includes("&&") &&
-      result.action.includes(shellQuote(d)),
+      result.action.includes(shellQuote(path.relative(process.cwd(), d))),
       `step 4 action is a single copy/paste-safe command with the path quoted: ${result.action}`);
+    ok(!result.action.includes(d),
+      `step 4 action never embeds the absolute target path: ${result.action}`);
     ok(await treeHash(d) === before, `doctor never writes a file (step 4)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // Step 4 (regression, Copilot PR #41): manifests are machine-local
+  // (gitignored), so a fresh clone with a COMMITTED drift report must not be
+  // told "drift has never been run" — it ran, just not on this checkout.
+  {
+    const d = await makeBareFixture("doctor-step4-fresh-clone", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md":
+        "# Module map\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [verified] (01/07/2026) |\n",
+      "src/app.ts": "export {};\n",
+      "ai/analysis/audit-reports/VERIFICATION_REPORT.md": "# Verification report\n",
+      "ai/analysis/audit-reports/DRIFT_REPORT.md": "# Drift report\n",
+    });
+    const result = await diagnose(d);
+    ok(result.step === 4 && !/never been run/.test(result.diagnosis) &&
+      /not been run on this checkout/.test(result.diagnosis),
+      `step 4 fresh clone: committed reports temper "never been run" to "not on this checkout": ${result.diagnosis}`);
     await fs.rm(d, { recursive: true, force: true });
   }
 
