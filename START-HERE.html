@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Start Here — ai-fication-kit</title>
-<meta name="description" content="Start here: copy-paste commands to run ai-fication-kit and give your AI coding agent a trusted map of any existing or legacy repo. Copies plain-text files only — no code execution, no network.">
+<meta name="description" content="Start here: a Basic track (get running in three steps + the methodology) and an Advanced track (every CLI util like doctor, and how ROADMAP, WORKLOG and specs link). Copies plain-text files only — no code execution, no network.">
 <style>
   :root{
     --bg:#0d1117;--panel:#141b25;--ink:#e8edf2;--muted:#8b97a6;
@@ -21,13 +21,25 @@
   .banner-wrap{display:inline-block;width:100%;max-width:860px;border-radius:14px;overflow:hidden;line-height:0;
     border:1px solid var(--line);box-shadow:0 22px 52px -26px rgba(0,0,0,.7)}
   .banner{display:block;width:100%;height:auto}
-  main{max-width:780px;margin:0 auto;padding:0 20px}
+  main{max-width:820px;margin:0 auto;padding:0 20px}
   h1{font-size:clamp(22px,4vw,28px);margin:26px 0 6px;text-align:center;letter-spacing:-.01em}
-  .tagline{color:var(--muted);text-align:center;max-width:60ch;margin:0 auto;font-size:15px}
+  .tagline{color:var(--muted);text-align:center;max-width:62ch;margin:0 auto;font-size:15px}
   .badges{margin:16px auto 0;display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
   .badge{font-size:11px;letter-spacing:.03em;color:var(--muted);border:1px solid var(--line);
     border-radius:999px;padding:4px 11px}
   .badge b{color:var(--ink)}
+
+  /* ---- track switcher ---- */
+  .tabs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:30px auto 4px;max-width:640px}
+  .tab{flex:1 1 240px;cursor:pointer;text-align:left;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:13px 16px;color:var(--ink);font-family:inherit;font-size:14px;transition:.15s}
+  .tab:hover{border-color:var(--teal)}
+  .tab .t-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  .tab .t-sub{color:var(--muted);font-size:12.5px;margin-top:3px;display:block}
+  .tab[aria-selected="true"]{border-color:var(--accent);background:rgba(255,107,74,.08)}
+  .tab[aria-selected="true"] .t-title{color:var(--accent)}
+  .panel-note{text-align:center;color:var(--muted);font-size:12.5px;margin:12px 0 0}
+
   .safe{display:flex;gap:10px;align-items:flex-start;background:rgba(95,201,194,.07);
     border:1px solid rgba(95,201,194,.4);border-radius:11px;padding:13px 15px;margin:26px 0 8px;font-size:13.5px;color:#cfe3e0}
   .safe b{color:var(--teal)}
@@ -45,8 +57,45 @@
   .copy:hover{border-color:var(--teal);color:var(--teal)}
   .copy.ok{border-color:var(--teal);color:var(--teal)}
   .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0;padding-left:35px}
-  .hint code,p code{background:#070b10;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:12px;color:var(--gold)}
-  footer{max-width:780px;margin:38px auto 0;padding:0 20px;color:var(--muted);font-size:12px;text-align:center;line-height:1.7}
+  .hint code,p code,li code,td code{background:#070b10;border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:12px;color:var(--gold)}
+
+  h2.sec{font-size:19px;margin:34px 0 4px;letter-spacing:-.01em}
+  h3.sub{font-size:15px;margin:26px 0 6px;color:var(--ink)}
+  .lead{color:var(--muted);font-size:13.5px;margin:2px 0 14px;max-width:64ch}
+
+  /* mental-model cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:14px 0 4px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 15px}
+  .card .k{font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+  .card .v{font-weight:700;margin:3px 0 6px;font-size:14.5px}
+  .card p{color:var(--muted);font-size:12.5px;margin:0;padding:0}
+  .card.c1{border-color:rgba(95,201,194,.4)} .card.c1 .v{color:var(--teal)}
+  .card.c2{border-color:rgba(240,180,41,.4)} .card.c2 .v{color:var(--gold)}
+  .card.c3{border-color:rgba(255,107,74,.45)} .card.c3 .v{color:var(--accent)}
+
+  table.grid{width:100%;border-collapse:collapse;margin:12px 0 4px;font-size:13px}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  table.grid th{background:var(--panel);color:var(--ink);font-weight:600;font-size:12.5px}
+  table.grid td{color:#c3ccd6}
+  table.grid td.cmdcell{font-family:var(--mono);font-size:12px;color:var(--teal);white-space:nowrap}
+  table.grid tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+  .wrap{overflow-x:auto;border-radius:9px}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:14px 0 4px}
+  .flow .node{flex:1 1 120px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+  .flow .node b{display:block;font-size:13px;color:var(--ink)}
+  .flow .node span{font-size:11.5px;color:var(--muted)}
+  .flow .arrow{align-self:center;color:var(--accent);font-weight:700}
+
+  .callout{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);
+    border-radius:9px;padding:13px 15px;margin:16px 0;font-size:13px;color:#c3ccd6}
+  .callout b{color:var(--gold)}
+  ul.tight{margin:8px 0;padding-left:20px;color:#c3ccd6;font-size:13px}
+  ul.tight li{margin:5px 0}
+  ul.tight code{color:var(--gold)}
+
+  footer{max-width:820px;margin:38px auto 0;padding:0 20px;color:var(--muted);font-size:12px;text-align:center;line-height:1.7}
+  [hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -57,8 +106,8 @@
 </header>
 
 <main>
-  <h1>Start here — run ai-fication-kit</h1>
-  <p class="tagline">Give your AI coding agent a <b>trusted map</b> of any existing or legacy repo. Copy a command below into your terminal. Replace <code>/path/to/your/repo</code> with the folder you want to make AI-native.</p>
+  <h1>Start here — ai-fication-kit</h1>
+  <p class="tagline">Give your AI coding agent a <b>trusted map</b> of any existing or legacy repo. This page has two tracks — pick one. Nothing here overlaps, so you won't get lost.</p>
 
   <div class="badges">
     <span class="badge"><b>Apache&nbsp;2.0</b></span>
@@ -66,55 +115,170 @@
     <span class="badge"><b>Zero</b> dependencies</span>
   </div>
 
-  <div class="safe">
-    <span>🛡️</span>
-    <span><b>Safe:</b> the installer only copies plain-text files into the folder you choose — it runs no commands and makes no network calls. Add <code>--dry-run</code> to any install command to preview without writing.</span>
+  <!-- ============ TRACK SWITCHER ============ -->
+  <div class="tabs" role="tablist" aria-label="Documentation tracks">
+    <button class="tab" id="tab-basic" role="tab" aria-selected="true" aria-controls="panel-basic">
+      <span class="t-title">🚀 Basic</span>
+      <span class="t-sub">Get running in 3 steps, plus the idea behind the kit. Start here if it's your first time.</span>
+    </button>
+    <button class="tab" id="tab-advanced" role="tab" aria-selected="false" aria-controls="panel-advanced">
+      <span class="t-title">🔧 Advanced</span>
+      <span class="t-sub">Every CLI util (doctor, status, drift…) and how ROADMAP, WORKLOG &amp; specs fit together.</span>
+    </button>
   </div>
+  <p class="panel-note" id="panel-note">Showing the <b>Basic</b> track — everything you need for a first run.</p>
 
-  <!-- STEP 1 -->
-  <section class="step">
-    <h2><span class="num">1</span> Scaffold the kit into your repo</h2>
-    <p>Pick one. The <b>npx</b> way needs nothing cloned; the clone way runs the pure Node installer.</p>
+  <!-- ============ BASIC ============ -->
+  <section id="panel-basic" role="tabpanel" aria-labelledby="tab-basic">
 
-    <div class="cmd">
-      <button class="copy">Copy</button>
-      <pre><span class="cm"># A · Quickest — straight from GitHub, nothing to clone (needs Node 18+)</span>
+    <div class="safe">
+      <span>🛡️</span>
+      <span><b>Safe:</b> the installer only copies plain-text files into the folder you choose — it runs no commands and makes no network calls. Add <code>--dry-run</code> to any install command to preview without writing.</span>
+    </div>
+
+    <!-- STEP 1 -->
+    <section class="step">
+      <h2><span class="num">1</span> Scaffold the kit into your repo</h2>
+      <p>Pick one. The <b>npx</b> way needs nothing cloned; the clone way runs the pure Node installer. Replace <code>/path/to/your/repo</code> with your project folder.</p>
+
+      <div class="cmd">
+        <button class="copy">Copy</button>
+        <pre><span class="cm"># A · Quickest — straight from GitHub, nothing to clone (needs Node 18+)</span>
 <span class="cm"># Preview first (writes nothing):</span>
 npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo --dry-run
 <span class="cm"># Then install for real:</span>
 npx github:kunalsuri/ai-fication-kit shazam /path/to/your/repo</pre>
-    </div>
+      </div>
 
-    <div class="cmd">
-      <button class="copy">Copy</button>
-      <pre><span class="cm"># B · From a local clone — pure Node stdlib (no npm install)</span>
+      <div class="cmd">
+        <button class="copy">Copy</button>
+        <pre><span class="cm"># B · From a local clone — pure Node stdlib (no npm install)</span>
 git clone https://github.com/kunalsuri/ai-fication-kit.git
 cd ai-fication-kit
 node install.mjs shazam /path/to/your/repo      <span class="cm"># Node 18+</span></pre>
-    </div>
-  </section>
+      </div>
+      <p class="hint"><code>shazam</code> is the one-shot entry point: it checks your repo, detects the stack, asks a couple of short questions, and stamps the kit's files. It stops right where the thinking begins — that's step 2.</p>
+    </section>
 
-  <!-- STEP 2 -->
-  <section class="step">
-    <h2><span class="num">2</span> Draft the maps</h2>
-    <p>Open your repo in <b>Claude Code</b> (or your agent of choice) and run the cold-start command. It scans the code and drafts the map (~5 min), all tagged <code>[inferred]</code>.</p>
-    <div class="cmd">
-      <button class="copy">Copy</button>
-      <pre><span class="hl">/cold-start</span></pre>
-    </div>
-    <p class="hint">Using Cursor / Copilot / Codex? They read <code>AGENTS.md</code> — paste <code>.claude/commands/cold-start.md</code> as a prompt to run the same pass.</p>
-  </section>
+    <!-- STEP 2 -->
+    <section class="step">
+      <h2><span class="num">2</span> Draft the maps</h2>
+      <p>Open your repo in <b>Claude Code</b> (or your agent of choice) and run the cold-start command. It scans the code and drafts the map (~5 min), every claim tagged <code>[inferred]</code> — a plausible guess, not yet a fact.</p>
+      <div class="cmd">
+        <button class="copy">Copy</button>
+        <pre><span class="hl">/cold-start</span></pre>
+      </div>
+      <p class="hint">Using Cursor / Copilot / Codex? They read <code>AGENTS.md</code> — paste <code>.claude/commands/cold-start.md</code> as a prompt to run the same pass.</p>
+    </section>
 
-  <!-- STEP 3 -->
-  <section class="step">
-    <h2><span class="num">3</span> Audit, then keep it honest</h2>
-    <p>Open <code>ai/guide/MODULE_MAP.md</code>, set each module's Stability, and flip confirmed rows from <code>[inferred]</code> to <code>[verified]</code>. Then cross-check every file-path claim against the real tree (deterministic, no LLM):</p>
-    <div class="cmd">
-      <button class="copy">Copy</button>
-      <pre>node install.mjs verify /path/to/your/repo
+    <!-- STEP 3 -->
+    <section class="step">
+      <h2><span class="num">3</span> Audit, then keep it honest</h2>
+      <p>Open <code>ai/guide/MODULE_MAP.md</code>, set each module's Stability, and flip the rows you've confirmed from <code>[inferred]</code> to <code>[verified]</code> — that flip is <b>your</b> signature, and only a human may make it. Then cross-check every file-path claim against the real tree (deterministic, no LLM):</p>
+      <div class="cmd">
+        <button class="copy">Copy</button>
+        <pre>node install.mjs verify /path/to/your/repo
 <span class="cm"># add --strict to fail (exit 1) on stale claims, e.g. in CI</span></pre>
-    </div>
-    <p class="hint">Build features safely with <span class="hl">/add-feature</span>. Full walkthrough: the repo's <code>README.md</code> and <code>docs/GETTING-STARTED.md</code>.</p>
+      </div>
+      <p class="hint">From here, build features safely with <span class="hl">/add-feature</span>. Lost about what to do next? Run <code>node install.mjs doctor /path/to/your/repo</code> — it tells you.</p>
+    </section>
+
+    <!-- METHODOLOGY -->
+    <section class="step">
+      <h2 class="sec">The one idea behind the kit</h2>
+      <p class="lead">An AI agent that <i>guesses</i> a repo's map and then trusts its own guess is dangerous — it will confidently edit the wrong file. The fix isn't more docs; it's making every claim carry its <b>provenance</b>, with a human gate between a guess and trust. The kit keeps three kinds of knowledge strictly separate:</p>
+
+      <div class="cards">
+        <div class="card c1">
+          <div class="k">1 · Script observed</div>
+          <div class="v">Facts</div>
+          <p>Scripts check what's really on disk — languages, build command, file paths. No LLM, nothing executed. Always true.</p>
+        </div>
+        <div class="card c2">
+          <div class="k">2 · Model inferred</div>
+          <div class="v">[inferred]</div>
+          <p>The agent's drafts from <code>/cold-start</code> — "this module looks like auth." Plausible, useful, <b>not yet trusted</b>.</p>
+        </div>
+        <div class="card c3">
+          <div class="k">3 · Human verified</div>
+          <div class="v">[verified]</div>
+          <p>You opened the file and confirmed it. Signed with a date. <b>Agents are forbidden from writing this tag</b> — the flip is yours alone.</p>
+        </div>
+      </div>
+
+      <p class="lead" style="margin-top:14px">Alongside provenance, each module gets a <b>Stability</b>: <code>frozen</code> (hands off), <code>stable</code> (change carefully), <code>ours</code> (active surface), and <code>?</code> (unaudited — agents treat <code>?</code> as <code>frozen</code>, so an unaudited row is safe by default). That's the whole trust model: scripts never guess, the agent never self-certifies, and you never have to trust either blindly.</p>
+
+      <p class="hint" style="padding-left:0">Full walkthrough: the repo's <code>README.md</code>, <code>docs/GETTING-STARTED.md</code>, and <code>docs/METHODOLOGY.md</code>. Ready for the tools and the long game? → open the <b>Advanced</b> track above.</p>
+    </section>
+  </section>
+
+  <!-- ============ ADVANCED ============ -->
+  <section id="panel-advanced" role="tabpanel" aria-labelledby="tab-advanced" hidden>
+
+    <section class="step">
+      <h2 class="sec">The util belt</h2>
+      <p class="lead">Every command is <b>deterministic script behavior — no LLM is involved</b>. They read files, write reports, and (with three documented exceptions: <code>drift --git</code>, <code>audit --git</code>, <code>indepth</code>) never even run git. <code>--dry-run</code> previews any command that writes. Run them as <code>node install.mjs &lt;command&gt; /path/to/your/repo</code> — the one exception is <code>demo</code>, which takes no target path (it uses a throwaway temp dir) and no flags.</p>
+
+      <div class="wrap">
+      <table class="grid">
+        <thead><tr><th>Command</th><th>What it does</th><th>Why it exists</th></tr></thead>
+        <tbody>
+          <tr><td class="cmdcell">doctor</td><td>Read-only "what do I do next?". Detects which of the 5 workflow stages you're in and prints the exact next command. Writes nothing.</td><td>So you never have to remember the sequence. When in doubt, run <code>doctor</code>.</td></tr>
+          <tr><td class="cmdcell">status</td><td>One-command health snapshot: runs verify's + drift's core scans in-process, reads the row counts, and ends in one verdict — <code>TRUSTED</code>, <code>NEEDS AUDIT</code>, or <code>DRIFTING</code>.</td><td>Answers "how trustworthy is my <code>ai/</code> layer <i>right now?</i>" in one command instead of three.</td></tr>
+          <tr><td class="cmdcell">verify</td><td>Extracts every backtick-quoted path claim in the docs and checks each against the real tree: confirmed / moved / missing. <code>--strict</code> exits 1 for CI.</td><td>A map that quotes files that no longer exist is worse than no map. This catches it mechanically.</td></tr>
+          <tr><td class="cmdcell">drift</td><td>The reverse of verify: code-bearing dirs the map <i>fails</i> to cover (unmapped), map entries that vanished, and — with <code>--git</code> — <code>[verified]</code> rows whose code changed (stale). <code>--suggest</code> emits paste-ready fixes.</td><td>Maps rot as the code grows. Drift finds the blind spots verify can't see.</td></tr>
+          <tr><td class="cmdcell">orient</td><td>Pure file inspection: reads marker files (<code>package.json</code>, <code>pom.xml</code>…), detects the stack, writes <code>ai/repo-profile.json</code>.</td><td>The deterministic facts every later step (and your agent) builds on.</td></tr>
+          <tr><td class="cmdcell">indepth</td><td>Deeper still-deterministic layer: code metrics, dependency split, architecture inference, git history. Writes <code>ai/repo-indepth.json</code>.</td><td>Richer structured input for the audit and <code>/cold-start</code> — an observation, not a verdict.</td></tr>
+          <tr><td class="cmdcell">check-repo-maturity</td><td>11 read-only checks → a 0–100 AI-readiness score and the Process 1 vs Process 2 decision.</td><td>Meets your repo where it is; runs automatically as step 1 of <code>shazam</code>.</td></tr>
+          <tr><td class="cmdcell">audit</td><td>Interactive-only guided walk of every MODULE_MAP row, showing file evidence, so you can set Stability and flip <code>[inferred]</code>→<code>[verified]</code>. <code>--yes</code> can <b>not</b> unlock it.</td><td>The human signature is the whole trust model — it must be a real, deliberate act.</td></tr>
+          <tr><td class="cmdcell">shazam</td><td>The one-shot entry point: maturity → orient → wizard → install, then hands off to <code>/cold-start</code>.</td><td>What most people run first; steps 0–2 in a single command.</td></tr>
+          <tr><td class="cmdcell">update</td><td><code>shazam</code>'s update mode, explicitly — refuses to run if the kit was never installed here.</td><td>Safe re-runs on upgrade: new files arrive, your edits are kept, <code>[verified]</code> files stay locked.</td></tr>
+          <tr><td class="cmdcell">demo</td><td>Zero-risk playground: copies a bundled example into a temp dir and runs orient + install there. No target path.</td><td>See the kit work end-to-end without touching your own code.</td></tr>
+          <tr><td class="cmdcell">uninstall</td><td>Deletes exactly what <code>install</code> wrote (from the manifest) and nothing else. Backups are preserved.</td><td>Clean, reversible removal — the manifest makes it exact.</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout">
+        <b>The trust escape-hatch, and its lock.</b> Re-runs are incremental: files you edited are kept, and files carrying a human <code>[verified]</code> tag are <b>never</b> overwritten — not even with <code>--force</code>. The only way through that child-lock is <code>--force-verified</code>, which prints every signature about to be lost and makes you type <code>overwrite</code>. Human audit work is the most expensive thing in the system, so it gets the strongest guard.
+      </div>
+      <p class="hint" style="padding-left:0">Full flag-by-flag reference: <code>docs/CLI-REFERENCE.md</code>.</p>
+    </section>
+
+    <!-- THE LOOP -->
+    <section class="step">
+      <h2 class="sec">Why ROADMAP, WORKLOG &amp; specs exist — the engineering loop</h2>
+      <p class="lead">Getting the map trusted is a one-time thing (Basic track). What happens <i>every day after</i> is the engineering loop: each feature or fix runs the same closed cycle, and each stage leaves a durable artifact under <code>ai/lab/</code>. This is how the repo remembers <b>what changed, when, under which spec, and who checked it</b>.</p>
+
+      <div class="flow">
+        <div class="node"><b>Spec</b><span>SPEC_*.md — no code before the human OKs it</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Implement</b><span>surgical diff, Stability gates apply</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Review</b><span>REVIEW_*.md — fresh context, re-runs tests</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Record</b><span>one WORKLOG row per unit of work</span></div>
+      </div>
+
+      <h3 class="sub">The three files, and how they link</h3>
+      <ul class="tight">
+        <li><b><code>ai/lab/ROADMAP.md</code> — the plan, one row <i>per feature</i>.</b> Two sections: <b>Planned</b> (rich, spec-grade entries so even a lighter model can implement cold) and <b>Shipped</b> (thin pointer rows). It's the <i>cousin</i> of WORKLOG: roadmap tracks features, WORKLOG tracks work.</li>
+        <li><b><code>ai/lab/specs/SPEC_&lt;id&gt;.md</code> — the detail of record.</b> When work on a Planned feature starts, its detail migrates <i>out</i> of the roadmap row and <i>into</i> a spec. No code is written before a human OKs the spec.</li>
+        <li><b><code>ai/lab/WORKLOG.md</code> — the ledger, one row <i>per unit of work</i>.</b> The episodic <b>index</b>: the one place that answers "what was done to this repo, and why?" A single feature may span several WORKLOG rows.</li>
+      </ul>
+
+      <div class="callout">
+        <b>The trace (why the linking matters).</b> When a feature ships, its <b>Planned</b> row collapses to a <b>Shipped</b> pointer that cross-links — by feature ID, never by copying fields — its <code>SPEC_&lt;id&gt;.md</code>, its <code>WORKLOG.md</code> row(s), and its PR. So <code>ID → spec → work-unit → PR</code> is followable in both directions. And because every one of those paths is backtick-quoted, <code>verify --strict</code> checks them like any other claim — <b>a row whose spec or review vanished fails CI</b>. The ledger cannot silently rot.
+      </div>
+
+      <p class="lead">Three disciplines keep the loop honest, in the same spirit as the trust model:</p>
+      <ul class="tight">
+        <li><b>The reviewer never shares the implementer's context.</b> <code>/review-change</code> runs in a fresh session and re-runs the suites — a reviewer that read the implementation reasoning inherits its blind spots.</li>
+        <li><b>Reproduction before fix.</b> <code>/fix-bug</code> refuses the shortcut that creates phantom fixes: a <i>failing</i> regression test is the proof the bug is understood, and it outlives the fix as a permanent guard.</li>
+        <li><b>Everything an agent writes into <code>ai/</code> stays <code>[inferred]</code></b> until a human audits it — including WORKLOG and ROADMAP rows. Same gate as the maps.</li>
+      </ul>
+      <p class="hint" style="padding-left:0">Deeper: <code>docs/METHODOLOGY.md</code> §7, <code>ai/lab/README.md</code>, and the linking protocol at the top of <code>ai/lab/ROADMAP.md</code>.</p>
+    </section>
   </section>
 
   <footer>
@@ -125,6 +289,8 @@ node install.mjs shazam /path/to/your/repo      <span class="cm"># Node 18+</spa
 
 <script>
 "use strict";
+
+// ---- copy buttons ----
 document.querySelectorAll(".copy").forEach(function(btn){
   btn.addEventListener("click", function(){
     var text = btn.parentElement.querySelector("pre").innerText;
@@ -140,6 +306,31 @@ document.querySelectorAll(".copy").forEach(function(btn){
     }
   });
 });
+
+// ---- track switcher ----
+(function(){
+  var tabBasic = document.getElementById("tab-basic");
+  var tabAdv   = document.getElementById("tab-advanced");
+  var panBasic = document.getElementById("panel-basic");
+  var panAdv   = document.getElementById("panel-advanced");
+  var note     = document.getElementById("panel-note");
+  function show(which){
+    var basic = which === "basic";
+    tabBasic.setAttribute("aria-selected", basic ? "true":"false");
+    tabAdv.setAttribute("aria-selected", basic ? "false":"true");
+    panBasic.hidden = !basic;
+    panAdv.hidden = basic;
+    note.innerHTML = basic
+      ? "Showing the <b>Basic</b> track — everything you need for a first run."
+      : "Showing the <b>Advanced</b> track — the full toolbelt and the long-game workflow.";
+    if(location.hash !== (basic ? "#basic" : "#advanced")){
+      history.replaceState(null, "", basic ? "#basic" : "#advanced");
+    }
+  }
+  tabBasic.addEventListener("click", function(){ show("basic"); });
+  tabAdv.addEventListener("click", function(){ show("advanced"); });
+  if(location.hash === "#advanced"){ show("advanced"); }
+})();
 </script>
 </body>
 </html>

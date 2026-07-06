@@ -16,7 +16,7 @@ feature inside the target under the spec → implement → verify → review →
 loop. The findings live in
 `ai/analysis/audit-reports/2026-07-06-fullstack-simulation-report.md` (W-020);
 the resulting implementation plan is `ai/lab/specs/SPEC_C9-detection-polyglot.md`
-and `ai/lab/specs/SPEC_C10-template-alignment.md` (W-022). This extends the
+and `ai/lab/specs/SPEC_C10-template-alignment.md` (W-023). This extends the
 2026-07-05 single-stack simulation (debug-js/debug, W-018) to the polyglot,
 monorepo-shaped case.
 
