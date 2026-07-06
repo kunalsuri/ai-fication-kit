@@ -217,7 +217,7 @@ node install.mjs shazam /path/to/your/repo      <span class="cm"># Node 18+</spa
 
     <section class="step">
       <h2 class="sec">The util belt</h2>
-      <p class="lead">Every command is <b>deterministic script behavior — no LLM is involved</b>. They read files, write reports, and (with three documented exceptions: <code>drift --git</code>, <code>audit --git</code>, <code>indepth</code>) never even run git. <code>--dry-run</code> previews any of them. Run them as <code>node install.mjs &lt;command&gt; /path/to/your/repo</code>.</p>
+      <p class="lead">Every command is <b>deterministic script behavior — no LLM is involved</b>. They read files, write reports, and (with three documented exceptions: <code>drift --git</code>, <code>audit --git</code>, <code>indepth</code>) never even run git. <code>--dry-run</code> previews any command that writes. Run them as <code>node install.mjs &lt;command&gt; /path/to/your/repo</code> — the one exception is <code>demo</code>, which takes no target path (it uses a throwaway temp dir) and no flags.</p>
 
       <div class="wrap">
       <table class="grid">
