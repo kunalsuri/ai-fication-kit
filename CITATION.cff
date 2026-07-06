@@ -17,8 +17,8 @@ authors:
     affiliation: "CEA LIST"
 license: Apache-2.0
 repository-code: "https://github.com/kunalsuri/ai-fication-kit"
-version: 0.2.0
-date-released: 2026-07-03
+version: 0.3.0
+date-released: 2026-07-06
 keywords:
   - AI coding agents
   - repository intelligence

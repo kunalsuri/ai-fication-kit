@@ -6,6 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-07-06
+
+The engineering-loop tooling maturing into daily use: `/implement-spec` and a maintainer doc-drift auditor, a distributed `/adversarial-audit` command, a CI security-hardening pass (Dependabot, CodeQL, SHA-pinned Actions, OpenSSF Scorecard, CODEOWNERS), a tabbed Basic/Advanced onboarding page, onboarding diagrams, and six bugfixes surfaced by a full-stack real-repo simulation.
+
 ### Added
 - **Feature roadmap + lifecycle trace (`ai/lab/ROADMAP.md`)** — a single living
   roadmap (Planned backlog + Shipped index), cousin of the work ledger.
@@ -124,6 +128,58 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
   of the 5 workflow stages a repo is at (no scan yet / no MODULE_MAP / unaudited
   `[inferred]` rows / no or failing verify-drift manifests / fully verified) and
   prints the exact next command in plain language. Writes nothing, ever.
+- **`/adversarial-audit` command** — judgement-based deep audit for stale
+  cross-references, unescaped interpolation, platform gaps, generated-file
+  ownership conflicts, and cross-module consistency rot. Distributed across all
+  four tool integrations (Claude, Copilot, Antigravity, Cursor); meant to be run
+  periodically, not wired into CI.
+- **CI security hardening** — `.github/dependabot.yml` (npm + github-actions
+  ecosystems, weekly), `.github/workflows/codeql.yml`
+  (javascript-typescript, push/PR/weekly), an `npm audit --audit-level=high`
+  gate added to `ai-check.yml`, every third-party Action across all workflows
+  pinned to its resolved commit SHA, `.github/workflows/scorecard.yml` (OpenSSF
+  Scorecard, SARIF uploaded to code scanning), and `.github/CODEOWNERS`
+  requiring review on `install.mjs`, `lib/`, and `.github/`.
+- **Kit-maintainer tooling** (not distributed to target repos — see
+  `.claude/LOCAL-ONLY-COMMANDS.md`): `/implement-spec`, a spec-faithful
+  implementation protocol for a fresh/lighter model (`docs/IMPLEMENT-SPEC.md`),
+  and `/check-docs`, a README/docs drift audit against the real
+  command/skill/CLI roster.
+- **Onboarding diagrams** — three hand-editable Excalidraw scenes under
+  `docs/diagrams/` (system map, `v0.1.0` → now evolution sourced from this
+  changelog, and the daily Spec → Decide → Implement → Review → Evaluate →
+  Record loop), rendered to `.svg` so they display on GitHub; linked from the
+  `docs/README.md` hub.
+- **`ai/START-HERE.html` restructured into tabbed Basic/Advanced tracks** — a
+  Basic track (3-step scaffold → `/cold-start` → audit + `verify`, plus a
+  plain-language three-kinds-of-knowledge/Stability explainer) and an Advanced
+  track (full command util-belt table, and why `ai/lab/ROADMAP.md`,
+  `ai/lab/specs/`, and `ai/lab/WORKLOG.md` exist and how they cross-link). The
+  generated per-repo progress page is unaffected.
+
+### Fixed
+- **CodeQL alert `js/incomplete-sanitization`** — `release-check`'s
+  version-to-regex conversion only escaped dots; now escapes every regex
+  metacharacter.
+- **`doctor`/`status` disagreement** on a cold-start map whose rows end in
+  Stability `?` with no per-row `[inferred]`/`[verified]` tag — `doctor` now
+  holds these at "unaudited" instead of reporting the repo as trusted.
+- **`verify` false-positives on API-style backticked references** (e.g.
+  `util.inspect`, `array.map`) misread as missing files; added a closed
+  known-file-extension allow-list (including previously-missing marker/build
+  extensions such as `go.mod`, `.sln`, `.csproj`) — path claims with a slash
+  are unaffected.
+- **`drift` conflated "not yet mapped" with "vanished"** — a file/directory
+  already present under a MODULE_MAP `Directory` column no longer gets
+  reported as vanished; that status is now reserved for entries that are
+  truly absent.
+- **`install`/`shazam` silently skipped the branch-safety warning** on
+  `main`/`master` when run under `--yes` or a non-interactive shell; now
+  prints a non-blocking warning (reads `.git/HEAD` directly, no git shelled
+  out).
+- **Machine-local absolute path leak** — `doctor`'s suggested commands and the
+  committed `ai/START-HERE.html` baked in the caller's absolute target path;
+  both now render the path relative to the repo root.
 
 ## [0.2.0] — 2026-07-03
 
@@ -237,7 +293,8 @@ First public release of the `ai-fication-kit` — a tool to create a knowledge l
 - **Uninstall Command**: Removes exactly what the installer wrote using the manifest record without touching any other files.
 - **Smoke Test Suite**: Cross-runtime test suite (`test/run-tests.mjs`) to verify Node and Python installers, stack detection, and verify operations.
 
-[Unreleased]: https://github.com/kunalsuri/ai-fication-kit/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/kunalsuri/ai-fication-kit/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.3.0
 [0.2.0]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.2.0
 [0.1.2]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.2
 [0.1.1]: https://github.com/kunalsuri/ai-fication-kit/releases/tag/v0.1.1

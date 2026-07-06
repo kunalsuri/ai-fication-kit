@@ -588,7 +588,7 @@ If you use this kit in academic or research work, please cite it:
   year      = {2026},
   url       = {https://github.com/kunalsuri/ai-fication-kit},
   doi       = {10.5281/zenodo.20860637},
-  version   = {0.2.0},
+  version   = {0.3.0},
   license   = {Apache-2.0}
 }
 ```
