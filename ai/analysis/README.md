@@ -8,7 +8,7 @@ Everything here is regenerable; prefer regenerating to hand-editing.
 |---|---|---|
 | `FEATURE_CATALOG.md` | `/create-feature-catalog` | full feature index: feature → UI/backend/data/tests touch lists, plus "where new code lives" decision tree |
 | `diagrams/*.mmd` | `/cold-start` | Mermaid architecture/dependency/sequence diagrams |
-| `audit-reports/` | `/post-cold-start-verification`, `/verify-ai-readiness` | findings reports, readiness assessments |
+| `audit-reports/` | `/post-cold-start-verification`, `/verify-ai-readiness`, `/adversarial-audit` | findings reports, readiness assessments, defect traceability |
 | `problems/` | humans + agents | dated analyses of specific issues |
 
 Provenance rule applies here too: generated content is `[inferred]` until a human
