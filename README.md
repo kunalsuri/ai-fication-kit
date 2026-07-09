@@ -609,6 +609,6 @@ See [CITATION.cff](CITATION.cff) for the machine-readable format.
 
 **Author**: Kunal Suri ([@kunalsuri](https://github.com/kunalsuri)) (CEA LIST). This is an on-going R&D work, i.e., Work-in-Progress (WiP)
 
-The **AI-Fication-Kit** project is open source and licensed under the [Apache License 2.0](LICENSE). See the LICENSE file for the full license text.
+The **AI-Fication-Kit** project is open source and licensed under the [Apache License 2.0](LICENSE) — Copyright © 2026 Kunal Suri (CEA LIST). See the LICENSE file for the full license text.
 
 **Warranty & Liability Notice**: This software is provided under the Apache License 2.0 on an "AS IS" basis, without warranties or conditions of any kind, either express or implied. To the extent permitted by the license and applicable law, the authors and contributors disclaim warranties and limit liability. Please refer to the LICENSE file for the complete terms, including Sections 7 (Disclaimer of Warranty) and 8 (Limitation of Liability).
