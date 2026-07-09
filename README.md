@@ -6,6 +6,12 @@
 
 <br><br>
 
+# ⚡ AI-FICATION-KIT
+
+**AI-Fication-Kit: It Makes any Codebase AI-native with Human-Verified Repo Intelligence that AI Coding Agents can Trust.**
+
+<br>
+
 [![Node 18+](https://img.shields.io/badge/node-18%2B-brightgreen?style=for-the-badge&logo=nodedotjs&logoColor=white)](#-quick-start)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-orange?style=for-the-badge&logo=anthropic&logoColor=white)](https://claude.ai/code)
 [![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-compatible-8957e5?style=for-the-badge&logo=githubcopilot&logoColor=white)](docs/FAQ.md#cursor-copilot-codex)
@@ -18,11 +24,13 @@
 [![Status: experimental](https://img.shields.io/badge/status-experimental%20R%26D-blueviolet?style=for-the-badge)](#-why-the-agent-context-tax)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20860637.svg)](https://doi.org/10.5281/zenodo.20860637)
 
-<h2>Make any Codebase AI-native with Human-Verified Repo Intelligence that AI Coding Agents can Trust.</h2>
+
 
 <h3>Context Engineering + Harness Engineering + Development Loop (Loop Engineering) for AI Coding Agents, with a Human-in-the-Loop for Validation.</h3>
 
 </div>
+
+<br>
 
 ---
 
@@ -58,8 +66,6 @@ One command scaffolds it. Depending on the complexity of the codebase, the map b
 * [How This Toolkit Differs](#for-more-details-on-toolkit--security)
 * [Contributing](#-contributing)
 * [Citation](#-citation)
-* [License](#-license)
-* [Acknowledgments](#-acknowledgments)
 
 <br>
 
@@ -597,14 +603,12 @@ See [CITATION.cff](CITATION.cff) for the machine-readable format.
 
 <br>
 
-## 📄 License
+---
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+## 📄 Acknowledgments & License
 
-<br>
+**Author**: Kunal Suri ([@kunalsuri](https://github.com/kunalsuri)) (CEA LIST). This is an on-going R&D work, i.e., Work-in-Progress (WiP)
 
-## 🙏 Acknowledgments
+The **AI-Fication-Kit** project is open source and licensed under the [Apache License 2.0](LICENSE). See the LICENSE file for the full license text.
 
-Ongoing R&D work at CEA LIST, France.
-
-**Author**: Kunal Suri ([@kunalsuri](https://github.com/kunalsuri))
+**Warranty & Liability Notice**: This software is provided under the Apache License 2.0 on an "AS IS" basis, without warranties or conditions of any kind, either express or implied. To the extent permitted by the license and applicable law, the authors and contributors disclaim warranties and limit liability. Please refer to the LICENSE file for the complete terms, including Sections 7 (Disclaimer of Warranty) and 8 (Limitation of Liability).
