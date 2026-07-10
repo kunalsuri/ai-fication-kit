@@ -117,11 +117,12 @@ pasting needed:
 |---|---|---|
 | **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/` | `/cold-start`, `/add-feature`, … |
 | **GitHub Copilot** (VS Code) | `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`, `.github/chatmodes/*.chatmode.md` | `/cold-start`, `/add-feature`, … in Copilot Chat; switch chat mode for `repo-explorer`/`feature-builder`/`test-runner` |
-| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` (`add-feature`, `fix-bug`) | `/cold-start`, `/add-feature`, … in the Agent Manager |
+| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` (`add-feature`, `fix-bug`, `cold-start`, `review-change`) | `/cold-start`, `/add-feature`, … in the Agent Manager |
 | **Cursor** | `.cursor/rules/*.mdc` | invoke a rule the same way you would any other Cursor rule |
 
-The `add-feature` and `fix-bug` skills are each written once in the shared
-`SKILL.md` (Agent Skills) format — Antigravity and Copilot both discover them from
+The `add-feature`, `fix-bug`, `cold-start`, and `review-change` skills are each
+written once in the shared `SKILL.md` (Agent Skills) format — Antigravity and
+Copilot both discover them from
 `.agents/skills/` (Copilot also reads `.claude/skills/`), so they aren't duplicated
 per tool. Antigravity reads
 the tool-agnostic `AGENTS.md` at the repo root natively, so the kit does not ship

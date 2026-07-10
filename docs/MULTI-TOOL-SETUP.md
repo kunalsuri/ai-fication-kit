@@ -61,8 +61,9 @@ The helper personas exist across tools too:
 | `feature-builder` | subagent | chat mode | implements planned changes, surgical diffs |
 | `test-runner` | subagent | chat mode | runs builds/tests, reports faithfully |
 
-The `add-feature` and `fix-bug` **skills** are written once, in the shared
-Agent Skills (`SKILL.md`) format, under `.agents/skills/` and
+The `add-feature`, `fix-bug`, `cold-start`, and `review-change` **skills** are
+written once, in the shared Agent Skills (`SKILL.md`) format, under
+`.agents/skills/` and
 `.claude/skills/` — Copilot and Antigravity both discover the shared format,
 so nothing is duplicated per tool.
 
@@ -104,8 +105,8 @@ Copilot also reads `AGENTS.md` and discovers the shared `add-feature` and
 Antigravity reads the tool-agnostic `AGENTS.md` at the repo root natively — the
 kit ships no separate Antigravity rules file because none is needed. The
 commands are installed as **workflows** (`.agents/workflows/*.md`), invoked
-from the Agent Manager, and the `add-feature` and `fix-bug` skills are
-discovered from `.agents/skills/`.
+from the Agent Manager, and the `add-feature`, `fix-bug`, `cold-start`, and
+`review-change` skills are discovered from `.agents/skills/`.
 
 ## Cursor
 
