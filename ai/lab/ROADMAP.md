@@ -106,7 +106,6 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 
 | ID | Feature | Priority | Effort | Depends on | Spec | Status |
 |---|---|---|---|---|---|---|
-| C1 | Stack-aware agent instructions (kill the `package.json` false positive) | P1 | S | — | — | idea |
 | C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | P1 | S | — | — | idea |
 | C3 | `audit` stamps the verified-commit baseline (make `drift --git` actually fire) | P1 | S–M | — | — | idea |
 | C4 | Monorepo Phase 2/3 — per-package MODULE_MAP sections, workspace-aware `drift` (the parked A4, remaining slices; the first slice — workspace-aware `orient`/`indepth`/`maturity` — shipped as C9) | P2 | M | C9 shipped | — | idea |
@@ -155,45 +154,6 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 <!-- verify-ignore:start -->
 
 ### Detailed specifications
-
-#### C1 · Stack-aware agent instructions — kill the `package.json` false positive
-
-**Need (P2 beginner, P1 tech lead — evidence F2).** The stamped `CLAUDE.md` /
-`AGENTS.md` "No Phantom Bugs & Configuration Churn" rule names `package.json`
-literally, on every stack. On any non-JS repo, `verify` then reports two missing
-claims the user never made. The kit's first impression on a Python shop is its own
-check failing against its own template — the exact "false alarm" that loses P1.
-
-**Behavior.**
-- Add a `{{CONFIG_FILES}}` token to `templates/CLAUDE.md.tmpl` (line 22 area) and
-  `templates/AGENTS.md.tmpl` (line 24 area), replacing the literal `` `package.json` ``.
-- The stamping code resolves it deterministically from the orient profile's
-  `buildSystems` / marker files, as a comma-separated list of the manifests that
-  **actually exist at the target root** — e.g. `` `package.json` `` for npm,
-  `` `pyproject.toml` `` for Python, `` `pom.xml` `` for Maven, several when polyglot.
-  Fallback when nothing matched: the phrase `the project's build manifests` (plain
-  text, no backticked path — so `verify` has no claim to check).
-- Rule of thumb baked into the resolver: **never emit a backticked path that does
-  not exist on disk at stamp time.** That is the invariant the test asserts.
-
-**Touchpoints.** `templates/CLAUDE.md.tmpl`, `templates/AGENTS.md.tmpl`; the token
-substitution table in `lib/installer.mjs` (find where `{{BUILD_CMD}}` /
-`{{TEST_DIRS}}` are resolved and add `{{CONFIG_FILES}}` beside them — same
-mechanism, no new machinery); `test/run-tests.mjs`.
-
-**Acceptance.**
-- New fixture: Python-only repo (F2 recipe) → `shazam --yes` → `verify --strict`
-  exits 0 with zero missing claims.
-- JS fixture keeps mentioning `package.json` (byte-level check of the stamped line).
-- Polyglot fixture (npm + Maven markers) lists both manifests.
-- The kit repo's own `CLAUDE.md`/`AGENTS.md` (hand-maintained, not stamped) are
-  **not** touched by this feature.
-
-**Out of scope.** Re-stamping existing installs (users get the fix on their next
-incremental re-run — that path already exists); any other stack-conditional
-template content.
-
----
 
 #### C2 · Stage-aware `status` verdict
 
@@ -531,14 +491,15 @@ the full lab).
 ### Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
-  trust-breaking moment — together they make an honest v0.2.1 patch wave), then
-  **C4** (remaining monorepo slices — per-package MODULE_MAP sections,
-  workspace-aware `drift`), then **C5/C6** in either order, then **C7/C8**.
-- **C9 and C10 have shipped** (2026-07-11 — see the Shipped table). C9 already
-  covered C4's first slice (workspace-aware `orient`/`indepth`/`maturity`); C4
-  is rescoped above to its remaining slices. C10's W2/W4 wording touched the
-  same template lines C1 will parameterize — C1 should rebase its
-  `{{CONFIG_FILES}}` token onto C10's shipped sentences.
+  trust-breaking moment — together they make an honest v0.2.1 patch wave). C1
+  has shipped; **C2 → C3** next, then **C4** (remaining monorepo slices —
+  per-package MODULE_MAP sections, workspace-aware `drift`), then **C5/C6** in
+  either order, then **C7/C8**.
+- **C9, C10, and C1 have shipped** (2026-07-11 — see the Shipped table). C9
+  already covered C4's first slice (workspace-aware `orient`/`indepth`/
+  `maturity`); C4 is rescoped above to its remaining slices. C1's
+  `{{CONFIG_FILES}}` token was rebased onto C10's already-shipped exception
+  sentence in the same commit — no collision.
 - C6 before C8 is preferred (the onboarding page footer consumes the value
   headline) but not required — C8 degrades silently without it.
 - C2 and C7 both touch `lib/status.mjs`; if implemented in parallel sessions,
@@ -590,6 +551,7 @@ Recorded so future planning sessions don't re-litigate:
 | B5 | Living progress page in target `ai/` | [`ai/lab/specs/SPEC_B5-progress-page.md`](specs/SPEC_B5-progress-page.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | C10 | Knowledge-template & workflow alignment | [`ai/lab/specs/SPEC_C10-template-alignment.md`](specs/SPEC_C10-template-alignment.md) | W-038 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
 | C9 | Detection-layer robustness on polyglot/monorepo targets | [`ai/lab/specs/SPEC_C9-detection-polyglot.md`](specs/SPEC_C9-detection-polyglot.md) | W-039 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
+| C1 | Stack-aware agent instructions (kill the `package.json` false positive) | [`ai/lab/specs/SPEC_C1-stack-aware-instructions.md`](specs/SPEC_C1-stack-aware-instructions.md) | W-040 | branch claude/roadmap-status-update-pzuepv, PR #62 | 2026-07-11 |
 
 **A4 · Monorepo / workspace support** — parked in wave 2 pending its own spec;
 **superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned

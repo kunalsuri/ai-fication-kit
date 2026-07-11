@@ -2789,5 +2789,61 @@ console.log("\n— C9: detection-layer robustness —");
   }
 }
 
+// ---------- C1: stack-aware agent instructions (SPEC_C1-stack-aware-instructions.md §6) ----------
+console.log("\n— C1: stack-aware agent instructions —");
+{
+  const noChurnLine = async (repoAbs) => {
+    const text = await fs.readFile(path.join(repoAbs, "CLAUDE.md"), "utf8");
+    return text.split("\n").find(l => l.includes("No Phantom Bugs")) || "";
+  };
+
+  // T1: Python-only fixture — verify --strict must exit 0 with zero missing claims.
+  {
+    const d = await makeBareFixture("c1-t1-python-only", {
+      "pyproject.toml": "[project]\nname = \"x\"\n",
+    });
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    ok(r.code === 0, `T1: shazam --yes exits 0`);
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "verify", d, "--strict"]);
+    ok(r.code === 0 && /missing 0/.test(r.out),
+      `T1: verify --strict exits 0 with zero missing claims on a Python-only repo`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T2: JS fixture keeps the literal `package.json` wording (byte-level check).
+  {
+    const d = await makeBareFixture("c1-t2-js-fixture", {
+      "package.json": JSON.stringify({ name: "x" }),
+    });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    const line = await noChurnLine(d);
+    ok(line.includes("`package.json`"), `T2: No-Churn line keeps the literal \`package.json\`: ${line}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T3: polyglot fixture lists both manifests.
+  {
+    const d = await makeBareFixture("c1-t3-polyglot", {
+      "package.json": JSON.stringify({ name: "x" }),
+      "pom.xml": "<project/>\n",
+    });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    const line = await noChurnLine(d);
+    ok(line.includes("`package.json`") && line.includes("`pom.xml`"),
+      `T3: No-Churn line lists both manifests: ${line}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T4: no recognized manifest — falls back to the plain-text phrase, no backticked token.
+  {
+    const d = await makeBareFixture("c1-t4-no-marker", { "README.md": "# x\n" });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    const line = await noChurnLine(d);
+    ok(line.includes("the project's build manifests") && !/`[^`]*\.(json|toml|txt|xml|gradle|mod|Gemfile|kts)`/.test(line),
+      `T4: falls back to the plain-text phrase with no backticked manifest token: ${line}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);
