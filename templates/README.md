@@ -7,17 +7,17 @@ Rules:
 - Files ending `.tmpl` have `{{PLACEHOLDERS}}` substituted and lose the `.tmpl` suffix.
 - All other files are copied verbatim.
 - `templates/claude/**` installs to `.claude/**` (kept visible here so the kit's own
-  tree is browsable): Claude Code slash commands, subagents, the `add-feature`
-  and `fix-bug` skills, and two native `rules/` — `ai-knowledge-layer.md`, an
+  tree is browsable): Claude Code skills (merged slash commands per Claude Code
+  v2.1.3, incl. `add-feature`/`fix-bug`), subagents, and two native `rules/` — `ai-knowledge-layer.md`, an
   always-on rule (no `paths:` frontmatter) that is the twin of the Cursor
   `alwaysApply: true` rule, and `provenance.md`, a path-scoped guard
   (`paths: ["ai/**"]`) that loads only when the agent edits the `ai/` layer.
 - `templates/github/**` installs to `.github/**`: the CI/CD workflow template, plus
   GitHub Copilot assets — `copilot-instructions.md` (repo-wide instructions),
-  `prompts/*.prompt.md` (slash-command equivalents of the Claude commands), and
+  `prompts/*.prompt.md` (prompt equivalents of the Claude skills), and
   `chatmodes/*.chatmode.md` (equivalents of the Claude subagents).
 - `templates/agents/**` installs to `.agents/**`: Google Antigravity assets —
-  `workflows/*.md` (slash-command equivalents of the Claude commands) and
+  `workflows/*.md` (workflow equivalents of the Claude skills) and
   `skills/` (the same Agent Skills-format skills Claude Code uses —
   Antigravity and Copilot both discover `SKILL.md` from `.agents/skills/` natively,
   so they are not duplicated per tool). Antigravity reads the tool-agnostic

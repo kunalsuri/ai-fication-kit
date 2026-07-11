@@ -1,5 +1,7 @@
 ---
+name: review-agent-config
 description: Diagnostic gate that checks CLAUDE.md and AGENTS.md for completeness, consistency, and stale artifacts — run right after /cold-start and before /add-feature. Read-only; produces a findings report.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

@@ -1,16 +1,18 @@
 ---
+name: check-docs
 description: Kit-maintainer diagnostic (LOCAL-ONLY, not distributed) that audits the README and docs/ for staleness against the repo's real command/skill/CLI roster, stamped tree, and cross-doc consistency. Read-only; produces a severity-ranked findings report.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
 Run the **check-docs** diagnostic. Read-only. Produce a structured findings
 report; do NOT edit any file.
 
-> **Local-only command.** This lives in `.claude/commands/` with no twin in
+> **Local-only skill.** This lives in `.claude/skills/check-docs/` with no twin in
 > `templates/`, so the installer never stamps it into target repos. It audits
 > *this kit's own* README and docs — it is a maintainer tool, not a distributed
-> workflow command. See `.claude/LOCAL-ONLY-COMMANDS.md`. (Its own file, and any
-> other local-only command, is therefore expected to be absent from the
+> workflow. See `.claude/LOCAL-ONLY-COMMANDS.md`. (Its own file, and any
+> other local-only skill, is therefore expected to be absent from the
 > distributed roster — do not flag that as drift.)
 
 ## Why this exists
@@ -18,18 +20,18 @@ Docs drift silently: a feature adds a command, a skill, or a stamped file, and
 the prose roster, the `What You Get` tree, and the counts scattered across the
 docs quietly fall behind the code. `verify`/`drift`/`/check-drift` guard the
 *target-repo* knowledge layer (`ai/`), not the kit's *own* public docs. This
-command closes that gap.
+skill closes that gap.
 
 ## Ground truth — derive these FIRST, from the code, before reading any prose
 The distributed reality is defined by `templates/`, **not** by `.claude/`
-(which also holds local-only extras like this command and `/implement-spec`).
+(which also holds local-only extras like this skill and `/implement-spec`).
 Derive, deterministically:
 
-- **Distributed workflow commands** = the `*.md` files in
-  `templates/claude/commands/` (their count and basenames). This is the
-  canonical "what users get" roster. Cross-check parity with
+- **Distributed workflows** = the sub-directories of
+  `templates/claude/skills/` (the Claude surface — custom commands merged into
+  skills). This is the canonical "what users get" roster. Cross-check parity with
   `templates/github/prompts/`, `templates/agents/workflows/`, and
-  `templates/cursor/rules/` (a command is "universal" only if present in all).
+  `templates/cursor/rules/` (a workflow is "universal" only if present in all).
 - **Distributed skills** = the sub-directories of `templates/claude/skills/`
   and `templates/agents/skills/`.
 - **CLI commands** = the members of the authoritative `const COMMANDS = new Set([…])`
@@ -39,8 +41,8 @@ Derive, deterministically:
 - **Stamped `ai/` tree** = the structure under `templates/ai/` plus the files
   `install.mjs` writes directly (`ai/repo-profile.json`,
   `ai/install-manifest.json`, optionally `ai/repo-indepth.json`).
-- **Local-only commands** = present in `.claude/commands/` but absent from
-  `templates/claude/commands/`; the intended list is `.claude/LOCAL-ONLY-COMMANDS.md`.
+- **Local-only skills** = present in `.claude/skills/` but absent from
+  `templates/claude/skills/`; the intended list is `.claude/LOCAL-ONLY-COMMANDS.md`.
 
 Use `ls`/Glob and grep for these — do not eyeball. Every count you assert in a
 finding must trace to one of these sources.
@@ -55,8 +57,8 @@ finding must trace to one of these sources.
 ### Section D — Command & skill roster
 | ID | Check | Severity |
 |----|-------|----------|
-| D1 | Every prose count of workflow commands (e.g. README's "The Ten Workflow Commands" heading, "ten workflow commands", MULTI-TOOL-SETUP's "All ten commands") equals the number of `templates/claude/commands/*.md` files | ❌ |
-| D2 | Every explicit command **list/table** (README roster table, MULTI-TOOL cross-tool table, technical-report §9.1) names exactly the basenames in `templates/claude/commands/` — none missing, none removed | ❌ |
+| D1 | Every prose count of workflows (e.g. README's "The Eleven Workflows" heading, "eleven workflows") equals the number of sub-directories in `templates/claude/skills/` | ❌ |
+| D2 | Every explicit workflow **list/table** (README roster table, MULTI-TOOL cross-tool table, technical-report §9.1) names exactly the sub-directories in `templates/claude/skills/` — none missing, none removed | ❌ |
 | D3 | Every skill reference (README tree + highlights, FAQ, MULTI-TOOL-SETUP, technical-report §9.3) matches the sub-dirs of `templates/claude/skills/` / `templates/agents/skills/` — no skill named that isn't shipped, none shipped that isn't named | ❌ |
 | D4 | No local-only command (per `.claude/LOCAL-ONLY-COMMANDS.md`) is described anywhere as "stamped", "installed", or part of the distributed roster | ⚠️ |
 

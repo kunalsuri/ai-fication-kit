@@ -28,7 +28,7 @@ install time, and a mixed team can use different tools on the same repo:
 
 | Tool | Assets installed | Invocation |
 |---|---|---|
-| **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/`, `.claude/rules/` | slash commands + subagents, natively |
+| **Claude Code** | `.claude/skills/`, `.claude/agents/`, `.claude/rules/` | skills (merged slash commands) + subagents, natively |
 | **GitHub Copilot** (VS Code) | `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`, `.github/chatmodes/*.chatmode.md` | prompts + chat modes in Copilot Chat |
 | **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` | workflows in the Agent Manager |
 | **Cursor** | `.cursor/rules/*.mdc` | invoke a rule, same as any other Cursor rule |
@@ -122,7 +122,7 @@ Cursor rule; no manual pasting needed.
 No dedicated template tree — Codex reads `AGENTS.md` for the rules and the
 `ai/` maps for knowledge natively, but the commands are driven by hand:
 
-1. Open the command file you want, e.g. `.claude/commands/cold-start.md`.
+1. Open the skill file you want, e.g. `.claude/skills/cold-start/SKILL.md`.
 2. **Strip the YAML frontmatter** — delete the `---` delimiters at the top and
    everything between them (`description:` etc.). Pasting the metadata confuses
    the model; start from the actual instructions.
@@ -138,5 +138,5 @@ is `[inferred]` until *you* flip it.
 - Which tools get what, in one paragraph: [FAQ.md](FAQ.md#cursor-copilot-codex)
 - The agent flipped `[verified]` itself: [FAQ.md](FAQ.md) → "The agent flipped a tag"
 - Full command semantics (what each workflow does): the command files themselves
-  under `.claude/commands/` are the source of truth and are identical in
+  under `.claude/skills/` are the source of truth and are identical in
   content across the four template trees (Claude, Copilot, Antigravity, Cursor).

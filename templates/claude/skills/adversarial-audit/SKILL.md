@@ -1,5 +1,7 @@
 ---
+name: adversarial-audit
 description: Deep, judgement-based adversarial code audit — hunts for stale cross-references, unescaped interpolation, platform gaps, generated-file ownership conflicts, and cross-module consistency rot that no mechanical check can catch. Read-only; writes a dated findings report.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

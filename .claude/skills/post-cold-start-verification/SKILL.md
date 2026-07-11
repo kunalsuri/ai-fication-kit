@@ -1,5 +1,7 @@
 ---
+name: post-cold-start-verification
 description: Audit every ai/ file for gaps, stale placeholders, and inconsistencies after cold-start. Produces a prioritized findings report.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

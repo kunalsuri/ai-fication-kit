@@ -1,5 +1,7 @@
 ---
+name: create-feature-catalog
 description: Deep-mine the source code to discover implemented features; writes ai/analysis/FEATURE_CATALOG.md.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

@@ -1,5 +1,7 @@
 ---
+name: perform-feature-add-simulation
 description: Dry-run the add-feature workflow for a proposed feature — friction report and per-phase readiness score, without writing code.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

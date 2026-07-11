@@ -1,5 +1,7 @@
 ---
+name: check-drift
 description: Run verification and drift checks on the AI knowledge-base to identify missing documentation or stale references.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

@@ -1,5 +1,7 @@
 ---
+name: verify-ai-readiness
 description: Holistic assessment of the AI knowledge layer on a 5-level maturity scale; flags agent-blocking gaps.
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 

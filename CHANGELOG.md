@@ -6,6 +6,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+### Changed
+- **Claude Code surface migrated from slash commands to skills.** Following
+  Claude Code v2.1.3, which [merged custom commands into skills](https://code.claude.com/docs/en/skills),
+  the kit now ships its Claude workflows as skills under `.claude/skills/`
+  instead of slash-command files under .claude/commands/. All eleven distributed
+  workflows, plus the local-only implement-spec and check-docs, are now `SKILL.md`
+  skills; the nine manual diagnostics carry `disable-model-invocation: true` so
+  they stay explicit `/name` invocations. Invocation is unchanged (`/cold-start`,
+  `/add-feature`, …). Existing installs are pointed at each skill successor on
+  update via a rename registry in `lib/migrations.mjs`. The Cursor, Copilot, and
+  Antigravity surfaces are unchanged (the merge is Claude Code-specific).
+
 ## [0.3.0] — 2026-07-06
 
 The engineering-loop tooling maturing into daily use: `/implement-spec` and a maintainer doc-drift auditor, a distributed `/adversarial-audit` command, a CI security-hardening pass (Dependabot, CodeQL, SHA-pinned Actions, OpenSSF Scorecard, CODEOWNERS), a tabbed Basic/Advanced onboarding page, onboarding diagrams, and six bugfixes surfaced by a full-stack real-repo simulation.

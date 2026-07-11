@@ -164,11 +164,11 @@ async function testInstaller(label, exec, script) {
     path.join("ai", "lab", "ROADMAP.md"),
     path.join("ai", "lab", "reviews", "REVIEW_TEMPLATE.md"),
     path.join("ai", "lab", "specs", "BUGFIX_TEMPLATE.md"),
-    path.join(".claude", "commands", "cold-start.md"),
-    path.join(".claude", "commands", "check-drift.md"),
-    path.join(".claude", "commands", "adversarial-audit.md"),
-    path.join(".claude", "commands", "fix-bug.md"),
-    path.join(".claude", "commands", "review-change.md"),
+    path.join(".claude", "skills", "cold-start", "SKILL.md"),
+    path.join(".claude", "skills", "check-drift", "SKILL.md"),
+    path.join(".claude", "skills", "adversarial-audit", "SKILL.md"),
+    path.join(".claude", "skills", "verify-ai-readiness", "SKILL.md"),
+    path.join(".claude", "skills", "review-change", "SKILL.md"),
     path.join(".claude", "agents", "repo-explorer.md"),
     path.join(".claude", "skills", "add-feature", "SKILL.md"),
     path.join(".claude", "skills", "fix-bug", "SKILL.md"),
@@ -1957,8 +1957,8 @@ console.log("\n— npm pack (demo packaging) —");
 {
   console.log("\n— destinationFor unit tests —");
   const { destinationFor } = await import(pathToFileURL(path.join(kitRoot, "lib", "installer.mjs")).href);
-  ok(destinationFor(path.join("claude", "commands", "cold-start.md")) ===
-    path.join(".claude", "commands", "cold-start.md"),
+  ok(destinationFor(path.join("claude", "skills", "cold-start", "SKILL.md")) ===
+    path.join(".claude", "skills", "cold-start", "SKILL.md"),
     `claude/ → .claude/ mapping`);
   ok(destinationFor(path.join("github", "workflows", "ai-check.yml.tmpl")) ===
     path.join(".github", "workflows", "ai-check.yml"),
@@ -2337,7 +2337,7 @@ console.log("\n— audit R3 regressions —");
       await import(pathToFileURL(path.join(kitRoot, "lib", "installer.mjs")).href);
     const bad = ["../evil.md", "ai/../../evil.md", "/etc/passwd", "C:whoops.md",
       "ai\\windows.md", "ai/\0nul.md", "ai//double.md", "./ai/dot.md", "", 42, null];
-    const good = ["ai/INDEX.md", ".claude/commands/cold-start.md", "ai/guide/MODULE_MAP.md"];
+    const good = ["ai/INDEX.md", ".claude/skills/cold-start/SKILL.md", "ai/guide/MODULE_MAP.md"];
     ok(bad.every(p => !isSafeManifestPath(p)) && good.every(p => isSafeManifestPath(p)),
       `isSafeManifestPath rejects absolute/../NUL/backslash/empty-segment paths, keeps clean posix-relative ones`);
   }

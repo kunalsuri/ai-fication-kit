@@ -1,5 +1,8 @@
 ---
+name: implement-spec
 description: Implement a spec from ai/lab/specs/ exactly as written — zero design decisions, stop-and-report on any spec-vs-reality conflict, tests are the definition of done. Built for lighter implementation models.
+argument-hint: [path-to-spec]
+disable-model-invocation: true
 ---
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 
