@@ -116,6 +116,7 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 | C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
 | C9 | Detection-layer robustness on polyglot/monorepo targets (bun/uv locks, member manifests & test dirs, indepth deps, maturity checks, verify tokens) | P1 | M | — (first slice of C4) | `ai/lab/specs/SPEC_C9-detection-polyglot.md` | spec drafted |
 | C10 | Knowledge-template & workflow alignment (5-column MODULE_MAP everywhere, cold-start command-correction step, conditional license rule, blocked-env vocabulary) | P1 | S–M | — (wording must not collide with C1) | `ai/lab/specs/SPEC_C10-template-alignment.md` | spec drafted |
+| C11 | `speclint` — deterministic implementation-grade spec gate (W-035 360°-review R3; pre-flight for light-model /implement-spec runs) | P2 | S | — | `ai/lab/specs/SPEC_C11-speclint.md` | spec drafted |
 
 Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dropped`).
 
@@ -131,6 +132,7 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 - **C8** — the verified knowledge-base becomes a shareable, double-clickable onboarding page for humans who will never open an agent or a terminal.
 - **C9** — a bun/uv monorepo's first profile states the real toolchain and test dirs instead of npm/pip guesses; the maturity panel stops denying lockfiles that exist.
 - **C10** — a fresh cold-start is counted as `[inferred]` by `status`/`doctor` instead of "unaudited", and the stamped rules stop asserting conventions the target doesn't have.
+- **C11** — a light-model implementer starts only from a spec that mechanically clears the implementation-grade bar; spec gaps surface as a seconds-long lint before implementation, not as mid-task round-trips to the human.
 
 <!-- verify-ignore:start -->
 
