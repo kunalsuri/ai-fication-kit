@@ -2643,7 +2643,14 @@ console.log("\n— C10: template & workflow alignment —");
   // body text (after stripping front-matter up to the first blank line) is
   // byte-identical between the live copy and its OWN templates/ twin.
   {
-    const bodyAfterFrontmatter = (text) => {
+    // Normalize line endings first: .gitattributes forces `eol=lf` on
+    // templates/** but not on the live .claude//.agents//.cursor//.github/
+    // copies, so a Windows checkout gives the live file CRLF while its
+    // template twin stays LF — a platform checkout artifact, not a real
+    // content difference, so it must not fail this parity check.
+    const normalizeEol = (text) => text.replace(/\r\n/g, "\n");
+    const bodyAfterFrontmatter = (rawText) => {
+      const text = normalizeEol(rawText);
       if (!text.startsWith("---")) return text;
       const end = text.indexOf("\n---", 3);
       if (end === -1) return text;
