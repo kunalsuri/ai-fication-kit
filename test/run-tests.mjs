@@ -143,6 +143,60 @@ async function testInstaller(label, exec, script) {
     await fs.rm(d, { recursive: true, force: true });
   }
 
+  // ---------- indepth: repo-health warnings & recommendations ----------
+  // Each heuristic in lib/indepth.mjs is a one-line `if` guarding a warning or
+  // recommendation push; the "gaps" fixture trips every guard, "clean" trips none.
+  {
+    const gaps = await makeBareFixture(`${label}-health-gaps`, {
+      "package.json": "{}\n",
+      ".git/config": "",
+      "app.ts": "export const x = 1;\n",
+      ".env": "SECRET=1\n",
+      "test/app.test.ts": "test('x', () => {});\n",
+    });
+    r = run(exec, [script, "indepth", gaps]);
+    const gapsResult = JSON.parse(await fs.readFile(path.join(gaps, "ai", "repo-indepth.json"), "utf8"));
+    ok(gapsResult.warnings.some(w => w.category === "gitignore"),
+      `indepth flags a missing .gitignore`);
+    ok(gapsResult.warnings.some(w => w.category === "license"),
+      `indepth flags a missing LICENSE`);
+    ok(gapsResult.warnings.some(w => w.category === "config" && /\.env\.example/.test(w.message)),
+      `indepth flags a missing .env.example when .env is present`);
+    ok(gapsResult.recommendations.some(rec => rec.area === "Configuration" && /\.env\.example/.test(rec.suggestion)),
+      `indepth recommends creating .env.example`);
+    ok(gapsResult.recommendations.some(rec => rec.area === "Documentation" && /ARCHITECTURE\.md/.test(rec.suggestion)),
+      `indepth recommends an ARCHITECTURE.md when none exists`);
+    ok(gapsResult.recommendations.some(rec => rec.area === "Configuration" && /linting/.test(rec.suggestion)),
+      `indepth recommends linter/formatter configuration when none exists`);
+    await fs.rm(gaps, { recursive: true, force: true });
+
+    const clean = await makeBareFixture(`${label}-health-clean`, {
+      "package.json": "{}\n",
+      ".git/config": "",
+      "app.ts": "export const x = 1;\n",
+      ".gitignore": "node_modules/\n",
+      ".env": "SECRET=1\n",
+      ".env.example": "SECRET=\n",
+      "LICENSE": "MIT\n",
+      "ARCHITECTURE.md": "# Architecture\n",
+      ".eslintrc.json": "{}\n",
+      "test/app.test.ts": "test('x', () => {});\n",
+    });
+    r = run(exec, [script, "indepth", clean]);
+    const cleanResult = JSON.parse(await fs.readFile(path.join(clean, "ai", "repo-indepth.json"), "utf8"));
+    ok(!cleanResult.warnings.some(w => w.category === "gitignore"),
+      `indepth does not flag .gitignore when it's present`);
+    ok(!cleanResult.warnings.some(w => w.category === "license"),
+      `indepth does not flag LICENSE when it's present`);
+    ok(!cleanResult.warnings.some(w => w.category === "config"),
+      `indepth does not flag .env.example when it's already present`);
+    ok(!cleanResult.recommendations.some(rec => /ARCHITECTURE\.md/.test(rec.suggestion)),
+      `indepth does not recommend ARCHITECTURE.md when one exists`);
+    ok(!cleanResult.recommendations.some(rec => /linting/.test(rec.suggestion)),
+      `indepth does not recommend linter config when one exists`);
+    await fs.rm(clean, { recursive: true, force: true });
+  }
+
   // dry-run writes nothing new
   r = run(exec, [script, "install", repo, "--dry-run"]);
   ok(r.code === 0, `install --dry-run exits 0`);
@@ -891,6 +945,93 @@ async function testInstaller(label, exec, script) {
 console.log("ai-fication-kit smoke tests");
 
 await testInstaller("node", process.execPath, path.join(kitRoot, "install.mjs"));
+
+// ---------- install.mjs: additional CLI coverage ----------
+console.log("\n— install.mjs: CLI edge cases —");
+{
+  const exec = process.execPath;
+  const script = path.join(kitRoot, "install.mjs");
+
+  // --version / -v
+  {
+    const { KIT_VERSION } = await import(pathToFileURL(path.join(kitRoot, "lib", "util.mjs")).href);
+    let r = run(exec, [script, "--version"]);
+    ok(r.code === 0 && r.out.trim() === KIT_VERSION, `--version prints ${KIT_VERSION} and exits 0`);
+    r = run(exec, [script, "-v"]);
+    ok(r.code === 0 && r.out.trim() === KIT_VERSION, `-v prints ${KIT_VERSION} and exits 0`);
+  }
+
+  // --analysis-level parsing
+  {
+    const d = await makeBareFixture("cli-analysis-level", { "package.json": "{}\n" });
+    let r = run(exec, [script, "orient", d, "--analysis-level"]);
+    ok(r.code !== 0 && /--analysis-level requires a value/.test(r.out),
+      `--analysis-level with no value → non-zero exit`);
+    r = run(exec, [script, "orient", d, "--analysis-level", "bogus"]);
+    ok(r.code !== 0 && /must be 'general' or 'indepth'/.test(r.out),
+      `--analysis-level bogus → non-zero exit naming the valid values`);
+    r = run(exec, [script, "orient", d, "--analysis-level", "indepth"]);
+    ok(r.code === 0 && await exists(path.join(d, "ai", "repo-indepth.json")),
+      `orient --analysis-level indepth writes ai/repo-indepth.json`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // `orient --indepth` (shorthand for --analysis-level indepth)
+  {
+    const d = await makeBareFixture("cli-orient-indepth", { "package.json": "{}\n" });
+    const r = run(exec, [script, "orient", d, "--indepth"]);
+    ok(r.code === 0 && await exists(path.join(d, "ai", "repo-profile.json")) &&
+      await exists(path.join(d, "ai", "repo-indepth.json")),
+      `orient --indepth writes both repo-profile.json and repo-indepth.json`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // standalone `indepth` command: --dry-run writes nothing
+  {
+    const d = await makeBareFixture("cli-indepth-dryrun", { "package.json": "{}\n" });
+    const r = run(exec, [script, "indepth", d, "--dry-run"]);
+    ok(r.code === 0 && /repo-indepth\.json not written/.test(r.out),
+      `indepth --dry-run reports nothing written`);
+    ok(!(await exists(path.join(d, "ai", "repo-indepth.json"))) &&
+      !(await exists(path.join(d, "ai", "repo-profile.json"))),
+      `indepth --dry-run writes neither repo-profile.json nor repo-indepth.json`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // standalone `indepth` command: tolerates a corrupted repo-profile.json on disk
+  {
+    const d = await makeBareFixture("cli-indepth-corrupt-profile", {
+      "package.json": "{}\n",
+      "ai/repo-profile.json": "{ not valid json",
+    });
+    const r = run(exec, [script, "indepth", d]);
+    ok(r.code === 0, `indepth tolerates a corrupted ai/repo-profile.json (falls back to a fresh orient)`);
+    ok(await exists(path.join(d, "ai", "repo-indepth.json")),
+      `indepth still writes ai/repo-indepth.json despite the corrupt profile`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // shazam --indepth also writes ai/repo-indepth.json
+  {
+    const d = await makeBareFixture("cli-shazam-indepth", { "package.json": "{}\n" });
+    const r = run(exec, [script, "shazam", d, "--yes", "--indepth"]);
+    ok(r.code === 0 && await exists(path.join(d, "ai", "repo-indepth.json")),
+      `shazam --yes --indepth writes ai/repo-indepth.json`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // shazam's "Next steps" message is tailored when a prior wizard answered "None yet"
+  {
+    const d = await makeBareFixture("cli-shazam-none-yet", {
+      "package.json": "{}\n",
+      "ai/repo-profile.json": JSON.stringify({ languages: [], humanContext: { primaryTool: "None yet" } }),
+    });
+    const r = run(exec, [script, "shazam", d, "--yes"]);
+    ok(r.code === 0 && /Pick an AI coding tool/.test(r.out),
+      `shazam's next-steps text tells a "None yet" user to pick a tool first`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
 
 // the intake wizard must self-skip (return null) for automation, never hang on input.
 {
@@ -2040,6 +2181,25 @@ console.log("\n— npm pack (demo packaging) —");
   b = await detectBranch(broot);
   ok(b.versionControlled === false && b.name === null, `no .git → not version controlled`);
   await fs.rm(broot, { recursive: true, force: true });
+}
+
+// ---------- unit tests: reserveBackupPath collision handling ----------
+{
+  console.log("\n— reserveBackupPath unit tests —");
+  const { backupName, reserveBackupPath } = await import(pathToFileURL(path.join(kitRoot, "lib", "util.mjs")).href);
+  const uroot = await makeBareFixture("util-reserve-backup", {});
+  const first = backupName("MODULE_MAP", ".md");
+  ok(await reserveBackupPath(uroot, "MODULE_MAP", ".md") === first,
+    `reserveBackupPath returns the plain backupName() when nothing collides`);
+  await fs.writeFile(path.join(uroot, first), "already taken\n");
+  const second = await reserveBackupPath(uroot, "MODULE_MAP", ".md");
+  ok(second !== first && second === first.replace(/\.md$/, "_2.md"),
+    `reserveBackupPath appends _2 when the plain name is already taken: ${second}`);
+  await fs.writeFile(path.join(uroot, second), "also taken\n");
+  const third = await reserveBackupPath(uroot, "MODULE_MAP", ".md");
+  ok(third === first.replace(/\.md$/, "_3.md"),
+    `reserveBackupPath keeps incrementing past a second collision: ${third}`);
+  await fs.rm(uroot, { recursive: true, force: true });
 }
 
 // ---------- release-check: the deterministic release gate ----------
