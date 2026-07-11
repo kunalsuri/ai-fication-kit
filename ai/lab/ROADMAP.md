@@ -109,12 +109,11 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 | C1 | Stack-aware agent instructions (kill the `package.json` false positive) | P1 | S | — | — | idea |
 | C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | P1 | S | — | — | idea |
 | C3 | `audit` stamps the verified-commit baseline (make `drift --git` actually fire) | P1 | S–M | — | — | idea |
-| C4 | Monorepo Phase 1 — workspace-aware `orient` (the parked A4, first slice) | P2 | M | — | — | idea |
+| C4 | Monorepo Phase 2/3 — per-package MODULE_MAP sections, workspace-aware `drift` (the parked A4, remaining slices; the first slice — workspace-aware `orient`/`indepth`/`maturity` — shipped as C9) | P2 | M | C9 shipped | — | idea |
 | C5 | `drift --deep` — file-level coverage inside mapped directories | P2 | M | — | — | idea |
 | C6 | `value` — context-savings report for *your own* repo | P2 | M | — | — | idea |
 | C7 | Kit-version awareness in `doctor`/`status` | P3 | S | — | — | idea |
 | C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
-| C9 | Detection-layer robustness on polyglot/monorepo targets (bun/uv locks, member manifests & test dirs, indepth deps, maturity checks, verify tokens) | P1 | M | — (first slice of C4) | `ai/lab/specs/SPEC_C9-detection-polyglot.md` | spec drafted |
 | C11 | `speclint` — deterministic implementation-grade spec gate (W-035 360°-review R3; pre-flight for light-model /implement-spec runs) | P2 | S | — | `ai/lab/specs/SPEC_C11-speclint.md` | spec drafted |
 | C12 | 3-arm live A/B eval — none / `[inferred]` / `[verified]` map on an unfamiliar mid-size repo; tokens, success, wrong-file-opens, Stability violations (W-035 R1) | P1 | M | — (extends C6's goal; needs nothing, informs everything) | — | idea |
 | C13 | Promote /implement-spec into `templates/` (all four tool surfaces) — ship the SDD engine, not just the filing cabinet (W-035 R2) | P1 | S–M | W-014 recorded blockers | — | idea |
@@ -529,35 +528,17 @@ the full lab).
 
 ---
 
-#### C9 · Detection-layer robustness on polyglot/monorepo targets
-
-**Need (P1 — evidence: the 2026-07-06 full-stack simulation, findings F1/F3/F4/F5/F8).**
-On a bun + uv workspace repo, `orient` stamped four wrong build/test claims into the
-target's agent instructions, found no test dirs, `indepth` counted 0 of ~70
-dependencies, and `check-repo-maturity` denied the two lockfiles on disk.
-
-**Detail lives in the spec (implementation-grade, /implement-spec-ready):**
-`ai/lab/specs/SPEC_C9-detection-polyglot.md` — six work packages (W1 bun/uv locks,
-W2 workspace members + nested test dirs, W3 README description harvesting, W4
-workspace dependency counting, W5 maturity locks/dirs/panel, W6 verify scoped-package
-and pytest-selector tokens), each with exact anchors into `lib/orient.mjs`,
-`lib/indepth.mjs`, `lib/maturity.mjs`, `lib/verify.mjs` and a numbered test plan
-(T1–T8) for `test/run-tests.mjs`. First slice of C4; C4's later slices (per-package
-profiles) stay parked.
-
----
-
 ### Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
   trust-breaking moment — together they make an honest v0.2.1 patch wave), then
-  **C4** (the biggest audience unlock; isolated to `orient`), then **C5/C6** in
-  either order, then **C7/C8**.
-- **C9 and C10 are spec-drafted and independent of the above** — either can ship
-  first. C9 subsumes the first slice of C4 (workspace-aware `orient`); if C9 ships,
-  re-scope C4 to the remaining slices. C10's W2/W4 wording touches the same
-  template lines C1 will parameterize — implement C10 before C1, or rebase C1's
-  `{{CONFIG_FILES}}` token onto the new sentences.
+  **C4** (remaining monorepo slices — per-package MODULE_MAP sections,
+  workspace-aware `drift`), then **C5/C6** in either order, then **C7/C8**.
+- **C9 and C10 have shipped** (2026-07-11 — see the Shipped table). C9 already
+  covered C4's first slice (workspace-aware `orient`/`indepth`/`maturity`); C4
+  is rescoped above to its remaining slices. C10's W2/W4 wording touched the
+  same template lines C1 will parameterize — C1 should rebase its
+  `{{CONFIG_FILES}}` token onto C10's shipped sentences.
 - C6 before C8 is preferred (the onboarding page footer consumes the value
   headline) but not required — C8 degrades silently without it.
 - C2 and C7 both touch `lib/status.mjs`; if implemented in parallel sessions,
@@ -608,6 +589,7 @@ Recorded so future planning sessions don't re-litigate:
 | B2 | AI-tool detection in wizard | [`ai/lab/specs/SPEC_B2-tool-detection.md`](specs/SPEC_B2-tool-detection.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | B5 | Living progress page in target `ai/` | [`ai/lab/specs/SPEC_B5-progress-page.md`](specs/SPEC_B5-progress-page.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | C10 | Knowledge-template & workflow alignment | [`ai/lab/specs/SPEC_C10-template-alignment.md`](specs/SPEC_C10-template-alignment.md) | W-038 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
+| C9 | Detection-layer robustness on polyglot/monorepo targets | [`ai/lab/specs/SPEC_C9-detection-polyglot.md`](specs/SPEC_C9-detection-polyglot.md) | W-039 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
 
 **A4 · Monorepo / workspace support** — parked in wave 2 pending its own spec;
 **superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned

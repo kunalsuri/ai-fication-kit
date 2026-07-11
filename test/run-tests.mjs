@@ -2673,5 +2673,114 @@ console.log("\n— C10: template & workflow alignment —");
   }
 }
 
+// ---------- C9: detection-layer robustness on polyglot/monorepo targets (SPEC_C9-detection-polyglot.md §6) ----------
+console.log("\n— C9: detection-layer robustness —");
+{
+  const { orient } = await import(pathToFileURL(path.join(kitRoot, "lib", "orient.mjs")).href);
+  const { checkMaturity } = await import(pathToFileURL(path.join(kitRoot, "lib", "maturity.mjs")).href);
+
+  // T1: orient-bun-text-lock
+  {
+    const d = await makeBareFixture("c9-t1-orient-bun-text-lock", {
+      "package.json": JSON.stringify({ name: "x", scripts: { build: "tsc", test: "vitest" } }),
+      "bun.lock": "{}\n",
+    });
+    const p = await orient(d, {});
+    ok(p.buildCmd.startsWith("bun install"), `T1: buildCmd starts with "bun install": ${p.buildCmd}`);
+    ok(p.buildSystems.includes("Bun"), `T1: buildSystems includes "Bun": ${p.buildSystems}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T2: orient-uv
+  {
+    const d = await makeBareFixture("c9-t2-orient-uv", {
+      "pyproject.toml": "[project]\nname = \"x\"\n",
+      "uv.lock": "",
+    });
+    const p = await orient(d, {});
+    ok(p.buildCmd === "uv sync", `T2: buildCmd is "uv sync": ${p.buildCmd}`);
+    ok(p.testCmd === "uv run pytest", `T2: testCmd is "uv run pytest": ${p.testCmd}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T3: orient-workspace
+  {
+    const d = await makeBareFixture("c9-t3-orient-workspace", {
+      "package.json": JSON.stringify({ name: "root" }),
+      "frontend/package.json": JSON.stringify({ name: "frontend" }),
+      "frontend/tests/x.test.ts": "export {};\n",
+      "backend/pyproject.toml": "[project]\nname = \"backend\"\n",
+      "backend/uv.lock": "",
+      "backend/tests/test_x.py": "def test_x(): pass\n",
+    });
+    const p = await orient(d, {});
+    ok(p.testDirs.includes("frontend/tests/") && p.testDirs.includes("backend/tests/"),
+      `T3: testDirs contains both frontend/tests/ and backend/tests/: ${p.testDirs}`);
+    ok(p.buildCmd.includes("cd backend && uv sync"),
+      `T3: buildCmd contains a "cd backend && uv sync" segment: ${p.buildCmd}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T4: orient-description-bullet
+  {
+    const d = await makeBareFixture("c9-t4-orient-description-bullet", {
+      "README.md": "# Title\n\n- ⚡ [**FastAPI**](https://x) for the backend.\n",
+    });
+    const p = await orient(d, {});
+    ok(p.description === "⚡ FastAPI for the backend.",
+      `T4: description strips the bullet, link syntax, and emphasis: ${JSON.stringify(p.description)}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T5: indepth-workspace-deps
+  {
+    const d = await makeBareFixture("c9-t5-indepth-workspace-deps", {
+      "package.json": JSON.stringify({ name: "root" }),
+      "frontend/package.json": JSON.stringify({ name: "frontend", dependencies: { react: "^18.0.0", axios: "^1.0.0" } }),
+      "backend/pyproject.toml": "[project]\nname = \"backend\"\ndependencies = [\"fastapi>=0.1\", \"sqlmodel\"]\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "indepth", d]);
+    ok(r.code === 0, `T5: indepth exits 0`);
+    ok(/Total Dependencies\s+4/.test(r.out), `T5: dependencies.total === 4: ${r.out.match(/Total Dependencies.*/)?.[0]}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T6: maturity-modern-locks
+  {
+    const d = await makeBareFixture("c9-t6-maturity-modern-locks", {
+      "bun.lock": "",
+      "uv.lock": "",
+    });
+    const m = await checkMaturity(d);
+    ok(m.checks.dependencyLocks.exists && m.checks.dependencyLocks.files.includes("bun.lock") &&
+      m.checks.dependencyLocks.files.includes("uv.lock"),
+      `T6: dependencyLocks.exists true, files lists bun.lock and uv.lock: ${m.checks.dependencyLocks.files}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T7: maturity-installed-panel
+  {
+    const d = await makeBareFixture("c9-t7-maturity-installed-panel", {
+      "ai/repo-profile.json": "{}\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "check-repo-maturity", d]);
+    ok(r.code === 0 && r.out.includes("already installed"), `T7: printed report contains "already installed"`);
+    ok(!r.out.includes("Process 1 will run"), `T7: printed report does NOT contain "Process 1 will run"`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T8: verify-scoped-and-selector
+  {
+    const d = await makeBareFixture("c9-t8-verify-scoped-and-selector", {
+      "src/a.py": "x = 1\n",
+      "CLAUDE.md": "Uses `@scope/pkg` and `src/a.py::test_b`.\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "verify", d]);
+    ok(r.code === 0 && /missing 0/.test(r.out),
+      `T8: verify reports 0 missing (scoped token skipped; selector resolves to the file): ${r.out}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);
