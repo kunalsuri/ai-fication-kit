@@ -10,20 +10,26 @@
 > Last verified: <fill in date> @ commit <fill in sha>
 
 ## Stability legend (the most important column)
-- `frozen` — inherited / load-bearing legacy. **DO NOT edit** without explicit instruction.
+- `frozen` — inherited / load-bearing legacy, **or generated/vendored code**: never
+  hand-edit; if it has a regeneration command, name it in the Responsibility cell
+  and change the module only by re-running it. **DO NOT edit** without explicit
+  instruction.
 - `stable` — works; change carefully and with tests.
 - `ours`   — active development surface. Safe for agents to modify.
 - `?`      — not yet audited. **Treat as `frozen` until a human decides.**
 
 ## Modules (run `/cold-start` to populate, then audit)
-| Directory | Responsibility (one line) | Entry point | Stability |
-|---|---|---|---|
-| <fill in> | <fill in> | <fill in> | ? |
+| Directory | Responsibility (one line) | Entry point | Stability (guess) | Status |
+|---|---|---|---|---|
+| <fill in> | <fill in> | <fill in> | ? | [inferred] |
+<!-- verify-ignore:start -->
+<!-- Example (illustrative, not a claim about this repo): | `src/api/` | HTTP routes | `src/api/main.ts` | ours | [inferred] | — the human audit rewrites Status to [verified] (YYYY-MM-DD) -->
+<!-- verify-ignore:end -->
 
 Detected test locations (from orient): {{TEST_DIRS}}
 
 ## Audit protocol
-1. /cold-start fills rows and tags them `[inferred]`.
+1. /cold-start fills rows, Stability = its guess (or `?`), Status = `[inferred]`.
 2. A human sets Stability per row and flips confirmed rows to `[verified] (date)`.
 3. Agents treat `?` rows as `frozen`. Agents never flip tags.
 

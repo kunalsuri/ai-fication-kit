@@ -63,12 +63,21 @@ backups are reused.
    whole-file reads.
 2. **Fill `ai/guide/MODULE_MAP.md`:** one row per module/package — directory, a
    one-line responsibility, the entry-point file, and a Stability GUESS. Use the
-   ACTUAL names you found; do not assume names.
-3. **Draft diagrams into `ai/analysis/diagrams/`** as Mermaid `.mmd`:
+   ACTUAL names you found; do not assume names. Each row has FIVE cells —
+   Directory, Responsibility, Entry point, Stability guess, Status — and the
+   Status cell is where the `[inferred]` tag goes (the tooling reads provenance
+   from the LAST cell only).
+3. **Correct the stamped commands.** If the build/test commands you verified in
+   config files differ from the Build/Test lines stamped into `CLAUDE.md` and
+   `AGENTS.md`, correct exactly those lines (and the Definition-of-done line in
+   `ai/guide/CONVENTIONS.md`), tag the correction `[inferred]`, and change
+   nothing else in those files. This is the sanctioned exception to the
+   No-Churn rule.
+4. **Draft diagrams into `ai/analysis/diagrams/`** as Mermaid `.mmd`:
    `package-deps.mmd` (dependency graph), `domain-core.mmd` (core types),
    `seam.mmd` (the main boundary — note the protocol as a question if unverified).
-4. **Note candidate features** in `ai/guide/FEATURE_MAP.md` using its template.
-5. **Update `ai/guide/ARCHITECTURE.md` and `PROJECT_OVERVIEW.md`** only where you
+5. **Note candidate features** in `ai/guide/FEATURE_MAP.md` using its template.
+6. **Update `ai/guide/ARCHITECTURE.md` and `PROJECT_OVERVIEW.md`** only where you
    VERIFIED something in code or config.
 
 ## Hard rules for this pass

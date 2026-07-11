@@ -31,6 +31,10 @@ walking and evidence-gathering for you — it's interactive only and never write
 - It is load-bearing and you could not confidently review a diff against it.
 - It is generated output that a tool will overwrite.
 
+If the row is generated or vendored code with a regeneration command, name that
+command in the Responsibility cell and change the module only by re-running it —
+never hand-edit it.
+
 **`stable` — change carefully, with tests.** It works, it has (some) tests, you
 could review a diff against it, but it is not where new work should land by default.
 

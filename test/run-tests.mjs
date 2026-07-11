@@ -2613,5 +2613,65 @@ console.log("\n— audit R3 regressions —");
   }
 }
 
+// ---------- C10: template & workflow alignment (SPEC_C10-template-alignment.md §6) ----------
+console.log("\n— C10: template & workflow alignment —");
+{
+  const { parseModuleMap, MODULE_MAP_PLACEHOLDER } = await import(
+    pathToFileURL(path.join(kitRoot, "lib", "drift.mjs")).href);
+
+  // T1: a freshly stamped MODULE_MAP.md is parser-legible — the scaffolded
+  // placeholder row yields 0 rows, and a synthetic 5-column row appended in
+  // the stamped shape with [inferred] in the last cell is counted "inferred".
+  {
+    const d = await makeFixture("c10-t1", { fork: false });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    ok(r.code === 0, `T1: shazam --yes exits 0`);
+    const mapPath = path.join(d, "ai", "guide", "MODULE_MAP.md");
+    const stamped = await fs.readFile(mapPath, "utf8");
+    const { rows: scaffoldRows } = parseModuleMap(stamped);
+    ok(scaffoldRows.length === 0, `T1: scaffolded placeholder row yields 0 rows`);
+    const withRow = stamped + "\n| `src/api/` | HTTP routes | `src/api/main.ts` | ours | [inferred] |\n";
+    const { rows } = parseModuleMap(withRow);
+    ok(rows.length === 1 && rows[0].status === "inferred",
+      `T1: a stamped-shape 5-column row with [inferred] in the last cell is counted "inferred"`);
+    // T2: the placeholder contract survives (doctor step-2 detection).
+    ok(stamped.includes(MODULE_MAP_PLACEHOLDER), `T2: stamped MODULE_MAP.md still contains the literal "<fill in>"`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T3: copy parity — for each of the 5 cold-start body-text families, the
+  // body text (after stripping front-matter up to the first blank line) is
+  // byte-identical between the live copy and its OWN templates/ twin.
+  {
+    const bodyAfterFrontmatter = (text) => {
+      if (!text.startsWith("---")) return text;
+      const end = text.indexOf("\n---", 3);
+      if (end === -1) return text;
+      const afterClose = text.indexOf("\n", end + 4);
+      return afterClose === -1 ? "" : text.slice(afterClose + 1);
+    };
+    const families = [
+      [".claude/skills/cold-start/SKILL.md", "templates/claude/skills/cold-start/SKILL.md"],
+      [".agents/skills/cold-start/SKILL.md", "templates/agents/skills/cold-start/SKILL.md"],
+      [".agents/workflows/cold-start.md", "templates/agents/workflows/cold-start.md"],
+      [".cursor/rules/cold-start.mdc", "templates/cursor/rules/cold-start.mdc"],
+      [".github/prompts/cold-start.prompt.md", "templates/github/prompts/cold-start.prompt.md"],
+    ];
+    for (const [live, tmpl] of families) {
+      const liveText = await fs.readFile(path.join(kitRoot, live), "utf8");
+      const tmplText = await fs.readFile(path.join(kitRoot, tmpl), "utf8");
+      ok(bodyAfterFrontmatter(liveText) === bodyAfterFrontmatter(tmplText),
+        `T3: ${live} body is byte-identical to its templates/ twin`);
+    }
+    // Confirm the two skills families are NOT twins of each other (SPEC_C10 §3 note).
+    const claudeSkill = bodyAfterFrontmatter(await fs.readFile(
+      path.join(kitRoot, ".claude/skills/cold-start/SKILL.md"), "utf8"));
+    const agentsSkill = bodyAfterFrontmatter(await fs.readFile(
+      path.join(kitRoot, ".agents/skills/cold-start/SKILL.md"), "utf8"));
+    ok(claudeSkill !== agentsSkill,
+      `T3: .claude/skills and .agents/skills cold-start bodies are distinct families, not twins`);
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);

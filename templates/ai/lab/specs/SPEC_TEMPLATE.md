@@ -28,7 +28,7 @@ Name what must stay true afterward (invariants), not only what changes.>
 |---|---|
 | C1 | <e.g. zero new runtime dependencies> |
 | C2 | <e.g. no changes to module X — import its exports, do not reimplement> |
-| C3 | License header on every new file, copied from a neighbouring file. |
+| C3 | Match the license-header practice of neighboring files (including having none). |
 | C4 | Surgical diffs: touch only the files in §5; no reformatting of untouched code. |
 
 ## 3. Scope & glossary

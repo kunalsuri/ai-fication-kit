@@ -115,7 +115,6 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 | C7 | Kit-version awareness in `doctor`/`status` | P3 | S | — | — | idea |
 | C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
 | C9 | Detection-layer robustness on polyglot/monorepo targets (bun/uv locks, member manifests & test dirs, indepth deps, maturity checks, verify tokens) | P1 | M | — (first slice of C4) | `ai/lab/specs/SPEC_C9-detection-polyglot.md` | spec drafted |
-| C10 | Knowledge-template & workflow alignment (5-column MODULE_MAP everywhere, cold-start command-correction step, conditional license rule, blocked-env vocabulary) | P1 | S–M | — (wording must not collide with C1) | `ai/lab/specs/SPEC_C10-template-alignment.md` | spec drafted |
 | C11 | `speclint` — deterministic implementation-grade spec gate (W-035 360°-review R3; pre-flight for light-model /implement-spec runs) | P2 | S | — | `ai/lab/specs/SPEC_C11-speclint.md` | spec drafted |
 | C12 | 3-arm live A/B eval — none / `[inferred]` / `[verified]` map on an unfamiliar mid-size repo; tokens, success, wrong-file-opens, Stability violations (W-035 R1) | P1 | M | — (extends C6's goal; needs nothing, informs everything) | — | idea |
 | C13 | Promote /implement-spec into `templates/` (all four tool surfaces) — ship the SDD engine, not just the filing cabinet (W-035 R2) | P1 | S–M | W-014 recorded blockers | — | idea |
@@ -548,24 +547,6 @@ profiles) stay parked.
 
 ---
 
-#### C10 · Knowledge-template & workflow alignment
-
-**Need (P1 — evidence: the 2026-07-06 full-stack simulation, findings F2/F6/F7/F9/F10).**
-The stamped MODULE_MAP template is 4-column while `parseModuleMap` and the kit's own
-dogfooded map read provenance from a 5th Status cell — every fresh cold-start counts
-as "0 [inferred], N unaudited". Cold-start verifies commands but no step owns fixing
-the stamped ones; stamped rules assert license headers unconditionally.
-
-**Detail lives in the spec (implementation-grade, /implement-spec-ready):**
-`ai/lab/specs/SPEC_C10-template-alignment.md` — five work packages (W1 5-column
-template + row shape in all 8 cold-start copies, W2 sanctioned command-correction
-step, W3 generated/vendored guidance in the Stability legend, W4 conditional
-license-header wording, W5 blocked-env vocabulary + W-001 ID consistency) with a
-copy-parity test plan (T1–T3). Wording must not collide with C1's
-`{{CONFIG_FILES}}` token work.
-
----
-
 ### Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
@@ -626,6 +607,7 @@ Recorded so future planning sessions don't re-litigate:
 | A5 | Native Cursor rules assets | [`ai/lab/specs/SPEC_A5-cursor-rules.md`](specs/SPEC_A5-cursor-rules.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | B2 | AI-tool detection in wizard | [`ai/lab/specs/SPEC_B2-tool-detection.md`](specs/SPEC_B2-tool-detection.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | B5 | Living progress page in target `ai/` | [`ai/lab/specs/SPEC_B5-progress-page.md`](specs/SPEC_B5-progress-page.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| C10 | Knowledge-template & workflow alignment | [`ai/lab/specs/SPEC_C10-template-alignment.md`](specs/SPEC_C10-template-alignment.md) | W-038 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
 
 **A4 · Monorepo / workspace support** — parked in wave 2 pending its own spec;
 **superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned

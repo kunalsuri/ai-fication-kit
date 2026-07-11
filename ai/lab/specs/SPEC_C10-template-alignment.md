@@ -1,8 +1,10 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # SPEC: C10 — Knowledge-template & workflow alignment
-> **Status:** approved (human, 2026-07-11, via chat — corrections from the spec-audit
-> subagent's report folded into Revision 2 below: touch list updated for the W-032
-> commands→skills migration, W2 exception wording tightened)
+> **Status:** approved — implementation complete, human audit of the diff still
+> pending (2026-07-11, via chat — corrections from the spec-audit subagent's
+> report folded into Revision 2 below: touch list updated for the W-032
+> commands→skills migration, W2 exception wording tightened; see
+> `ai/lab/WORKLOG.md` row W-038)
 > **Author:** AI draft (from `ai/analysis/audit-reports/2026-07-06-fullstack-simulation-report.md` findings F2, F6, F7, F9, F10) · **Date:** 2026-07-06 · **Revision:** 2
 
 This spec is written to be implemented **without further design decisions** (consume
