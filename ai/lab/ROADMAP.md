@@ -106,7 +106,6 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 
 | ID | Feature | Priority | Effort | Depends on | Spec | Status |
 |---|---|---|---|---|---|---|
-| C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | P1 | S | — | — | idea |
 | C3 | `audit` stamps the verified-commit baseline (make `drift --git` actually fire) | P1 | S–M | — | — | idea |
 | C4 | Monorepo Phase 2/3 — per-package MODULE_MAP sections, workspace-aware `drift` (the parked A4, remaining slices; the first slice — workspace-aware `orient`/`indepth`/`maturity` — shipped as C9) | P2 | M | C9 shipped | — | idea |
 | C5 | `drift --deep` — file-level coverage inside mapped directories | P2 | M | — | — | idea |
@@ -154,43 +153,6 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 <!-- verify-ignore:start -->
 
 ### Detailed specifications
-
-#### C2 · Stage-aware `status` verdict
-
-**Need (P2 — evidence F3).** `status` renders one of three verdicts
-(`lib/status.mjs:60-72`), and on a freshly scaffolded repo it picks the scariest.
-`doctor` already knows the user is at "step 2 of 5"; `status` should not
-contradict it. A health check that cries wolf on day one teaches users to ignore
-it — fatal for a trust product.
-
-**Behavior.**
-- `computeStatus()` additionally calls `diagnose()` (exported by `lib/doctor.mjs:21`,
-  already read-only) and includes the doctor stage in its result.
-- Two new verdicts, checked **before** the existing three:
-  - Stage 1 (no profile) → verdict `NOT INSTALLED` (grey/dim), message points to `shazam`.
-  - Stage 2 (MODULE_MAP still template/placeholder) → verdict `NOT MAPPED YET`
-    (blue/neutral), message points to `/cold-start`. Broken-claim and drift counts
-    are still printed (honesty), but prefixed with one line: "expected at this
-    stage — the map hasn't been drafted yet".
-- Stages 3–5 keep today's DRIFTING / NEEDS AUDIT / TRUSTED logic **unchanged**.
-- `--json` output and the shields.io `badge` object gain the new verdict strings
-  (`not installed` → grey, `not mapped yet` → blue); schema version unchanged.
-- `refreshProgressPage()` already consumes status data — confirm the START-HERE
-  page renders the new verdicts without edits, or adjust its verdict→copy mapping.
-
-**Touchpoints.** `lib/status.mjs` (verdict block + printer), `lib/doctor.mjs`
-(import only, no changes), `lib/progress.mjs` (verdict mapping if needed),
-`docs/CLI-REFERENCE.md` status section (verdict table), `test/run-tests.mjs`.
-
-**Acceptance.** Fresh-scaffold fixture → `NOT MAPPED YET`, exit code unchanged;
-no-kit fixture → `NOT INSTALLED`; a populated+broken fixture still says
-`DRIFTING` byte-identically to today; existing status tests pass without edits
-to their expectations for stages 3–5.
-
-**Out of scope.** Changing exit codes; changing `doctor` itself; auto-fixing
-anything.
-
----
 
 #### C3 · `audit` stamps the verified-commit baseline
 
@@ -492,18 +454,19 @@ the full lab).
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
   trust-breaking moment — together they make an honest v0.2.1 patch wave). C1
-  has shipped; **C2 → C3** next, then **C4** (remaining monorepo slices —
+  and C2 have shipped; **C3** next, then **C4** (remaining monorepo slices —
   per-package MODULE_MAP sections, workspace-aware `drift`), then **C5/C6** in
   either order, then **C7/C8**.
-- **C9, C10, and C1 have shipped** (2026-07-11 — see the Shipped table). C9
-  already covered C4's first slice (workspace-aware `orient`/`indepth`/
+- **C9, C10, C1, and C2 have shipped** (2026-07-11 — see the Shipped table).
+  C9 already covered C4's first slice (workspace-aware `orient`/`indepth`/
   `maturity`); C4 is rescoped above to its remaining slices. C1's
   `{{CONFIG_FILES}}` token was rebased onto C10's already-shipped exception
   sentence in the same commit — no collision.
 - C6 before C8 is preferred (the onboarding page footer consumes the value
   headline) but not required — C8 degrades silently without it.
-- C2 and C7 both touch `lib/status.mjs`; if implemented in parallel sessions,
-  rebase carefully — the verdict block and the version line are adjacent.
+- C2 (shipped) and C7 (planned) both touch `lib/status.mjs`; when C7 is
+  implemented, rebase carefully — the verdict block and the version line are
+  adjacent.
 - One feature per branch, per session, per CHANGELOG bullet — same cadence that
   shipped wave 2 cleanly.
 
@@ -552,6 +515,7 @@ Recorded so future planning sessions don't re-litigate:
 | C10 | Knowledge-template & workflow alignment | [`ai/lab/specs/SPEC_C10-template-alignment.md`](specs/SPEC_C10-template-alignment.md) | W-038 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
 | C9 | Detection-layer robustness on polyglot/monorepo targets | [`ai/lab/specs/SPEC_C9-detection-polyglot.md`](specs/SPEC_C9-detection-polyglot.md) | W-039 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
 | C1 | Stack-aware agent instructions (kill the `package.json` false positive) | [`ai/lab/specs/SPEC_C1-stack-aware-instructions.md`](specs/SPEC_C1-stack-aware-instructions.md) | W-040 | branch claude/roadmap-status-update-pzuepv, PR #62 | 2026-07-11 |
+| C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | [`ai/lab/specs/SPEC_C2-status-verdict.md`](specs/SPEC_C2-status-verdict.md) | W-041 | branch claude/ai-lab-roadmap-review-xv82jl | 2026-07-11 |
 
 **A4 · Monorepo / workspace support** — parked in wave 2 pending its own spec;
 **superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned

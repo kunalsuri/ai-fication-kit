@@ -10,6 +10,7 @@
     color-scheme: light dark;
     --bg: #ffffff; --fg: #1a1a1a; --muted: #6b6b6b; --border: #e2e2e2;
     --card: #f7f7f7; --accent: #d97757; --green: #2e9e5b; --amber: #b8860b; --red: #c1443a;
+    --blue: #2b6cb0; --grey: #6b6b6b;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #16161a; --fg: #eaeaea; --muted: #9a9a9a; --border: #2c2c33; --card: #1f1f26; }
@@ -48,6 +49,8 @@
   .verdict.trusted { color: var(--green); }
   .verdict.needs-audit { color: var(--amber); }
   .verdict.drifting { color: var(--red); }
+  .verdict.not-mapped-yet { color: var(--blue); }
+  .verdict.not-installed { color: var(--grey); }
   abbr[title] { text-decoration: dotted underline; cursor: help; }
   dl.glossary { margin: 0; }
   dl.glossary dt { font-weight: 600; margin-top: .5rem; }
@@ -141,7 +144,10 @@
   var verdictEl = document.getElementById("verdict");
   verdictEl.textContent = data.verdict;
   verdictEl.className = "verdict " + (
-    data.verdict === "TRUSTED" ? "trusted" : data.verdict === "DRIFTING" ? "drifting" : "needs-audit");
+    data.verdict === "TRUSTED" ? "trusted" :
+    data.verdict === "DRIFTING" ? "drifting" :
+    data.verdict === "NOT MAPPED YET" ? "not-mapped-yet" :
+    data.verdict === "NOT INSTALLED" ? "not-installed" : "needs-audit");
 })();
 </script>
 </body>

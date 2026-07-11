@@ -1631,10 +1631,12 @@ console.log("\n— doctor —");
 console.log("\n— status —");
 {
   const { computeStatus } = await import(pathToFileURL(path.join(kitRoot, "lib", "status.mjs")).href);
+  const { MODULE_MAP_PLACEHOLDER: STATUS_MAP_PLACEHOLDER } = await import(pathToFileURL(path.join(kitRoot, "lib", "drift.mjs")).href);
 
   // DRIFTING: a broken claim, regardless of MODULE_MAP audit state.
   {
     const d = await makeBareFixture("status-drifting", {
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +
@@ -1652,6 +1654,7 @@ console.log("\n— status —");
   // DRIFTING: a structural drift item (unmapped dir), no broken claims.
   {
     const d = await makeBareFixture("status-drifting-drift", {
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +
@@ -1669,6 +1672,7 @@ console.log("\n— status —");
   // NEEDS AUDIT: no broken claims/drift, but an [inferred] row.
   {
     const d = await makeBareFixture("status-needs-audit", {
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +
@@ -1682,24 +1686,63 @@ console.log("\n— status —");
     await fs.rm(d, { recursive: true, force: true });
   }
 
-  // NEEDS AUDIT: no MODULE_MAP.md at all.
+  // NOT INSTALLED (C2): no ai/repo-profile.json at all — doctor stage 1, day
+  // one. This used to be the scariest verdict (NEEDS AUDIT); now it's an
+  // orientation nudge toward `shazam`.
   {
     const d = await makeBareFixture("status-no-map", { "app.ts": "export {};\n" });
     const result = await computeStatus(d);
-    ok(result.verdict === "NEEDS AUDIT" && result.hasModuleMap === false,
-      `missing MODULE_MAP.md → NEEDS AUDIT verdict (got ${result.verdict})`);
+    ok(result.verdict === "NOT INSTALLED" && result.hasModuleMap === false,
+      `no profile, no map → NOT INSTALLED verdict (got ${result.verdict})`);
+    ok(result.badge.color === "grey" && result.badge.message === "not installed",
+      `NOT INSTALLED badge is grey: ${JSON.stringify(result.badge)}`);
     // regression (Copilot PR review): with no knowledge docs at all (so
     // computeVerification returns null), the printed line must not claim
     // "verify has never run" — that's not what null means here.
     const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
     ok(r.code === 0 && /no knowledge docs to check/.test(r.out) && !/verify has never run/.test(r.out),
       `status wording reflects "no knowledge docs", not "verify has never run": ${r.out}`);
+    ok(/shazam/.test(r.out), `NOT INSTALLED prints a next step pointing to shazam: ${r.out}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NOT MAPPED YET (C2): profile exists (kit installed) but MODULE_MAP.md is
+  // absent — doctor stage 2.
+  {
+    const d = await makeBareFixture("status-not-mapped-yet-absent", {
+      "ai/repo-profile.json": "{}\n",
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NOT MAPPED YET" && result.hasModuleMap === false,
+      `profile present, map absent → NOT MAPPED YET verdict (got ${result.verdict})`);
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "status", d]);
+    ok(r.code === 0 && /cold-start/.test(r.out) &&
+      /expected at this stage — the map hasn't been drafted yet/.test(r.out),
+      `NOT MAPPED YET prints the "expected at this stage" note and points to /cold-start: ${r.out}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // NOT MAPPED YET (C2): profile exists but MODULE_MAP.md is still the
+  // scaffolded template placeholder.
+  {
+    const d = await makeBareFixture("status-not-mapped-yet-template", {
+      "ai/repo-profile.json": "{}\n",
+      "ai/guide/MODULE_MAP.md": `# map\n\n${STATUS_MAP_PLACEHOLDER}\n`,
+      "app.ts": "export {};\n",
+    });
+    const result = await computeStatus(d);
+    ok(result.verdict === "NOT MAPPED YET",
+      `profile present, map still the scaffolded template → NOT MAPPED YET verdict (got ${result.verdict})`);
+    ok(result.badge.color === "blue" && result.badge.message === "not mapped yet",
+      `NOT MAPPED YET badge is blue: ${JSON.stringify(result.badge)}`);
     await fs.rm(d, { recursive: true, force: true });
   }
 
   // NEEDS AUDIT: every row [verified], but the audit is stale (> 90 days).
   {
     const d = await makeBareFixture("status-stale-audit", {
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +
@@ -1720,6 +1763,7 @@ console.log("\n— status —");
     const mm = String(today.getUTCMonth() + 1).padStart(2, "0");
     const yyyy = today.getUTCFullYear();
     const d = await makeBareFixture("status-trusted", {
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +
@@ -1744,6 +1788,8 @@ console.log("\n— status —");
       await fs.rm(d, { recursive: true, force: true });
       await fs.mkdir(path.join(d, "billing"), { recursive: true });
       await fs.writeFile(path.join(d, "billing", "invoice.ts"), "export const b = 1;\n");
+      await fs.mkdir(path.join(d, "ai"), { recursive: true });
+      await fs.writeFile(path.join(d, "ai", "repo-profile.json"), "{}\n");
       const g = (...a) => run("git", ["-C", d, ...a]);
       g("init", "-q"); g("config", "user.email", "t@t.t"); g("config", "user.name", "t");
       g("config", "commit.gpgsign", "false");
@@ -1774,6 +1820,7 @@ console.log("\n— status —");
   // --json: writes STATUS.json only when the flag is passed.
   {
     const d = await makeBareFixture("status-json", {
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +
@@ -1962,6 +2009,7 @@ console.log("\n— progress (ai/START-HERE.html) —");
   {
     const d = await makeBareFixture("progress-refresh", {
       "ai/START-HERE.html": bootstrapPage,
+      "ai/repo-profile.json": "{}\n",
       "ai/guide/MODULE_MAP.md":
         "# map\n" +
         "| Directory | Responsibility | Entry point | Stability | Status |\n" +

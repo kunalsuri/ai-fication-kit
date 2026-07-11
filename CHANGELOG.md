@@ -6,6 +6,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/) · Versioning: [SemVer](
 
 ## [Unreleased]
 
+### Added
+- **C2: stage-aware `status` verdict.** `status` now consults `doctor`'s
+  read-only workflow-stage detection before computing DRIFTING/NEEDS
+  AUDIT/TRUSTED, so a repo that hasn't been scanned yet reports `NOT
+  INSTALLED` (points to `shazam`) and one whose `MODULE_MAP.md` is still
+  missing or the scaffolded template reports `NOT MAPPED YET` (points to
+  `/cold-start`) instead of the scariest verdict on day one. Stages 3-5 keep
+  today's DRIFTING/NEEDS AUDIT/TRUSTED logic unchanged. `--json` output and
+  the shields.io badge gain the two new verdict strings/colors
+  (`not installed` → grey, `not mapped yet` → blue).
+
 ### Changed
 - **Claude Code surface migrated from slash commands to skills.** Following
   Claude Code v2.1.3, which [merged custom commands into skills](https://code.claude.com/docs/en/skills),
