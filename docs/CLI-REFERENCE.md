@@ -395,14 +395,19 @@ Answers "how trustworthy is my `ai/` layer right now?" in one command instead
 of three. Runs `verify`'s and `drift`'s core scans in-process for fresh
 results — structural drift only, **`drift`'s `--git` stale check never
 runs** — and reads `ai/guide/MODULE_MAP.md` for `[verified]`/`[inferred]` row
-counts and the newest audit date. Prints one block (row counts, broken
-claims, drift items, days since last audit) ending in a single verdict:
+counts and the newest audit date. `status` is also stage-aware: it consults
+`doctor`'s workflow-stage detection (read-only) so a repo that hasn't been
+scanned or mapped yet gets an orientation verdict instead of a false
+"DRIFTING"/"NEEDS AUDIT" alarm. Prints one block (row counts, broken claims,
+drift items, days since last audit) ending in a single verdict:
 
 | Verdict | Meaning |
 |---|---|
 | `TRUSTED` | no broken claims, no drift, every row `[verified]`, audit not stale (≤ 90 days) |
-| `NEEDS AUDIT` | no broken claims/drift, but `MODULE_MAP.md` is missing, has a non-`[verified]` row, or the audit is stale |
+| `NEEDS AUDIT` | no broken claims/drift, but `MODULE_MAP.md` has a non-`[verified]` row, or the audit is stale |
 | `DRIFTING` | any unconfirmed claim or any unmapped/vanished/stale item — trumps everything else |
+| `NOT MAPPED YET` | the kit is installed but `ai/guide/MODULE_MAP.md` is missing or still the scaffolded template (doctor stage 2) — run `/cold-start` |
+| `NOT INSTALLED` | `ai/repo-profile.json` doesn't exist yet (doctor stage 1) — run `shazam` |
 
 With `--json`, also writes `ai/analysis/audit-reports/STATUS.json`, including
 a `badge` object in shields.io endpoint schema

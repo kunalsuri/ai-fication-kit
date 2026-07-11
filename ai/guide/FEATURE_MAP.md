@@ -96,9 +96,9 @@
 
 ### status  `[inferred]`
 - **Business goal:** Answer "how trustworthy is my ai/ layer right now?" in one command instead of three, ending in a single verdict a human or a badge can act on.
-- **Touches:** `install.mjs`, `lib/status.mjs`, `lib/verify.mjs` (`computeVerification`), `lib/drift.mjs` (`computeDrift`)
+- **Touches:** `install.mjs`, `lib/status.mjs`, `lib/verify.mjs` (`computeVerification`), `lib/drift.mjs` (`computeDrift`), `lib/doctor.mjs` (`diagnose`)
 - **Verify with:** `node install.mjs status .` and `node install.mjs status . --json`
-- **Gotchas:** Always calls `computeDrift` with `git: false` — the stale check never runs from `status`, even if the repo has git history. Verdict thresholds (broken claims/drift trump everything; unaudited or `> 90` days since last audit blocks `TRUSTED`) are documented as constants in `lib/status.mjs`, not buried in the logic. Writes nothing without `--json`.
+- **Gotchas:** Always calls `computeDrift` with `git: false` — the stale check never runs from `status`, even if the repo has git history. Verdict thresholds (broken claims/drift trump everything; unaudited or `> 90` days since last audit blocks `TRUSTED`) are documented as constants in `lib/status.mjs`, not buried in the logic. Writes nothing without `--json`. **(C2)** `computeStatus` calls `diagnose()` first and short-circuits to two orientation verdicts before the old logic ever runs: doctor stage 1 (no `ai/repo-profile.json`) → `NOT INSTALLED` (grey badge, points to `shazam`); doctor stage 2 (`MODULE_MAP.md` missing/still the scaffolded template) → `NOT MAPPED YET` (blue badge, points to `/cold-start`, prints an "expected at this stage" note ahead of the row/claim/drift counts). Doctor stages 3-5 keep the pre-C2 DRIFTING/NEEDS AUDIT/TRUSTED logic byte-identical — so any fixture exercising those verdicts needs a real (even empty-object) `ai/repo-profile.json`, or it now reads as day-one instead.
 - **Related:** `verify`, `drift`, `doctor`
 
 ### audit  `[inferred]`
