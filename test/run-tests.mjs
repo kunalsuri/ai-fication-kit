@@ -2613,5 +2613,237 @@ console.log("\n— audit R3 regressions —");
   }
 }
 
+// ---------- C10: template & workflow alignment (SPEC_C10-template-alignment.md §6) ----------
+console.log("\n— C10: template & workflow alignment —");
+{
+  const { parseModuleMap, MODULE_MAP_PLACEHOLDER } = await import(
+    pathToFileURL(path.join(kitRoot, "lib", "drift.mjs")).href);
+
+  // T1: a freshly stamped MODULE_MAP.md is parser-legible — the scaffolded
+  // placeholder row yields 0 rows, and a synthetic 5-column row appended in
+  // the stamped shape with [inferred] in the last cell is counted "inferred".
+  {
+    const d = await makeFixture("c10-t1", { fork: false });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    ok(r.code === 0, `T1: shazam --yes exits 0`);
+    const mapPath = path.join(d, "ai", "guide", "MODULE_MAP.md");
+    const stamped = await fs.readFile(mapPath, "utf8");
+    const { rows: scaffoldRows } = parseModuleMap(stamped);
+    ok(scaffoldRows.length === 0, `T1: scaffolded placeholder row yields 0 rows`);
+    const withRow = stamped + "\n| `src/api/` | HTTP routes | `src/api/main.ts` | ours | [inferred] |\n";
+    const { rows } = parseModuleMap(withRow);
+    ok(rows.length === 1 && rows[0].status === "inferred",
+      `T1: a stamped-shape 5-column row with [inferred] in the last cell is counted "inferred"`);
+    // T2: the placeholder contract survives (doctor step-2 detection).
+    ok(stamped.includes(MODULE_MAP_PLACEHOLDER), `T2: stamped MODULE_MAP.md still contains the literal "<fill in>"`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T3: copy parity — for each of the 5 cold-start body-text families, the
+  // body text (after stripping front-matter up to the first blank line) is
+  // byte-identical between the live copy and its OWN templates/ twin.
+  {
+    // Normalize line endings first: .gitattributes forces `eol=lf` on
+    // templates/** but not on the live .claude//.agents//.cursor//.github/
+    // copies, so a Windows checkout gives the live file CRLF while its
+    // template twin stays LF — a platform checkout artifact, not a real
+    // content difference, so it must not fail this parity check.
+    const normalizeEol = (text) => text.replace(/\r\n/g, "\n");
+    const bodyAfterFrontmatter = (rawText) => {
+      const text = normalizeEol(rawText);
+      if (!text.startsWith("---")) return text;
+      const end = text.indexOf("\n---", 3);
+      if (end === -1) return text;
+      const afterClose = text.indexOf("\n", end + 4);
+      return afterClose === -1 ? "" : text.slice(afterClose + 1);
+    };
+    const families = [
+      [".claude/skills/cold-start/SKILL.md", "templates/claude/skills/cold-start/SKILL.md"],
+      [".agents/skills/cold-start/SKILL.md", "templates/agents/skills/cold-start/SKILL.md"],
+      [".agents/workflows/cold-start.md", "templates/agents/workflows/cold-start.md"],
+      [".cursor/rules/cold-start.mdc", "templates/cursor/rules/cold-start.mdc"],
+      [".github/prompts/cold-start.prompt.md", "templates/github/prompts/cold-start.prompt.md"],
+    ];
+    for (const [live, tmpl] of families) {
+      const liveText = await fs.readFile(path.join(kitRoot, live), "utf8");
+      const tmplText = await fs.readFile(path.join(kitRoot, tmpl), "utf8");
+      ok(bodyAfterFrontmatter(liveText) === bodyAfterFrontmatter(tmplText),
+        `T3: ${live} body is byte-identical to its templates/ twin`);
+    }
+    // Confirm the two skills families are NOT twins of each other (SPEC_C10 §3 note).
+    const claudeSkill = bodyAfterFrontmatter(await fs.readFile(
+      path.join(kitRoot, ".claude/skills/cold-start/SKILL.md"), "utf8"));
+    const agentsSkill = bodyAfterFrontmatter(await fs.readFile(
+      path.join(kitRoot, ".agents/skills/cold-start/SKILL.md"), "utf8"));
+    ok(claudeSkill !== agentsSkill,
+      `T3: .claude/skills and .agents/skills cold-start bodies are distinct families, not twins`);
+  }
+}
+
+// ---------- C9: detection-layer robustness on polyglot/monorepo targets (SPEC_C9-detection-polyglot.md §6) ----------
+console.log("\n— C9: detection-layer robustness —");
+{
+  const { orient } = await import(pathToFileURL(path.join(kitRoot, "lib", "orient.mjs")).href);
+  const { checkMaturity } = await import(pathToFileURL(path.join(kitRoot, "lib", "maturity.mjs")).href);
+
+  // T1: orient-bun-text-lock
+  {
+    const d = await makeBareFixture("c9-t1-orient-bun-text-lock", {
+      "package.json": JSON.stringify({ name: "x", scripts: { build: "tsc", test: "vitest" } }),
+      "bun.lock": "{}\n",
+    });
+    const p = await orient(d, {});
+    ok(p.buildCmd.startsWith("bun install"), `T1: buildCmd starts with "bun install": ${p.buildCmd}`);
+    ok(p.buildSystems.includes("Bun"), `T1: buildSystems includes "Bun": ${p.buildSystems}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T2: orient-uv
+  {
+    const d = await makeBareFixture("c9-t2-orient-uv", {
+      "pyproject.toml": "[project]\nname = \"x\"\n",
+      "uv.lock": "",
+    });
+    const p = await orient(d, {});
+    ok(p.buildCmd === "uv sync", `T2: buildCmd is "uv sync": ${p.buildCmd}`);
+    ok(p.testCmd === "uv run pytest", `T2: testCmd is "uv run pytest": ${p.testCmd}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T3: orient-workspace
+  {
+    const d = await makeBareFixture("c9-t3-orient-workspace", {
+      "package.json": JSON.stringify({ name: "root" }),
+      "frontend/package.json": JSON.stringify({ name: "frontend" }),
+      "frontend/tests/x.test.ts": "export {};\n",
+      "backend/pyproject.toml": "[project]\nname = \"backend\"\n",
+      "backend/uv.lock": "",
+      "backend/tests/test_x.py": "def test_x(): pass\n",
+    });
+    const p = await orient(d, {});
+    ok(p.testDirs.includes("frontend/tests/") && p.testDirs.includes("backend/tests/"),
+      `T3: testDirs contains both frontend/tests/ and backend/tests/: ${p.testDirs}`);
+    ok(p.buildCmd.includes("cd backend && uv sync"),
+      `T3: buildCmd contains a "cd backend && uv sync" segment: ${p.buildCmd}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T4: orient-description-bullet
+  {
+    const d = await makeBareFixture("c9-t4-orient-description-bullet", {
+      "README.md": "# Title\n\n- ⚡ [**FastAPI**](https://x) for the backend.\n",
+    });
+    const p = await orient(d, {});
+    ok(p.description === "⚡ FastAPI for the backend.",
+      `T4: description strips the bullet, link syntax, and emphasis: ${JSON.stringify(p.description)}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T5: indepth-workspace-deps
+  {
+    const d = await makeBareFixture("c9-t5-indepth-workspace-deps", {
+      "package.json": JSON.stringify({ name: "root" }),
+      "frontend/package.json": JSON.stringify({ name: "frontend", dependencies: { react: "^18.0.0", axios: "^1.0.0" } }),
+      "backend/pyproject.toml": "[project]\nname = \"backend\"\ndependencies = [\"fastapi>=0.1\", \"sqlmodel\"]\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "indepth", d]);
+    ok(r.code === 0, `T5: indepth exits 0`);
+    ok(/Total Dependencies\s+4/.test(r.out), `T5: dependencies.total === 4: ${r.out.match(/Total Dependencies.*/)?.[0]}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T6: maturity-modern-locks
+  {
+    const d = await makeBareFixture("c9-t6-maturity-modern-locks", {
+      "bun.lock": "",
+      "uv.lock": "",
+    });
+    const m = await checkMaturity(d);
+    ok(m.checks.dependencyLocks.exists && m.checks.dependencyLocks.files.includes("bun.lock") &&
+      m.checks.dependencyLocks.files.includes("uv.lock"),
+      `T6: dependencyLocks.exists true, files lists bun.lock and uv.lock: ${m.checks.dependencyLocks.files}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T7: maturity-installed-panel
+  {
+    const d = await makeBareFixture("c9-t7-maturity-installed-panel", {
+      "ai/repo-profile.json": "{}\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "check-repo-maturity", d]);
+    ok(r.code === 0 && r.out.includes("already installed"), `T7: printed report contains "already installed"`);
+    ok(!r.out.includes("Process 1 will run"), `T7: printed report does NOT contain "Process 1 will run"`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T8: verify-scoped-and-selector
+  {
+    const d = await makeBareFixture("c9-t8-verify-scoped-and-selector", {
+      "src/a.py": "x = 1\n",
+      "CLAUDE.md": "Uses `@scope/pkg` and `src/a.py::test_b`.\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "verify", d]);
+    ok(r.code === 0 && /missing 0/.test(r.out),
+      `T8: verify reports 0 missing (scoped token skipped; selector resolves to the file): ${r.out}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
+// ---------- C1: stack-aware agent instructions (SPEC_C1-stack-aware-instructions.md §6) ----------
+console.log("\n— C1: stack-aware agent instructions —");
+{
+  const noChurnLine = async (repoAbs) => {
+    const text = await fs.readFile(path.join(repoAbs, "CLAUDE.md"), "utf8");
+    return text.split("\n").find(l => l.includes("No Phantom Bugs")) || "";
+  };
+
+  // T1: Python-only fixture — verify --strict must exit 0 with zero missing claims.
+  {
+    const d = await makeBareFixture("c1-t1-python-only", {
+      "pyproject.toml": "[project]\nname = \"x\"\n",
+    });
+    let r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    ok(r.code === 0, `T1: shazam --yes exits 0`);
+    r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "verify", d, "--strict"]);
+    ok(r.code === 0 && /missing 0/.test(r.out),
+      `T1: verify --strict exits 0 with zero missing claims on a Python-only repo`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T2: JS fixture keeps the literal `package.json` wording (byte-level check).
+  {
+    const d = await makeBareFixture("c1-t2-js-fixture", {
+      "package.json": JSON.stringify({ name: "x" }),
+    });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    const line = await noChurnLine(d);
+    ok(line.includes("`package.json`"), `T2: No-Churn line keeps the literal \`package.json\`: ${line}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T3: polyglot fixture lists both manifests.
+  {
+    const d = await makeBareFixture("c1-t3-polyglot", {
+      "package.json": JSON.stringify({ name: "x" }),
+      "pom.xml": "<project/>\n",
+    });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    const line = await noChurnLine(d);
+    ok(line.includes("`package.json`") && line.includes("`pom.xml`"),
+      `T3: No-Churn line lists both manifests: ${line}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // T4: no recognized manifest — falls back to the plain-text phrase, no backticked token.
+  {
+    const d = await makeBareFixture("c1-t4-no-marker", { "README.md": "# x\n" });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    const line = await noChurnLine(d);
+    ok(line.includes("the project's build manifests") && !/`[^`]*\.(json|toml|txt|xml|gradle|mod|Gemfile|kts)`/.test(line),
+      `T4: falls back to the plain-text phrase with no backticked manifest token: ${line}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);

@@ -19,7 +19,7 @@ Stack: {{LANGUAGES}}.
 - Check `ai/guide/MODULE_MAP.md` Stability before editing any file. `frozen` = hands off.
 - Anything you write into `ai/` is `[inferred]` until a human flips it to `[verified]`.
   Never flip that tag yourself.
-- **No Phantom Bugs & Configuration Churn:** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, `package.json`, or anything in `ai/guide/`) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs.
+- **No Phantom Bugs & Configuration Churn:** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, {{CONFIG_FILES}}, or anything in `ai/guide/`) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs. (one exception: during /cold-start only, the pass may correct the stamped Build/Test lines in this file and AGENTS.md/CLAUDE.md, and the Definition-of-done line in ai/guide/CONVENTIONS.md, after verifying against real config files — tag each correction `[inferred]` and change nothing else in these files)
 - **Verify claims:** Before declaring a task finished, run `node install.mjs verify . --strict` (or your repo's verify script) to ensure no file paths in the knowledge documents are broken.
 - **Record work:** Every unit of work (feature, bugfix, refactor, process change) ends with a row appended to `ai/lab/WORKLOG.md` — even work done outside the slash commands.
 

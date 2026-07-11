@@ -106,16 +106,13 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 
 | ID | Feature | Priority | Effort | Depends on | Spec | Status |
 |---|---|---|---|---|---|---|
-| C1 | Stack-aware agent instructions (kill the `package.json` false positive) | P1 | S | — | — | idea |
 | C2 | Stage-aware `status` verdict (no more "DRIFTING" on day one) | P1 | S | — | — | idea |
 | C3 | `audit` stamps the verified-commit baseline (make `drift --git` actually fire) | P1 | S–M | — | — | idea |
-| C4 | Monorepo Phase 1 — workspace-aware `orient` (the parked A4, first slice) | P2 | M | — | — | idea |
+| C4 | Monorepo Phase 2/3 — per-package MODULE_MAP sections, workspace-aware `drift` (the parked A4, remaining slices; the first slice — workspace-aware `orient`/`indepth`/`maturity` — shipped as C9) | P2 | M | C9 shipped | — | idea |
 | C5 | `drift --deep` — file-level coverage inside mapped directories | P2 | M | — | — | idea |
 | C6 | `value` — context-savings report for *your own* repo | P2 | M | — | — | idea |
 | C7 | Kit-version awareness in `doctor`/`status` | P3 | S | — | — | idea |
 | C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
-| C9 | Detection-layer robustness on polyglot/monorepo targets (bun/uv locks, member manifests & test dirs, indepth deps, maturity checks, verify tokens) | P1 | M | — (first slice of C4) | `ai/lab/specs/SPEC_C9-detection-polyglot.md` | spec drafted |
-| C10 | Knowledge-template & workflow alignment (5-column MODULE_MAP everywhere, cold-start command-correction step, conditional license rule, blocked-env vocabulary) | P1 | S–M | — (wording must not collide with C1) | `ai/lab/specs/SPEC_C10-template-alignment.md` | spec drafted |
 | C11 | `speclint` — deterministic implementation-grade spec gate (W-035 360°-review R3; pre-flight for light-model /implement-spec runs) | P2 | S | — | `ai/lab/specs/SPEC_C11-speclint.md` | spec drafted |
 | C12 | 3-arm live A/B eval — none / `[inferred]` / `[verified]` map on an unfamiliar mid-size repo; tokens, success, wrong-file-opens, Stability violations (W-035 R1) | P1 | M | — (extends C6's goal; needs nothing, informs everything) | — | idea |
 | C13 | Promote /implement-spec into `templates/` (all four tool surfaces) — ship the SDD engine, not just the filing cabinet (W-035 R2) | P1 | S–M | W-014 recorded blockers | — | idea |
@@ -157,45 +154,6 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 <!-- verify-ignore:start -->
 
 ### Detailed specifications
-
-#### C1 · Stack-aware agent instructions — kill the `package.json` false positive
-
-**Need (P2 beginner, P1 tech lead — evidence F2).** The stamped `CLAUDE.md` /
-`AGENTS.md` "No Phantom Bugs & Configuration Churn" rule names `package.json`
-literally, on every stack. On any non-JS repo, `verify` then reports two missing
-claims the user never made. The kit's first impression on a Python shop is its own
-check failing against its own template — the exact "false alarm" that loses P1.
-
-**Behavior.**
-- Add a `{{CONFIG_FILES}}` token to `templates/CLAUDE.md.tmpl` (line 22 area) and
-  `templates/AGENTS.md.tmpl` (line 24 area), replacing the literal `` `package.json` ``.
-- The stamping code resolves it deterministically from the orient profile's
-  `buildSystems` / marker files, as a comma-separated list of the manifests that
-  **actually exist at the target root** — e.g. `` `package.json` `` for npm,
-  `` `pyproject.toml` `` for Python, `` `pom.xml` `` for Maven, several when polyglot.
-  Fallback when nothing matched: the phrase `the project's build manifests` (plain
-  text, no backticked path — so `verify` has no claim to check).
-- Rule of thumb baked into the resolver: **never emit a backticked path that does
-  not exist on disk at stamp time.** That is the invariant the test asserts.
-
-**Touchpoints.** `templates/CLAUDE.md.tmpl`, `templates/AGENTS.md.tmpl`; the token
-substitution table in `lib/installer.mjs` (find where `{{BUILD_CMD}}` /
-`{{TEST_DIRS}}` are resolved and add `{{CONFIG_FILES}}` beside them — same
-mechanism, no new machinery); `test/run-tests.mjs`.
-
-**Acceptance.**
-- New fixture: Python-only repo (F2 recipe) → `shazam --yes` → `verify --strict`
-  exits 0 with zero missing claims.
-- JS fixture keeps mentioning `package.json` (byte-level check of the stamped line).
-- Polyglot fixture (npm + Maven markers) lists both manifests.
-- The kit repo's own `CLAUDE.md`/`AGENTS.md` (hand-maintained, not stamped) are
-  **not** touched by this feature.
-
-**Out of scope.** Re-stamping existing installs (users get the fix on their next
-incremental re-run — that path already exists); any other stack-conditional
-template content.
-
----
 
 #### C2 · Stage-aware `status` verdict
 
@@ -530,53 +488,18 @@ the full lab).
 
 ---
 
-#### C9 · Detection-layer robustness on polyglot/monorepo targets
-
-**Need (P1 — evidence: the 2026-07-06 full-stack simulation, findings F1/F3/F4/F5/F8).**
-On a bun + uv workspace repo, `orient` stamped four wrong build/test claims into the
-target's agent instructions, found no test dirs, `indepth` counted 0 of ~70
-dependencies, and `check-repo-maturity` denied the two lockfiles on disk.
-
-**Detail lives in the spec (implementation-grade, /implement-spec-ready):**
-`ai/lab/specs/SPEC_C9-detection-polyglot.md` — six work packages (W1 bun/uv locks,
-W2 workspace members + nested test dirs, W3 README description harvesting, W4
-workspace dependency counting, W5 maturity locks/dirs/panel, W6 verify scoped-package
-and pytest-selector tokens), each with exact anchors into `lib/orient.mjs`,
-`lib/indepth.mjs`, `lib/maturity.mjs`, `lib/verify.mjs` and a numbered test plan
-(T1–T8) for `test/run-tests.mjs`. First slice of C4; C4's later slices (per-package
-profiles) stay parked.
-
----
-
-#### C10 · Knowledge-template & workflow alignment
-
-**Need (P1 — evidence: the 2026-07-06 full-stack simulation, findings F2/F6/F7/F9/F10).**
-The stamped MODULE_MAP template is 4-column while `parseModuleMap` and the kit's own
-dogfooded map read provenance from a 5th Status cell — every fresh cold-start counts
-as "0 [inferred], N unaudited". Cold-start verifies commands but no step owns fixing
-the stamped ones; stamped rules assert license headers unconditionally.
-
-**Detail lives in the spec (implementation-grade, /implement-spec-ready):**
-`ai/lab/specs/SPEC_C10-template-alignment.md` — five work packages (W1 5-column
-template + row shape in all 8 cold-start copies, W2 sanctioned command-correction
-step, W3 generated/vendored guidance in the Stability legend, W4 conditional
-license-header wording, W5 blocked-env vocabulary + W-001 ID consistency) with a
-copy-parity test plan (T1–T3). Wording must not collide with C1's
-`{{CONFIG_FILES}}` token work.
-
----
-
 ### Sequencing and dependency notes
 
 - **Ship order: C1 → C2 → C3** (independent, all small, each removes a
-  trust-breaking moment — together they make an honest v0.2.1 patch wave), then
-  **C4** (the biggest audience unlock; isolated to `orient`), then **C5/C6** in
+  trust-breaking moment — together they make an honest v0.2.1 patch wave). C1
+  has shipped; **C2 → C3** next, then **C4** (remaining monorepo slices —
+  per-package MODULE_MAP sections, workspace-aware `drift`), then **C5/C6** in
   either order, then **C7/C8**.
-- **C9 and C10 are spec-drafted and independent of the above** — either can ship
-  first. C9 subsumes the first slice of C4 (workspace-aware `orient`); if C9 ships,
-  re-scope C4 to the remaining slices. C10's W2/W4 wording touches the same
-  template lines C1 will parameterize — implement C10 before C1, or rebase C1's
-  `{{CONFIG_FILES}}` token onto the new sentences.
+- **C9, C10, and C1 have shipped** (2026-07-11 — see the Shipped table). C9
+  already covered C4's first slice (workspace-aware `orient`/`indepth`/
+  `maturity`); C4 is rescoped above to its remaining slices. C1's
+  `{{CONFIG_FILES}}` token was rebased onto C10's already-shipped exception
+  sentence in the same commit — no collision.
 - C6 before C8 is preferred (the onboarding page footer consumes the value
   headline) but not required — C8 degrades silently without it.
 - C2 and C7 both touch `lib/status.mjs`; if implemented in parallel sessions,
@@ -626,6 +549,9 @@ Recorded so future planning sessions don't re-litigate:
 | A5 | Native Cursor rules assets | [`ai/lab/specs/SPEC_A5-cursor-rules.md`](specs/SPEC_A5-cursor-rules.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | B2 | AI-tool detection in wizard | [`ai/lab/specs/SPEC_B2-tool-detection.md`](specs/SPEC_B2-tool-detection.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
 | B5 | Living progress page in target `ai/` | [`ai/lab/specs/SPEC_B5-progress-page.md`](specs/SPEC_B5-progress-page.md) | — | wave-2 (pre-ledger) | 2026-07-03 |
+| C10 | Knowledge-template & workflow alignment | [`ai/lab/specs/SPEC_C10-template-alignment.md`](specs/SPEC_C10-template-alignment.md) | W-038 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
+| C9 | Detection-layer robustness on polyglot/monorepo targets | [`ai/lab/specs/SPEC_C9-detection-polyglot.md`](specs/SPEC_C9-detection-polyglot.md) | W-039 | branch claude/roadmap-status-update-pzuepv | 2026-07-11 |
+| C1 | Stack-aware agent instructions (kill the `package.json` false positive) | [`ai/lab/specs/SPEC_C1-stack-aware-instructions.md`](specs/SPEC_C1-stack-aware-instructions.md) | W-040 | branch claude/roadmap-status-update-pzuepv, PR #62 | 2026-07-11 |
 
 **A4 · Monorepo / workspace support** — parked in wave 2 pending its own spec;
 **superseded by planned C4** (Phase 1, workspace-aware `orient`). See the Planned

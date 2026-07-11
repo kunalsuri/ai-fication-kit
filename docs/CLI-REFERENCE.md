@@ -130,12 +130,16 @@ same options as `shazam`.
 node install.mjs orient /path/to/your/repo [--dry-run] [--analysis-level general|indepth]
 ```
 
-Pure file inspection. Reads marker files at the repo root (`package.json`,
-`pom.xml`, `pyproject.toml`, `*.csproj`/`*.sln`, `CMakeLists.txt`, `go.mod`,
-`Cargo.toml`, `Gemfile`, `composer.json`, …), applies refinements (TypeScript via
-`tsconfig.json`, Poetry/Pipenv, lockfile-based package-manager detection), runs the
-maturity check, and writes the combined result to `ai/repo-profile.json`
-(languages, build/test commands, fork status, `maturity.process`,
+Pure file inspection. Reads marker files at the repo root and one level into
+workspace members (`package.json`, `pom.xml`, `pyproject.toml`,
+`*.csproj`/`*.sln`, `CMakeLists.txt`, `go.mod`, `Cargo.toml`, `Gemfile`,
+`composer.json`, …), applies refinements (TypeScript via `tsconfig.json`,
+Poetry/Pipenv/uv, bun/pnpm/yarn lockfile-based package-manager detection —
+scoped per member directory so a monorepo's members don't inherit the root's
+package manager), runs the maturity check, and writes the combined result to
+`ai/repo-profile.json` (languages, build/test commands scoped with `cd <dir>`
+when a build system lives entirely in one workspace member, test directories
+including member-nested ones, fork status, `maturity.process`,
 `maturity.score`). Never interactive, never guesses beyond its marker tables —
 wrong guesses are overridden with `--build` / `--test` / `--name` (flags win over
 detection; see [FAQ.md](FAQ.md)).

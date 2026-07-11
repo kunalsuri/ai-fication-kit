@@ -21,7 +21,8 @@ this ledger says *what was done to it, when, and under which contract*.
 - **Agents append rows tagged `[inferred]`** like everything else in `ai/`;
   the human flips them to `[verified]` when auditing. Never flip it yourself.
 - **Status vocabulary:** `specced` → `in-progress` → `in-review` → `shipped`
-  (or `rolled-back` / `dropped`).
+  (or `rolled-back` / `dropped`; suffix ` (blocked-env)` when verification could
+  not run in the working environment).
 - **Type vocabulary:** `feature` · `bugfix` · `refactor` · `docs` · `process`.
 
 ## Ledger

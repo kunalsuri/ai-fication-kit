@@ -15,13 +15,14 @@ Stack: {{LANGUAGES}}.
    the structure.
 3. **Test before done.** Run the suite matching your change; never declare success
    untested. Build: `{{BUILD_CMD}}` · Test: `{{TEST_CMD}}`
-4. **Match license headers** on every new source file, copying from neighboring files.
+4. **Match the license-header practice of neighboring files** — copy their header if
+   they have one, add none if they don't.
 5. **Locate, then read.** Use `ai/guide/MODULE_MAP.md` to find code; grep before
    reading whole files.
 6. **Surgical diffs.** Change only what the task needs.
 7. **Provenance.** Anything you write into `ai/` is `[inferred]` until a human flips
    it to `[verified]`. Never flip that tag yourself.
-8. **No Phantom Bugs & Configuration Churn.** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, `package.json`, or `ai/guide/` documents) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs.
+8. **No Phantom Bugs & Configuration Churn.** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, {{CONFIG_FILES}}, or `ai/guide/` documents) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs. (one exception: during /cold-start only, the pass may correct the stamped Build/Test lines in this file and AGENTS.md/CLAUDE.md, and the Definition-of-done line in ai/guide/CONVENTIONS.md, after verifying against real config files — tag each correction `[inferred]` and change nothing else in these files)
 9. **Verify claims.** Before declaring a task finished, run `node install.mjs verify . --strict` (or equivalent test runner validation script) to ensure no file paths in the knowledge documents are broken.
 10. **Record work.** Every unit of work ends with an appended row in `ai/lab/WORKLOG.md` linking its spec, review, and commits — even work done outside the command workflows.
 

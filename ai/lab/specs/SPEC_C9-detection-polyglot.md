@@ -1,7 +1,11 @@
 <!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
 # SPEC: C9 — Detection-layer robustness on polyglot / monorepo targets
-> **Status:** draft
-> **Author:** AI draft (from `ai/analysis/audit-reports/2026-07-06-fullstack-simulation-report.md` findings F1, F3, F4, F5, F8) · **Date:** 2026-07-06 · **Revision:** 1
+> **Status:** approved — implementation complete, human audit of the diff still
+> pending (2026-07-11, via chat — one correction from the spec-audit
+> subagent's report folded into Revision 2: §5 touch list now lists
+> `docs/CLI-REFERENCE.md` as a conditional row, matching §8's conditional
+> knowledge-update item; see `ai/lab/WORKLOG.md` row W-039)
+> **Author:** AI draft (from `ai/analysis/audit-reports/2026-07-06-fullstack-simulation-report.md` findings F1, F3, F4, F5, F8) · **Date:** 2026-07-06 · **Revision:** 2
 
 This spec is written to be implemented **without further design decisions** (consume
 via `/implement-spec`). Read the whole spec before writing code. Design rationale
@@ -146,6 +150,7 @@ In `lib/verify.mjs` `extractClaims()` (~line 60):
 | lib | `lib/maturity.mjs` | ours | modify (W5) |
 | lib | `lib/verify.mjs` | ours | modify (W6) |
 | tests | `test/run-tests.mjs` | ours | modify (T1–T8) |
+| docs | `docs/CLI-REFERENCE.md` | ours | modify, conditional — only if its current orient/maturity text contradicts the new member-scanning behavior (§8) |
 | docs | `ai/lab/ROADMAP.md`, `ai/lab/WORKLOG.md` | — | knowledge update |
 
 Stability check: no `frozen` or `?` files touched.

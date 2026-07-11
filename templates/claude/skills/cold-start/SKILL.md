@@ -38,19 +38,29 @@ whole-file reads. Read only — modify nothing in this step.
 ## 4. Fill MODULE_MAP
 `ai/guide/MODULE_MAP.md`: one row per module/package — directory, a one-line
 responsibility, the entry-point file, and a Stability GUESS. Use the ACTUAL names
-you found; do not assume names.
+you found; do not assume names. Each row has FIVE cells — Directory,
+Responsibility, Entry point, Stability guess, Status — and the Status cell is
+where the `[inferred]` tag goes (the tooling reads provenance from the LAST
+cell only).
 
-## 5. Draft diagrams
+## 5. Correct the stamped commands
+If the build/test commands you verified in config files differ from the
+Build/Test lines stamped into `CLAUDE.md` and `AGENTS.md`, correct exactly
+those lines (and the Definition-of-done line in `ai/guide/CONVENTIONS.md`),
+tag the correction `[inferred]`, and change nothing else in those files. This
+is the sanctioned exception to the No-Churn rule.
+
+## 6. Draft diagrams
 Into `ai/analysis/diagrams/` as Mermaid `.mmd`: `package-deps.mmd` (dependency
 graph), `domain-core.mmd` (core types), `seam.mmd` (the main boundary — note the
 protocol as a question if unverified).
 
-## 6. Note features, update the guides
+## 7. Note features, update the guides
 Note candidate features in `ai/guide/FEATURE_MAP.md` using its template. Update
 `ai/guide/ARCHITECTURE.md` and `ai/guide/PROJECT_OVERVIEW.md` only where you
 VERIFIED something in code or config.
 
-## 7. Hard rules for this pass
+## 8. Hard rules for this pass
 - Tag EVERYTHING you write `[inferred]`. You are guessing; say so.
 - Separate OBSERVED facts (file A imports B) from INFERENCES (A is "the domain layer").
 - On a fork: mark anything inherited as Stability `frozen` and FLAG it
@@ -60,7 +70,7 @@ VERIFIED something in code or config.
 - Re-run safety: leave rows already carrying `[verified]` unchanged; only populate
   rows still `?` or holding placeholder text like `<fill in>`.
 
-## 8. Stop and report
+## 9. Stop and report
 Print an "AUDIT TODO" table (columns: # · Location · What to verify · Why uncertain)
 covering every row still `?`, every `frozen` guess needing confirmation, and any
 protocol/command assumption still `[inferred]`. The human sets Stability and flips

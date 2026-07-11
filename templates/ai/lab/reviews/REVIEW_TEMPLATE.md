@@ -19,6 +19,10 @@ diff is not a review.>
 | Knowledge updated — maps/catalog amended, tagged `[inferred]` | ✅/❌ | <which docs> |
 | Provenance clean — no `[verified]` written by an agent | ✅/❌ | <grep result> |
 
+If a required suite cannot execute in this environment, record the check as
+`BLOCKED-ENV: <blocker> — compensating evidence: <what was run instead>` rather
+than skipping it silently; BLOCKED-ENV anywhere caps the verdict at approve-with-nits.
+
 ## Findings
 | # | Severity | File | Finding | Resolution |
 |---|---|---|---|---|
