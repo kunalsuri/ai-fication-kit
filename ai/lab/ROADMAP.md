@@ -116,6 +116,17 @@ in `docs/CLI-REFERENCE.md` index · CHANGELOG entry written · roadmap row updat
 | C8 | `onboard` — export a single offline onboarding page for new teammates | P3 | M | C6 helpful | — | idea |
 | C9 | Detection-layer robustness on polyglot/monorepo targets (bun/uv locks, member manifests & test dirs, indepth deps, maturity checks, verify tokens) | P1 | M | — (first slice of C4) | `ai/lab/specs/SPEC_C9-detection-polyglot.md` | spec drafted |
 | C10 | Knowledge-template & workflow alignment (5-column MODULE_MAP everywhere, cold-start command-correction step, conditional license rule, blocked-env vocabulary) | P1 | S–M | — (wording must not collide with C1) | `ai/lab/specs/SPEC_C10-template-alignment.md` | spec drafted |
+| C11 | `speclint` — deterministic implementation-grade spec gate (W-035 360°-review R3; pre-flight for light-model /implement-spec runs) | P2 | S | — | `ai/lab/specs/SPEC_C11-speclint.md` | spec drafted |
+| C12 | 3-arm live A/B eval — none / `[inferred]` / `[verified]` map on an unfamiliar mid-size repo; tokens, success, wrong-file-opens, Stability violations (W-035 R1) | P1 | M | — (extends C6's goal; needs nothing, informs everything) | — | idea |
+| C13 | Promote /implement-spec into `templates/` (all four tool surfaces) — ship the SDD engine, not just the filing cabinet (W-035 R2) | P1 | S–M | W-014 recorded blockers | — | idea |
+| C14 | Model-tier column in the WORKLOG ledger (heavy-planned / light-implemented) (W-035 R4) | P2 | S | — | — | idea |
+| C15 | Ceremony ladder — trivial / small / full spec tiers, enforced by the loop skills (W-035 R5) | P1 | S–M | — | — | idea |
+| C16 | Requirement→test→commit traceability checklist line in the review stage (W-035 R6) | P3 | S | — | — | idea |
+| C17 | README restructure around the three planes: Map / Loop / Stamp (W-035 R7) | P2 | S | — | — | idea |
+| C18 | Spec lifecycle vocabulary — terminal `superseded` status; shipped specs are frozen history, maps are living truth (W-035 R8) | P3 | S | — | — | idea |
+| C19 | MCP knowledge-base server — serve the `ai/` layer over protocol; Stability check as a tool call (W-035 R9) | P2 | M–L | C9 helpful (detection fixes feed its parsers) | `ai/lab/specs/SPEC_mcp-kb-server.md` | spec drafted |
+| C20 | YAML front-matter metadata on new `ai/lab/` artifacts (RAG-readiness: id, date, type, files, model, status) (W-035 R10) | P3 | S | — | — | idea |
+| C21 | Blast-radius auditing + verification-by-usage queue — audit only the rows the next unit of work touches (W-035 R11) | P2 | M | — (extends the A1 audit command) | — | idea |
 
 Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dropped`).
 
@@ -131,6 +142,17 @@ Status values: `idea` → `spec drafted` → `in progress` → `shipped` (or `dr
 - **C8** — the verified knowledge-base becomes a shareable, double-clickable onboarding page for humans who will never open an agent or a terminal.
 - **C9** — a bun/uv monorepo's first profile states the real toolchain and test dirs instead of npm/pip guesses; the maturity panel stops denying lockfiles that exist.
 - **C10** — a fresh cold-start is counted as `[inferred]` by `status`/`doctor` instead of "unaudited", and the stamped rules stop asserting conventions the target doesn't have.
+- **C11** — a light-model implementer starts only from a spec that mechanically clears the implementation-grade bar; spec gaps surface as a seconds-long lint before implementation, not as mid-task round-trips to the human.
+- **C12** — the README's headline value numbers become measured facts (or honest hedges): the map's effect on real agent work, published whatever the result says.
+- **C13** — every kit-installed repo gets the plan-heavy/implement-light engine, not just the kit's own dogfood copy.
+- **C14** — the ledger records which model class implemented each unit, turning every future row into routing evidence ("what spec quality does a light model need?").
+- **C15** — small changes stop paying full spec ceremony; a waiver becomes a documented tier choice instead of an ad-hoc process violation.
+- **C16** — reviews check that each acceptance criterion names the test that proves it, so "done" is traceable rather than rhetorical.
+- **C17** — a newcomer understands in one screen that the kit is three separable planes, not eleven interleaved workflows.
+- **C18** — shipped specs are explicitly frozen history; nobody mistakes the spec pile for the living truth in the maps.
+- **C19** — check-Stability-before-edit becomes a protocol tool call every agent speaks, instead of a prose convention an agent may choose to ignore.
+- **C20** — every new lab artifact becomes indexable by external RAG tooling later, at the cost of a few header lines now.
+- **C21** — the 400-directory monolith's audit shrinks to the rows the next planned work touches; the verification queue orders itself by value.
 
 <!-- verify-ignore:start -->
 
