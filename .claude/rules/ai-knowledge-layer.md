@@ -18,4 +18,4 @@ the tree (plain-text links are not validated).
 
 See `CLAUDE.md` (loaded every session, it imports `AGENTS.md`) for the full rule
 set, and the `/cold-start`, `/add-feature`, `/fix-bug`, and `/review-change`
-slash commands in `.claude/commands/` for the kit's workflows.
+skills in `.claude/skills/` for the kit's workflows.

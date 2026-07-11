@@ -26,7 +26,7 @@
 | `lib/` | Implementation modules (Node `.mjs`, stdlib only): stack detection, template stamping, claim verification, drift detection, maturity assessment, intake wizard, and indepth analysis | `lib/util.mjs` | ours | [verified] (03/07/2026 17:35 CEST)|
 | `templates/` | The installable kit — copied/stamped into a target repo by the installer | `templates/README.md` | ours | [verified] (03/07/2026 17:35 CEST) |
 | `templates/ai/` | Knowledge-layer templates (the `ai/` folder a target repo receives) | `templates/ai/INDEX.md.tmpl` | ours | [verified] (25/06/2026 20:52 CEST) |
-| `templates/claude/` | Claude Code assets stamped to `.claude/`: slash commands, subagents, the add-feature skill | `templates/claude/commands/cold-start.md` | ours | [verified] (03/07/2026 17:35 CEST) |
+| `templates/claude/` | Claude Code assets stamped to `.claude/`: skills (merged slash commands per Claude Code v2.1.3), subagents, native rules | `templates/claude/skills/cold-start/SKILL.md` | ours | [inferred] |
 | `templates/github/` | Stamped to `.github/`: CI checks for verify/drift, plus GitHub Copilot assets (`copilot-instructions.md`, `prompts/*.prompt.md`, `chatmodes/*.chatmode.md`) | `templates/github/workflows/ai-check.yml.tmpl` | ours | [verified] (03/07/2026 17:35 CEST) |
 | `templates/agents/` | Google Antigravity assets stamped to `.agents/`: workflow equivalents of the Claude commands, and the add-feature skill (shared Agent Skills format) | `templates/agents/workflows/cold-start.md` | ours | [verified] (03/07/2026 17:35 CEST) |
 | `test/` | Smoke tests, deep-test standards verification, and the deterministic release gate | `test/run-tests.mjs` · `test/run-deep-test.mjs` · `test/release-check.mjs` | ours | [verified] (03/07/2026 19:12 CEST) |

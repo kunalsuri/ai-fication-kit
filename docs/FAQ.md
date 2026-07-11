@@ -115,13 +115,14 @@ pasting needed:
 
 | Tool | Where the kit installs its assets | Invocation |
 |---|---|---|
-| **Claude Code** | `.claude/commands/`, `.claude/agents/`, `.claude/skills/` | `/cold-start`, `/add-feature`, … |
+| **Claude Code** | `.claude/skills/`, `.claude/agents/`, `.claude/rules/` | `/cold-start`, `/add-feature`, … |
 | **GitHub Copilot** (VS Code) | `.github/copilot-instructions.md`, `.github/prompts/*.prompt.md`, `.github/chatmodes/*.chatmode.md` | `/cold-start`, `/add-feature`, … in Copilot Chat; switch chat mode for `repo-explorer`/`feature-builder`/`test-runner` |
-| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` (`add-feature`, `fix-bug`) | `/cold-start`, `/add-feature`, … in the Agent Manager |
+| **Google Antigravity** | `.agents/workflows/*.md`, `.agents/skills/` (`add-feature`, `fix-bug`, `cold-start`, `review-change`) | `/cold-start`, `/add-feature`, … in the Agent Manager |
 | **Cursor** | `.cursor/rules/*.mdc` | invoke a rule the same way you would any other Cursor rule |
 
-The `add-feature` and `fix-bug` skills are each written once in the shared
-`SKILL.md` (Agent Skills) format — Antigravity and Copilot both discover them from
+The `add-feature`, `fix-bug`, `cold-start`, and `review-change` skills are each
+written once in the shared `SKILL.md` (Agent Skills) format — Antigravity and
+Copilot both discover them from
 `.agents/skills/` (Copilot also reads `.claude/skills/`), so they aren't duplicated
 per tool. Antigravity reads
 the tool-agnostic `AGENTS.md` at the repo root natively, so the kit does not ship
@@ -133,11 +134,11 @@ rule.
 **Codex** doesn't need a dedicated template tree — it reads `AGENTS.md` at the
 repo root natively, the same as every other tool, and there's no separate
 slash-command surface to install. Run the workflow manually: paste the contents
-of `.claude/commands/cold-start.md` (or any other command file) into the tool as
+of `.claude/skills/cold-start/SKILL.md` (or any other skill file) into the tool as
 a prompt.
 
 > [!TIP]
-> **Important tip for manual pasting:** The command files under `.claude/commands/` contain metadata headers called YAML frontmatter (lines starting and ending with `---`, such as `description: ...`). Before pasting these prompts into Codex, **delete the `---` delimiters and everything between them**. Start pasting from the actual instructions (e.g., "Run the cold-start bootstrap..."). This prevents the LLM from getting confused by the configuration headers.
+> **Important tip for manual pasting:** The skill files under `.claude/skills/` contain metadata headers called YAML frontmatter (lines starting and ending with `---`, such as `description: ...`). Before pasting these prompts into Codex, **delete the `---` delimiters and everything between them**. Start pasting from the actual instructions (e.g., "Run the cold-start bootstrap..."). This prevents the LLM from getting confused by the configuration headers.
 
 The provenance discipline works the same across every tool; only the automation
 differs. The full per-tool walkthrough (command equivalence tables, chat modes,

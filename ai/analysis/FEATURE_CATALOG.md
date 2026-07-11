@@ -46,7 +46,7 @@ The kit's layers, used in the touch lists below:
 | F7 | **uninstall** | deletes exactly the manifest-recorded files; refuses paths outside target | `lib/installer.mjs` `[inferred]` | `?` |
 | F8 | **verify (claim check)** | backtick path claims in knowledge docs vs. real tree → audit reports | `lib/verify.mjs` `[inferred]` | `?` |
 | F9 | **drift (map decay check)** | unmapped / vanished; opt-in `--git` stale check vs. verified commit | `lib/drift.mjs` `[inferred]` | `?` |
-| F10 | **Claude Code workflow assets** | slash commands, subagents, add-feature skill stamped to `.claude/` | `templates/claude/commands/cold-start.md` `[inferred]` | `?` |
+| F10 | **Claude Code workflow assets** | skills (merged slash commands), subagents, native rules stamped to `.claude/` | `templates/claude/skills/cold-start/SKILL.md` `[inferred]` | `?` |
 | F11 | **CI knowledge-base check** | GitHub Actions template running `verify --strict` + `drift --git --strict` | `templates/github/workflows/ai-check.yml.tmpl` `[inferred]` | `?` |
 | F12 | **deep-test (kit standards gate)** | smoke + verify + drift + license headers + placeholder leaks | `test/run-deep-test.mjs` `[inferred]` | `?` |
 | F13 | **release-check (release gate)** | version-sync + changelog gate + coverage report + cli-docs-sync, on `v*` tags and on demand | `test/release-check.mjs` `[inferred]` | `?` |
@@ -105,7 +105,7 @@ F9 → `ai/analysis/audit-reports/DRIFT_REPORT.md` (+ gitignored manifest). `[in
 ### F10 — Claude Code workflow assets
 | Layer | Files | Confidence |
 |---|---|---|
-| Payload | `templates/claude/commands/` (10 commands) · `templates/claude/agents/` (3 subagents) · `templates/claude/skills/` (`add-feature` + `fix-bug` skills) | `[inferred]` |
+| Payload | `templates/claude/skills/` (11 skills, merged slash commands) · `templates/claude/agents/` (3 subagents) · `templates/claude/rules/` (2 native rules) | `[inferred]` |
 | Installed twin | `.claude/` (kit dogfoods its own templates — keep byte-identical) | `[inferred]` |
 | Tests | `test/run-tests.mjs` (asserts installed paths) | `[inferred]` |
 
@@ -138,7 +138,7 @@ What kind of change?
 ├── New detection heuristic?  ➔ lib/orient.* (marker files) or lib/indepth.* (deep analysis)
 ├── New installed artifact?   ➔ templates/ (use .tmpl + {{PLACEHOLDERS}} if it needs stamping);
 │                               mirror to .claude// .github/ happens via destinationFor
-├── New agent workflow?       ➔ templates/claude/commands/ or templates/claude/agents/
+├── New agent workflow?       ➔ templates/claude/skills/ or templates/claude/agents/
 │                               (then reinstall so .claude/ stays identical)
 └── New quality gate?         ➔ test/run-deep-test.mjs (kit-only) or test/run-tests.mjs (installer)
 ```
@@ -157,7 +157,7 @@ What kind of change?
 | F6/F7 install | `lib/installer.mjs` | `templates/README.md` | `ai/install-manifest.json` |
 | F8 verify | `lib/verify.mjs` | `ai/analysis/audit-reports/VERIFICATION_REPORT.md` | `CLAUDE.md` (what gets scanned) |
 | F9 drift | `lib/drift.mjs` | `ai/guide/MODULE_MAP.md` (what gets parsed) | `.github/workflows/ai-check.yml` |
-| F10 claude assets | `templates/claude/commands/cold-start.md` | `templates/claude/skills/add-feature/SKILL.md` | `templates/claude/agents/repo-explorer.md` |
+| F10 claude assets | `templates/claude/skills/cold-start/SKILL.md` | `templates/claude/skills/add-feature/SKILL.md` | `templates/claude/agents/repo-explorer.md` |
 | F11 ci-check | `templates/github/workflows/ai-check.yml.tmpl` | `.github/workflows/ai-check.yml` | `lib/verify.mjs` |
 | F12 deep-test | `test/run-deep-test.mjs` | `.agents/skills/deep-test/SKILL.md` | `package.json` |
 

@@ -72,7 +72,7 @@ yet a fact.
 
 > Using GitHub Copilot or Google Antigravity instead? The kit installed native
 > equivalents too — type `/cold-start` in Copilot Chat or Antigravity's Agent
-> Manager. Using Cursor or Codex? Paste the body of `.claude/commands/cold-start.md`
+> Manager. Using Cursor or Codex? Paste the body of `.claude/skills/cold-start/SKILL.md`
 > as a prompt — see [FAQ.md](FAQ.md#cursor-copilot-codex).
 
 **✅ Checkpoint.** `ai/guide/MODULE_MAP.md` now has real rows (one per directory),

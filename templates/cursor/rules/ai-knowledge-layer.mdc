@@ -17,6 +17,6 @@ artifact path in the row: `verify` checks backtick-quoted path claims against
 the tree (plain-text links are not validated).
 
 See `AGENTS.md` (already read by Cursor) for the full rule set. The other rules in
-this directory (`.cursor/rules/*.mdc`) mirror the kit's slash commands for Claude
+this directory (`.cursor/rules/*.mdc`) mirror the kit's skills for Claude
 Code and prompt files for GitHub Copilot — invoke them the same way you would any
 other Cursor rule.

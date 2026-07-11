@@ -75,7 +75,7 @@ and spec-vs-protocol) first.
 
 ## Where it lives
 
-Kit-repo dogfood for now: `.claude/commands/implement-spec.md` (Claude Code)
+Kit-repo dogfood for now: `.claude/skills/implement-spec/SKILL.md` (Claude Code)
 and `.agents/workflows/implement-spec.md` (Antigravity / tool-agnostic).
 Promoting it into `templates/` — so every kit-installed repo receives it in all
 four tool formats alongside `/add-feature` and `/fix-bug` — is a deliberate,

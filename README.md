@@ -278,12 +278,12 @@ your-repo/
 │                                 WORKLOG.md work ledger (one row per unit of work)
 ├── .claude/                    # Claude Code: commands (/cold-start, /add-feature, …),
 │                                 subagents (repo-explorer, feature-builder, test-runner),
-│                                 the add-feature & fix-bug skills, and native rules/ (an
+│                                 the add-feature, fix-bug, cold-start & review-change skills, and native rules/ (an
 │                                 always-on index rule + a path-scoped ai/ guard)
 ├── .github/                    # GitHub Copilot: copilot-instructions.md, prompts/*.prompt.md
 │                                 (same commands), chatmodes/*.chatmode.md (same subagents)
 ├── .agents/                    # Google Antigravity: workflows/*.md (same commands),
-│                                 skills/ (add-feature, fix-bug — shared Agent Skills format)
+│                                 skills/ (add-feature, fix-bug, cold-start, review-change — shared Agent Skills format)
 └── .cursor/                    # Cursor: rules/*.mdc (same commands as native rules,
                                   alwaysApply: false, plus one always-on index rule)
 ```
@@ -298,9 +298,9 @@ your-repo/
 * **Lab Space (`ai/lab/`):** A dedicated area for specifications (RFCs), architecture decision records (ADRs), change reviews, and evaluations — plus `WORKLOG.md`, the append-only ledger that records one row per unit of work.
 * **Agent Operations (`.claude/`, `.github/`, `.agents/`, `.cursor/`):** Reusable workflow commands, helper subagents (`repo-explorer`, `feature-builder`, `test-runner`), and custom agent skills — stamped natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install.
 
-### The Eleven Workflow Commands
+### The Eleven Workflows
 
-Every command ships in four native formats — Claude Code slash command (`.claude/commands/`), Copilot prompt (`.github/prompts/`), Antigravity workflow (`.agents/workflows/`), and Cursor rule (`.cursor/rules/*.mdc`):
+Every workflow ships in four native formats — Claude Code skill (`.claude/skills/`), Copilot prompt (`.github/prompts/`), Antigravity workflow (`.agents/workflows/`), and Cursor rule (`.cursor/rules/*.mdc`). In Claude Code, [custom commands merged into skills](https://code.claude.com/docs/en/skills) (v2.1.3), so each workflow is a `SKILL.md` invoked the same way — `/cold-start`, `/add-feature`, …:
 
 | Command                            | What it does                                                                                                   |
 |:---------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
@@ -324,7 +324,7 @@ loop** — *Spec → Decide → Implement → Review → Evaluate → Record* �
 checked by `verify` (see [docs/METHODOLOGY.md §7](docs/METHODOLOGY.md#7-the-engineering-loop--the-steady-state-after-the-map-is-trusted)).
 
 The `/implement-spec <spec-path>` command (currently kit-repo dogfood in
-`.claude/commands/` + `.agents/workflows/`) is the loop's implementation
+`.claude/skills/` + `.agents/workflows/`) is the loop's implementation
 engine: it takes a finished, human-audited spec from `ai/lab/specs/` and drives
 an agent — typically a lighter, cheaper model — through faithful
 implementation: bounded context, a hard **stop-and-report** rule for any
@@ -528,9 +528,9 @@ Helper assistant processes (`repo-explorer`, `feature-builder`, `test-runner`) s
 The knowledge layer is tool-agnostic — every agent reads the same `AGENTS.md` rules and `ai/` maps — and the workflow automation is now native in more tools than Claude Code:
 
 * **GitHub Copilot** — one install stamps `.github/copilot-instructions.md`, native prompt files for every workflow command (`/cold-start`, `/add-feature`, …), and chat modes mirroring the `repo-explorer` / `feature-builder` / `test-runner` subagents.
-* **Google Antigravity** — the same commands as native workflows in `.agents/workflows/`, plus the `add-feature` skill in the shared Agent Skills (`SKILL.md`) format.
+* **Google Antigravity** — the same commands as native workflows in `.agents/workflows/`, plus the `add-feature`, `fix-bug`, `cold-start`, and `review-change` skills in the shared Agent Skills (`SKILL.md`) format.
 * **Cursor** — the same commands as native rules in `.cursor/rules/*.mdc`, invoked the same way you would any other Cursor rule.
-* **Codex, Windsurf** — read `AGENTS.md` natively; drive the workflow by hand, e.g. paste the contents of `.claude/commands/cold-start.md` as a prompt to run the cold-start pass.
+* **Codex, Windsurf** — read `AGENTS.md` natively; drive the workflow by hand, e.g. paste the contents of `.claude/skills/cold-start/SKILL.md` as a prompt to run the cold-start pass.
 
 See [docs/MULTI-TOOL-SETUP.md](docs/MULTI-TOOL-SETUP.md) for the full per-tool guide.
 
