@@ -9,7 +9,7 @@
 | **Version** | 0.2.0 |
 | **Release Date** | 2026-07-03 |
 | **Report Date** | 2026-07-04 |
-| **Report Revision** | v5 (2026-07-04) — updated for the 0.2.0 release cycle (see §13.1 for scope) |
+| **Report Revision** | v7 (2026-07-12) — added the Executive Summary purpose map and part-structured Table of Contents; content unchanged since v6 (see §13.1 for scope) |
 | **Author** | Kunal Suri (CEA LIST — French Alternative Energies and Atomic Energy Commission) |
 | **License** | Apache 2.0 |
 | **DOI** | 10.5281/zenodo.20860637 |
@@ -17,18 +17,64 @@
 
 ---
 
+## Executive Summary: Five Purposes, One Kit
+
+*Read this page first. The kit is deliberately multi-purpose, and each purpose runs as its own thread through the fifteen sections below. This page maps every purpose to the sections that carry it — so you can review only the thread you care about instead of reading linearly.*
+
+**What it is.** ai-fication-kit scaffolds a provenance-tracked knowledge layer (the `ai/` folder) plus a pre-built agent harness into any existing repository, so AI coding agents work from a trusted, human-verified map instead of re-crawling source and guessing. A single `shazam` command installs everything; deterministic `verify`/`drift` checks keep the map honest as the code evolves.
+
+### The purpose map
+
+P1–P3 follow the README's three-part framing (quoted in §2.3); P4 and P5 are implicit there and made explicit here because reviewers ask about them directly.
+
+| # | Purpose | What the kit ships for it | Core sections |
+|---|---|---|---|
+| **P1** | **Context & memory for the agent** — a compact, trusted map replaces re-crawling the tree | The `ai/` knowledge layer: module map, architecture, conventions, feature catalog (~3× measured context reduction) | §2.1, §8, §11.2 |
+| **P2** | **Harness engineering** — a pre-built agent harness, no per-tool hand-rolling | Instructions, ten workflow commands, three helper-agent personas, two multi-phase skills, and a CI check — stamped natively for Claude Code, GitHub Copilot, Google Antigravity, and Cursor in one install | §3.1, §9, §10 |
+| **P3** | **Guided, human-verified repo intelligence** — humans keep authority over what the map claims | `[inferred]` → `[verified]` provenance tags, four stability markers, the guided `audit` command, and the child-lock that mechanically protects human signatures | §4.8, §5, §7 (mechanics: §3.6) |
+| **P4** | **Mechanical honesty over time** — the map must not silently rot as code changes | Deterministic `verify`/`drift`/`status` checks, CI `--strict` gates, and the Spec → Decide → Implement → Review → Evaluate → Record engineering loop | §6, §9.5, §12 |
+| **P5** | **Instant human onboarding** — the same map serves people, not just agents | The verified `ai/` folder doubles as trustworthy onboarding documentation for new engineers | §1, §2.1, §15 |
+
+### Reading paths
+
+Pick the path that matches why you are reviewing:
+
+- **Deciding whether to adopt (~10 minutes):** this page → §14 (Differentiation) → §15 (Summary) → §13.2 (Known Limitations).
+- **Reviewing the trust and security claims:** §5 (Trust Model) → §6 (Verification and Integrity) → §7 (Security Properties), with §3.6 (child-lock) and §4.8 (guided audit) as the mechanical anchors.
+- **About to install it on a repo:** §4 (Workflow, Steps 0–6) → §8 (what lands in your tree) → §11.3 (the zero-risk `demo` command).
+- **Evaluating AI-tool coverage:** §9 (Agent Integration) → §10.2 (compatibility matrix) → §13.2 item 2 (uneven automation depth).
+- **Assessing engineering maturity:** §12 (Testing and Release Engineering) → §13 (Current Status and Limitations).
+
+---
+
 ## Table of Contents
+
+- [Executive Summary: Five Purposes, One Kit](#executive-summary-five-purposes-one-kit)
+
+**Part I — Problem & Purpose** *(why the kit exists: all five purposes motivated)*
 
 1. [Introduction](#1-introduction)
 2. [Motivation](#2-motivation)
+
+**Part II — System Design** *(how it is built and operated)*
+
 3. [Architecture](#3-architecture)
 4. [Workflow](#4-workflow)
+
+**Part III — Trust & Verification** *(P3 and P4: the load-bearing claims)*
+
 5. [Trust Model](#5-trust-model)
 6. [Verification and Integrity](#6-verification-and-integrity)
 7. [Security Properties](#7-security-properties)
+
+**Part IV — What Gets Installed** *(P1 and P2: the deliverables)*
+
 8. [Scaffolded Artifacts](#8-scaffolded-artifacts)
 9. [Agent Integration](#9-agent-integration)
 10. [Stack Detection and Tool Compatibility](#10-stack-detection-and-tool-compatibility)
+
+**Part V — Evidence & Positioning** *(measurements, tests, limits, comparison)*
+
 11. [Bundled Examples and the Demo Command](#11-bundled-examples-and-the-demo-command)
 12. [Testing and Release Engineering](#12-testing-and-release-engineering)
 13. [Current Status and Limitations](#13-current-status-and-limitations)
@@ -744,6 +790,8 @@ ai-fication-kit provides a structured method for making any existing codebase na
 The kit transforms a legacy repository into an AI-native workspace through a single `shazam` command, then relies on the human audit to convert scaffolding into a verified knowledge-base that serves both AI agents and human engineers.
 
 ---
+
+*Revision v7 (2026-07-12): structural revision for reviewability — added the front-matter Executive Summary (the P1–P5 purpose map with per-purpose section pointers, and five reader-intent reading paths) and grouped the Table of Contents into five thematic parts. Section numbering, anchors, and body content are unchanged from v6. Also corrected the metadata table's Report Revision field, which still said v5 while the footer already recorded v6.*
 
 *Revision v6 (2026-07-05): documented the engineering loop that the 0.2.0 cycle added on top of the one-time onboarding — the command roster grew from eight to ten (`/fix-bug`, `/review-change`), the second multi-phase skill (`fix-bug`), the append-only `ai/lab/WORKLOG.md` work ledger and `ai/lab/reviews/`, and the new §9.5 covering the Spec → Decide → Implement → Review → Evaluate → Record loop plus the kit-dogfood-only `/implement-spec` command (heavy-model plan / light-model implement, stop-and-report). Updated §8.1's `.claude/` rules and directory tree, §9.1/§9.3/§9.4, and the compatibility table to match; command/skill counts corrected throughout.*
 
