@@ -2893,5 +2893,84 @@ console.log("\n— C1: stack-aware agent instructions —");
   }
 }
 
+// ---------- simply-ai-native & lite mode tests ----------
+console.log("\n— simply-ai-native & lite mode —");
+{
+  // L1: simply-ai-native creates root configs + tool dirs, no ai/ directory
+  {
+    const d = await makeBareFixture("lite-t1-basic", {
+      "package.json": JSON.stringify({ name: "lite-app", scripts: { build: "tsc", test: "node test.js" } }),
+      "README.md": "# Lite App\nA lightweight web application.\n",
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "simply-ai-native", d, "--yes"]);
+    ok(r.code === 0, `L1: simply-ai-native --yes exits 0`);
+    ok(await exists(path.join(d, "CLAUDE.md")), `L1: CLAUDE.md exists`);
+    ok(await exists(path.join(d, "AGENTS.md")), `L1: AGENTS.md exists`);
+    ok(await exists(path.join(d, ".claude")), `L1: .claude/ directory exists`);
+    ok(await exists(path.join(d, ".agents")), `L1: .agents/ directory exists`);
+    ok(await exists(path.join(d, ".cursor")), `L1: .cursor/ directory exists`);
+    ok(await exists(path.join(d, ".github")), `L1: .github/ directory exists`);
+    ok(!(await exists(path.join(d, "ai"))), `L1: ai/ directory does NOT exist`);
+    ok(!(await exists(path.join(d, "ai", "repo-profile.json"))), `L1: ai/repo-profile.json does NOT exist`);
+    ok(!(await exists(path.join(d, "ai", "START-HERE.html"))), `L1: ai/START-HERE.html does NOT exist`);
+    ok(await exists(path.join(d, ".agents", "install-manifest.json")), `L1: .agents/install-manifest.json exists`);
+
+    const claudeContent = await fs.readFile(path.join(d, "CLAUDE.md"), "utf8");
+    const agentsContent = await fs.readFile(path.join(d, "AGENTS.md"), "utf8");
+    ok(claudeContent.includes("lite mode"), `L1: CLAUDE.md mentions lite mode in footer`);
+    ok(agentsContent.includes("lite mode"), `L1: AGENTS.md mentions lite mode in footer`);
+    ok(claudeContent.includes("npm run build") || claudeContent.includes("tsc"), `L1: CLAUDE.md contains build command`);
+    ok(!claudeContent.includes("ai/guide/MODULE_MAP.md"), `L1: CLAUDE.md does not reference non-existent MODULE_MAP.md`);
+    ok(!agentsContent.includes("ai/guide/MODULE_MAP.md"), `L1: AGENTS.md does not reference non-existent MODULE_MAP.md`);
+
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // L2: install --lite behaves identically to simply-ai-native
+  {
+    const d = await makeBareFixture("lite-t2-install-flag", {
+      "package.json": JSON.stringify({ name: "flag-app" }),
+    });
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "install", d, "--lite", "--yes"]);
+    ok(r.code === 0, `L2: install --lite --yes exits 0`);
+    ok(await exists(path.join(d, "CLAUDE.md")), `L2: CLAUDE.md exists`);
+    ok(!(await exists(path.join(d, "ai"))), `L2: ai/ folder does not exist`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // L3: uninstall removes lite mode files and manifests cleanly
+  {
+    const d = await makeBareFixture("lite-t3-uninstall", {
+      "package.json": JSON.stringify({ name: "uninstall-app" }),
+      "app.js": "console.log('keep me');\n",
+    });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "simply-ai-native", d, "--yes"]);
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "uninstall", d, "--yes"]);
+    ok(r.code === 0, `L3: uninstall exits 0 on lite installation`);
+    ok(!(await exists(path.join(d, "CLAUDE.md"))), `L3: CLAUDE.md was removed`);
+    ok(!(await exists(path.join(d, "AGENTS.md"))), `L3: AGENTS.md was removed`);
+    ok(!(await exists(path.join(d, ".claude"))), `L3: .claude/ was removed`);
+    ok(!(await exists(path.join(d, ".agents"))), `L3: .agents/ was removed`);
+    ok(await exists(path.join(d, "app.js")), `L3: user file app.js is preserved`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // L4: upgrade path: simply-ai-native -> shazam graduates cleanly
+  {
+    const d = await makeBareFixture("lite-t4-upgrade", {
+      "package.json": JSON.stringify({ name: "upgrade-app" }),
+    });
+    run(process.execPath, [path.join(kitRoot, "install.mjs"), "simply-ai-native", d, "--yes"]);
+    ok(!(await exists(path.join(d, "ai"))), `L4: pre-upgrade: ai/ does not exist`);
+
+    const r = run(process.execPath, [path.join(kitRoot, "install.mjs"), "shazam", d, "--yes"]);
+    ok(r.code === 0, `L4: shazam --yes upgrade exits 0`);
+    ok(await exists(path.join(d, "ai")), `L4: post-upgrade: ai/ directory created`);
+    ok(await exists(path.join(d, "ai", "repo-profile.json")), `L4: ai/repo-profile.json created`);
+    ok(await exists(path.join(d, "ai", "guide", "MODULE_MAP.md")), `L4: MODULE_MAP.md created`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 console.log(`\n${checks - failures}/${checks} checks passed`);
 process.exit(failures ? 1 : 0);

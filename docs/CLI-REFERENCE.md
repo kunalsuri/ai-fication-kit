@@ -36,6 +36,7 @@ any command**. Model inference only happens later, inside your agent, via
 | [`orient`](#orient) | Deterministic stack detection | `ai/repo-profile.json` |
 | [`indepth`](#indepth) | Comprehensive Tier-2 repo analysis | `ai/repo-indepth.json` |
 | [`install`](#install) | Stamp the kit's templates into the repo | templates + `ai/install-manifest.json` |
+| [`simply-ai-native`](#simply-ai-native) | Instant AI-native harness without `ai/` folder | `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.agents/`, `.cursor/`, `.github/` |
 | [`uninstall`](#uninstall) | Remove exactly what `install` wrote | (deletes manifest-listed files) |
 | [`verify`](#verify) | Check every path claim in the docs against the tree | `VERIFICATION_MANIFEST.json` + report |
 | [`drift`](#drift) | Report where the code has outgrown the map | `DRIFT_MANIFEST.json` + report |
@@ -244,6 +245,26 @@ installs. Manifests written by pre-hash kit versions classify existing files as
 
 **Options:** `--dry-run`, `--force`, `--force-verified`, `--yes`, plus the profile
 overrides (`--name`, `--description`, `--build`, `--test`, `--upstream`).
+
+---
+
+<a id="simply-ai-native"></a>
+## `simply-ai-native` — instant AI-native harness without ai/ folder
+
+```bash
+node install.mjs simply-ai-native /path/to/your/repo [options]
+```
+
+Turns a codebase AI-native instantly across **Claude Code**, **Google Antigravity**, **Cursor**, and **GitHub Copilot** *without* creating the `ai/` directory structure.
+
+1. Runs `orient` in-memory to detect languages, build/test commands, and test directories.
+2. Stamps standalone `CLAUDE.md` and `AGENTS.md` at the root with self-contained stack and rule definitions.
+3. Stamps tool directories: `.claude/`, `.agents/`, `.cursor/`, `.github/`.
+4. Records the installation manifest in `.agents/install-manifest.json` for clean `uninstall`.
+
+Whenever you are ready for full knowledge governance (architecture mapping, drift detection, and human verification protocol), you can graduate to the full tier at any time by running `node install.mjs shazam /path/to/your/repo`.
+
+**Options:** `--dry-run`, `--force`, `--force-verified`, `--yes`, plus the profile overrides (`--name`, `--description`, `--build`, `--test`, `--upstream`).
 
 ---
 
@@ -494,6 +515,7 @@ clear message (not a stack trace) if the bundled example is missing.
 | `--interactive`, `-i` | `orient` | ask for the analysis level interactively |
 | `--analysis-level general\|indepth` | `shazam`, `orient` | choose the analysis depth explicitly |
 | `--indepth` | `shazam`, `orient` | shorthand for `--analysis-level indepth` |
+| `--lite` | `install`, `shazam` | install in lite mode (no `ai/` folder; root configs + tool dirs only) |
 | `--name "X"` | `shazam`, `orient`, `install` | project name (default: target folder name) |
 | `--description "X"` | `shazam`, `orient`, `install` | one-line description (default: first line of README) |
 | `--build "X"` | `shazam`, `orient`, `install` | build command (default: detected) |

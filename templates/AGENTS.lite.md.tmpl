@@ -1,0 +1,32 @@
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
+# AGENTS.md — {{PROJECT_NAME}}
+
+Tool-agnostic instructions for any AI coding agent (Claude Code, Codex, Cursor,
+Copilot, Windsurf). Claude Code reads these via `@AGENTS.md` in `CLAUDE.md` (see [CLAUDE.md](CLAUDE.md));
+other tools read this file directly.
+
+## Project
+{{DESCRIPTION}}{{FORK_LINE}}
+Stack: {{LANGUAGES}}.
+
+## Rules every agent must follow
+1. {{FORK_RULE}}
+2. **No layout churn.** Don't reorganize directories; existing contributors depend on
+   the structure.
+3. **Test before done.** Run the suite matching your change; never declare success
+   untested. Build: `{{BUILD_CMD}}` · Test: `{{TEST_CMD}}`
+4. **Match the license-header practice of neighboring files** — copy their header if
+   they have one, add none if they don't.
+5. **Locate, then read.** Use entry points and tests to understand structure; grep before
+   reading whole files.
+6. **Surgical diffs.** Change only what the task needs.
+7. **No Phantom Bugs & Configuration Churn.** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, {{CONFIG_FILES}}) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs.
+
+## Multi-agent configuration
+This repository is configured for multi-agent collaboration:
+- Claude Code: `CLAUDE.md` and `.claude/`
+- Google Antigravity: `.agents/`
+- Cursor: `.cursor/`
+- GitHub Copilot: `.github/copilot-instructions.md`
+
+<!-- Installed by ai-fication-kit {{KIT_VERSION}} on {{DATE}} (lite mode). -->

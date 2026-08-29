@@ -133,7 +133,7 @@ if (argv.includes("--version") || argv.includes("-v")) {
   console.log(KIT_VERSION);
   process.exit(0);
 }
-const COMMANDS = new Set(["orient", "install", "shazam", "update", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit", "demo"]);
+const COMMANDS = new Set(["orient", "install", "shazam", "update", "uninstall", "verify", "drift", "check-repo-maturity", "indepth", "doctor", "status", "audit", "demo", "simply-ai-native"]);
 const flags = {};
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
@@ -149,6 +149,7 @@ for (let i = 0; i < argv.length; i++) {
   else if (a === "--yes") flags.yes = true;
   else if (a === "--skip-prompt") flags.skipPrompt = true;
   else if (a === "--interactive" || a === "-i") flags.interactive = true;
+  else if (a === "--lite") flags.lite = true;
   else if (a === "--indepth") flags.analysisLevel = "indepth";
   else if (a === "--analysis-level") {
     const v = argv[++i];
@@ -200,6 +201,9 @@ Usage:
   node install.mjs indepth   <path-to-your-repo>   run comprehensive indepth analysis
   node install.mjs install   <path-to-your-repo>   stamp templates into the repo
   node install.mjs uninstall <path-to-your-repo>   remove exactly what install wrote
+  node install.mjs simply-ai-native <path>         make repo AI-native without ai/ folder
+                                                   (CLAUDE.md, AGENTS.md, .claude/, .agents/,
+                                                   .cursor/, .github/)
   node install.mjs verify    <path-to-your-repo>   mechanically check every path claim
                                                    in the knowledge docs against the tree
   node install.mjs drift     <path-to-your-repo>   report where the code has drifted from
@@ -220,6 +224,7 @@ Usage:
 Options: --dry-run --force --force-verified --yes --strict --git --suggest
          --github-summary --json --name --description --build --test --upstream
          --analysis-level general|indepth --indepth --skip-prompt --interactive, -i
+         --lite
          --version, -v   print the kit version and exit
 `);
   process.exit(command ? 1 : 0);
@@ -302,14 +307,34 @@ if (command === "orient") {
     info("--dry-run: report not written.");
   }
 } else if (command === "install") {
-  const existingProfile = await readText(path.join(targetAbs, PROFILE_REL));
   let profile = null;
-  if (existingProfile) {
-    try { profile = JSON.parse(existingProfile); }
-    catch { /* corrupt profile on disk — fall through to a fresh orient */ }
+  if (!flags.lite) {
+    const existingProfile = await readText(path.join(targetAbs, PROFILE_REL));
+    if (existingProfile) {
+      try { profile = JSON.parse(existingProfile); }
+      catch { /* corrupt profile on disk — fall through to a fresh orient */ }
+    }
   }
   if (!profile) profile = await orient(targetAbs, flags);
   await install(targetAbs, profile, flags);
+} else if (command === "simply-ai-native") {
+  banner();
+  info("  " + style.coral("✦ simply-ai-native") + style.gray(" — instant AI-native harness (.claude, .agents, .cursor, .github). Zero ai/ folder."));
+  const profile = await orient(targetAbs, flags);
+  printProfile(profile);
+  const wrote = await install(targetAbs, profile, { ...flags, lite: true });
+  if (wrote && !flags.dryRun) {
+    const step = (n) => style.coral(`${n}.`);
+    info("\n" + style.bold("Next steps") + style.gray(" (ready for multi-agent workflows):"));
+    info(`  ${step(1)} Your repository is now AI-native across major tools:`);
+    info(`     ${style.bold("Claude Code")}        — reads CLAUDE.md and .claude/`);
+    info(`     ${style.bold("Google Antigravity")}  — reads AGENTS.md and .agents/`);
+    info(`     ${style.bold("Cursor")}              — reads .cursor/`);
+    info(`     ${style.bold("GitHub Copilot")}      — reads .github/copilot-instructions.md`);
+    info(`  ${step(2)} Review and adjust build/test commands in ${style.bold("CLAUDE.md")} and ${style.bold("AGENTS.md")}.`);
+    info(`  ${step(3)} Ready to upgrade to full knowledge governance later? Run ${style.coral("node install.mjs shazam " + target)}.`);
+    info("");
+  }
 } else if (command === "shazam" || command === "update") {
   banner();
   // Update mode: an install manifest on disk means shazam has run here before.

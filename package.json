@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "shazam": "node install.mjs shazam",
+    "simply-ai-native": "node install.mjs simply-ai-native",
     "orient": "node install.mjs orient",
     "indepth": "node install.mjs indepth",
     "setup": "node install.mjs install",

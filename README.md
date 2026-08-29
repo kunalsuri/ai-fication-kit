@@ -193,6 +193,20 @@ node install.mjs shazam /path/to/your/repo
 
 <br>
 
+#### Option C: Lite Mode via `simply-ai-native` (Zero `ai/` Folder)
+
+If you only want immediate multi-agent tool harnesses (`.claude/`, `.agents/`, `.cursor/`, `.github/`, `CLAUDE.md`, `AGENTS.md`) without creating an `ai/` knowledge folder:
+
+```bash
+# Direct via npx:
+npx github:kunalsuri/ai-fication-kit simply-ai-native /path/to/your/repo
+
+# Or locally:
+node install.mjs simply-ai-native /path/to/your/repo
+```
+
+<br>
+
 Two more deterministic commands worth knowing (no LLM, seconds to run — see [docs/CLI-REFERENCE.md](docs/CLI-REFERENCE.md) for every command, flag, and exit code):
 
 ```bash

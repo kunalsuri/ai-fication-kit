@@ -1,0 +1,32 @@
+<!-- Copyright (c) 2026 Kunal Suri (CEA LIST). All rights reserved. -->
+# {{PROJECT_NAME}} — Claude Code project memory
+
+# Imports tool-agnostic rules (Claude Code native directive)
+@AGENTS.md
+# Relative link for non-Claude agents: [AGENTS.md](AGENTS.md)
+
+{{DESCRIPTION}}{{FORK_LINE}}
+Stack: {{LANGUAGES}}.
+
+## Build & test
+- Build: `{{BUILD_CMD}}`
+- Test:  `{{TEST_CMD}}`
+- Test locations: {{TEST_DIRS}}
+- Run the suite matching what you changed BEFORE claiming success.
+
+## Hard rules (non-negotiable)
+- {{FORK_RULE}}
+- **No layout churn.** Don't reorganize directories; existing contributors depend on the structure.
+- **No Phantom Bugs & Configuration Churn:** Do not rewrite, restructure, or simplify configuration or instruction files (`CLAUDE.md`, `AGENTS.md`, {{CONFIG_FILES}}) based on quick searches or automated suggestions. Keep edits surgical. Never replace detailed guides with simplified stubs.
+- **Surgical diffs.** Change only what the task needs.
+- **Match license headers** on every new source file, copying from neighboring files.
+
+## Token discipline
+- Locate via entry points, manifests, and tests. Grep before reading whole files.
+- Don't crawl the whole tree. Prefer targeted file reads.
+- Delegate isolated/heavy work to subagents: `repo-explorer` (read-only exploration), `feature-builder` (implements), `test-runner` (tests).
+
+## Multi-agent configuration
+This repository is configured for multi-agent collaboration across Claude Code (`CLAUDE.md`, `.claude/`), Google Antigravity (`.agents/`), Cursor (`.cursor/`), and GitHub Copilot (`.github/`).
+
+<!-- Installed by ai-fication-kit {{KIT_VERSION}} on {{DATE}} (lite mode). -->
