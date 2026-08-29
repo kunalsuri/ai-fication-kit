@@ -1040,6 +1040,155 @@ console.log("\n— install.mjs: CLI edge cases —");
   ok(r === null, `intake wizard self-skips under --yes (no humanContext, no prompt)`);
 }
 
+// ---------- intake: wizard decision branches, driven by a scripted io ----------
+// runFirstRunWizard's actual body (branch-safety warnings, Process 1 vs 2,
+// the 4 stack shapes, the 2 exit(0) escape hatches) needs a real TTY under the
+// production `choose()`/`confirm()`/`ask()` from util.mjs, so it was previously
+// exercised only via the `--yes` self-skip above. Injecting a scripted `io` —
+// same shape, canned answers — reaches every decision branch without a TTY.
+console.log("\n— intake: wizard decision branches (scripted io) —");
+{
+  const { runFirstRunWizard } = await import(pathToFileURL(path.join(kitRoot, "lib", "intake.mjs")).href);
+
+  function scriptedIo({ confirms = [], chooses = [], asks = [] } = {}) {
+    let ci = 0, coi = 0, ai = 0;
+    return {
+      isInteractive: () => true,
+      confirm: async () => {
+        if (ci >= confirms.length) throw new Error("scriptedIo: unexpected extra confirm() call");
+        return confirms[ci++];
+      },
+      choose: async (_q, options, _flags, defaultIndex) => {
+        const scripted = chooses[coi++];
+        return scripted !== undefined ? scripted : options[defaultIndex];
+      },
+      ask: async (_q, _flags, fallback) => {
+        const scripted = asks[ai++];
+        return scripted !== undefined ? scripted : fallback;
+      },
+    };
+  }
+
+  // Runs `fn`, capturing a process.exit(0) call as a normal return instead of
+  // killing this whole coverage-instrumented test process.
+  async function expectingExit(fn) {
+    const origExit = process.exit;
+    let exitCode;
+    process.exit = (code) => { exitCode = code; throw new Error("__TEST_PROCESS_EXIT__"); };
+    try {
+      const value = await fn();
+      return { exited: false, value };
+    } catch (e) {
+      if (e instanceof Error && e.message === "__TEST_PROCESS_EXIT__") return { exited: true, exitCode };
+      throw e;
+    } finally {
+      process.exit = origExit;
+    }
+  }
+
+  // 1 — non-git repo, decline "Proceed without version control?" → exit(0), no humanContext.
+  {
+    const d = await makeBareFixture("wizard-nogit-decline", { "app.ts": "export {};\n" });
+    const io = scriptedIo({ confirms: [false] });
+    const r = await expectingExit(() => runFirstRunWizard(d, { languages: [] }, {}, io));
+    ok(r.exited && r.exitCode === 0,
+      `non-git repo + declined risk → process.exit(0), no files written`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // 2 — non-git repo, accept risk, Process 1, "confirmed" stack shape, explicit tool.
+  {
+    const d = await makeBareFixture("wizard-nogit-accept", { "app.ts": "export {};\n" });
+    const io = scriptedIo({
+      confirms: [true],
+      chooses: [undefined, undefined, "That's right — single stack", "Cursor"],
+    });
+    const ctx = await runFirstRunWizard(d, { languages: ["TypeScript"] }, {}, io);
+    ok(ctx !== null && ctx.branch.versionControlled === false && ctx.branch.acknowledgedRisk === true,
+      `non-git repo + accepted risk → humanContext records versionControlled=false, acknowledgedRisk=true`);
+    ok(ctx.stack.kind === "single" && ctx.stack.source === "confirmed-detection",
+      `stack shape "That's right" → kind=single, source=confirmed-detection`);
+    ok(ctx.primaryTool === "Cursor", `primaryTool records the scripted choice: ${ctx.primaryTool}`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // 3 — git repo on "main", decline "Continue on 'main' anyway?" → exit(0).
+  {
+    const d = await makeBareFixture("wizard-main-decline", { ".git/HEAD": "ref: refs/heads/main\n" });
+    const io = scriptedIo({ confirms: [false] });
+    const r = await expectingExit(() => runFirstRunWizard(d, { languages: [] }, {}, io));
+    ok(r.exited && r.exitCode === 0, `default-branch repo + declined "continue anyway" → process.exit(0)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // 4 — git repo on "main", accept, Process 2 (existing AI config), decline backup → exit(0).
+  {
+    const d = await makeBareFixture("wizard-process2-decline", { ".git/HEAD": "ref: refs/heads/main\n" });
+    const profile = {
+      languages: [],
+      maturity: { process: 2 },
+      existingAIConfig: { claudeMd: { exists: true, hasKitFooter: false } },
+    };
+    const io = scriptedIo({ confirms: [true, false] });
+    const r = await expectingExit(() => runFirstRunWizard(d, profile, {}, io));
+    ok(r.exited && r.exitCode === 0, `Process 2 + declined "proceed with backup" → process.exit(0)`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // 5 — git repo on "main", accept both, Process 2, "correct it" stack shape (ask), "Several of these" tool.
+  {
+    const d = await makeBareFixture("wizard-process2-accept", { ".git/HEAD": "ref: refs/heads/main\n" });
+    const profile = {
+      languages: ["Go"],
+      maturity: { process: 2 },
+      existingAIConfig: { agentsMd: { exists: true, hasKitFooter: false } },
+    };
+    const io = scriptedIo({
+      confirms: [true, true],
+      chooses: [undefined, undefined, "Single stack, but let me correct it", "Several of these"],
+      asks: ["Go + Gin"],
+    });
+    const ctx = await runFirstRunWizard(d, profile, {}, io);
+    ok(ctx !== null && ctx.branch.isDefaultBranch === true && ctx.branch.acknowledgedRisk === true,
+      `Process 2 + accepted both confirms → humanContext recorded, isDefaultBranch=true`);
+    ok(ctx.stack.kind === "single" && ctx.stack.description === "Go + Gin",
+      `stack shape "correct it" → asks for and records a free-text description`);
+    ok(ctx.primaryTool === "Several of these", `primaryTool records "Several of these"`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // 6 — git repo on a non-default branch: the branch-safety confirm is skipped
+  // entirely (only Process 1/2 and stack/tool choices remain). "Split" stack shape.
+  {
+    const d = await makeBareFixture("wizard-feature-branch", { ".git/HEAD": "ref: refs/heads/feature-x\n" });
+    const io = scriptedIo({
+      confirms: [], // no branch-safety confirm on a non-default branch, no Process-2 confirm (Process 1)
+      chooses: [undefined, undefined, "Split: separate frontend and backend", "None yet"],
+      asks: ["React + TypeScript", "Django"],
+    });
+    const ctx = await runFirstRunWizard(d, { languages: ["Python"] }, {}, io);
+    ok(ctx !== null && ctx.branch.name === "feature-x" && ctx.branch.isDefaultBranch === false
+        && ctx.branch.acknowledgedRisk === true,
+      `non-default branch → no confirm prompt, acknowledgedRisk stays true by default`);
+    ok(ctx.stack.kind === "split" && ctx.stack.frontend === "React + TypeScript" && ctx.stack.backend === "Django",
+      `stack shape "Split" → asks for and records frontend + backend separately`);
+    ok(ctx.primaryTool === "None yet", `primaryTool records "None yet"`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // 7 — "Not sure / mixed" stack shape → kind=unknown, no free-text prompt.
+  {
+    const d = await makeBareFixture("wizard-unknown-stack", { "app.ts": "export {};\n" });
+    const io = scriptedIo({
+      confirms: [true],
+      chooses: [undefined, undefined, "Not sure / mixed", "GitHub Copilot"],
+    });
+    const ctx = await runFirstRunWizard(d, { languages: [] }, {}, io);
+    ok(ctx.stack.kind === "unknown", `stack shape "Not sure / mixed" → kind=unknown`);
+    await fs.rm(d, { recursive: true, force: true });
+  }
+}
+
 // ---------- intake: AI-tool detection + tailored next-steps text ----------
 console.log("\n— intake: tool detection —");
 {
@@ -1344,6 +1493,29 @@ console.log("\n— drift stale (git) —");
     await fs.rm(grepo, { recursive: true, force: true });
   }
 }
+
+// ---------- indepth: walk() filesystem-error path ----------
+// A directory that becomes unreadable mid-scan (permission denied, vanished,
+// a broken mount) must degrade to a warning, not crash the whole analysis.
+// The full `indepth` CLI never hits this branch in CI (fixtures are always
+// readable, and running as root defeats chmod-based simulation anyway), so
+// call walk() directly against a path that cannot be readdir'd for any user —
+// nonexistent — which is portable across Linux/macOS/Windows and root/non-root.
+console.log("\n— indepth: walk() filesystem-error path —");
+{
+  const { walk } = await import(pathToFileURL(path.join(kitRoot, "lib", "indepth.mjs")).href);
+  const fixtureRoot = await makeBareFixture("walk-fs-error", { "README.md": "# fixture\n" });
+  const missingDir = path.join(fixtureRoot, "does-not-exist");
+  const filesInfo = [];
+  const warnings = [];
+  await walk(missingDir, fixtureRoot, [], filesInfo, warnings);
+  ok(filesInfo.length === 0, `walk() on an unreaddir'able directory collects no files`);
+  ok(warnings.some(w => w.category === "filesystem" && /Failed to read directory/.test(w.message)
+      && /does-not-exist/.test(w.message)),
+    `walk() reports a filesystem warning instead of throwing: ${JSON.stringify(warnings)}`);
+  await fs.rm(fixtureRoot, { recursive: true, force: true });
+}
+
 // ---------- indepth git history (git-gated; both installers) ----------
 // The main-fixture indepth run has a fake .git (config only, no repository), so
 // the whole git-history analyzer short-circuits there. This exercises it for real.
@@ -1867,7 +2039,7 @@ console.log("\n— status —");
 console.log("\n— audit —");
 {
   const {
-    formatAuditTimestamp, targetDirFor, computeEvidence, rewriteRowLine,
+    audit, formatAuditTimestamp, targetDirFor, computeEvidence, rewriteRowLine,
     applyEdits, writeAuditedMap,
   } = await import(pathToFileURL(path.join(kitRoot, "lib", "audit.mjs")).href);
 
@@ -1894,6 +2066,153 @@ console.log("\n— audit —");
     const files = await fs.readdir(path.join(d, "ai", "guide"));
     ok(!files.some(f => /_bkp_/.test(f)), `refused audit runs take no backup`);
     await fs.rm(d, { recursive: true, force: true });
+  }
+
+  // ---- interactive loop, driven by a scripted io (no real TTY needed) ----
+  // Mirrors the intake wizard's approach: audit()'s per-row confirm/choose
+  // loop, --dry-run short-circuit, and --git anchor-move offer were previously
+  // unreachable outside a real terminal. A scripted io reaches them directly.
+  {
+    function scriptedIo({ confirms = [], chooses = [] } = {}) {
+      let ci = 0, coi = 0;
+      return {
+        isInteractive: () => true,
+        confirm: async () => {
+          if (ci >= confirms.length) throw new Error("scriptedIo: unexpected extra confirm() call");
+          return confirms[ci++];
+        },
+        choose: async (_q, options, _flags, defaultIndex) => {
+          const scripted = chooses[coi++];
+          return scripted !== undefined ? scripted : options[defaultIndex];
+        },
+      };
+    }
+    const oneRowMap =
+      "# map\n" +
+      "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+      "|---|---|---|---|---|\n" +
+      "| `src/` | core | `src/app.ts` | ours | [inferred] |\n";
+
+    // interactive-but-nothing-to-audit early returns: no MODULE_MAP.md at all,
+    // and a MODULE_MAP.md with a header but zero table rows.
+    {
+      const d = await makeBareFixture("audit-no-map", {});
+      await audit(d, {}, scriptedIo()); // no confirms/chooses expected — must return before any prompt
+      ok(true, `audit() with no ai/guide/MODULE_MAP.md returns without prompting`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+    {
+      const d = await makeBareFixture("audit-no-rows", {
+        "ai/guide/MODULE_MAP.md": "# map\n\nPlaceholder — nothing scaffolded yet.\n",
+      });
+      await audit(d, {}, scriptedIo());
+      ok(true, `audit() with a rowless MODULE_MAP.md returns without prompting`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // a — decline "Audit this row now?" → row skipped, nothing written.
+    {
+      const d = await makeBareFixture("audit-decline-row", { "ai/guide/MODULE_MAP.md": oneRowMap, "src/app.ts": "export {};\n" });
+      const before = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      await audit(d, {}, scriptedIo({ confirms: [false] }));
+      const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      ok(after === before, `declining "Audit this row now?" leaves MODULE_MAP.md untouched`);
+      const files = await fs.readdir(path.join(d, "ai", "guide"));
+      ok(!files.some(f => /_bkp_/.test(f)), `declined row takes no backup`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // b — confirm the row, then choose "skip (leave this row untouched)" → same outcome, different path.
+    {
+      const d = await makeBareFixture("audit-skip-stability", { "ai/guide/MODULE_MAP.md": oneRowMap, "src/app.ts": "export {};\n" });
+      const before = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      await audit(d, {}, scriptedIo({
+        confirms: [true],
+        chooses: ["skip (leave this row untouched)"],
+      }));
+      const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      ok(after === before, `choosing the "skip" stability option leaves MODULE_MAP.md untouched`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // c — confirm the row, pick a stability, then decline the "this is your signature" confirm.
+    {
+      const d = await makeBareFixture("audit-decline-signature", { "ai/guide/MODULE_MAP.md": oneRowMap, "src/app.ts": "export {};\n" });
+      const before = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      await audit(d, {}, scriptedIo({
+        confirms: [true, false],
+        chooses: ["stable"],
+      }));
+      const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      ok(after === before, `declining the final "this is your signature" confirm leaves MODULE_MAP.md untouched`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // d — full confirm → row flipped to [verified], backup taken, no --git so the
+    // "update it yourself" info branch prints instead of offering the anchor move.
+    {
+      const mapWithAnchor =
+        "# map\n> Last verified: 2026-01-01 @ commit abc1234\n\n" +
+        "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+        "|---|---|---|---|---|\n" +
+        "| `src/` | core | `src/app.ts` | ours | [inferred] |\n";
+      const d = await makeBareFixture("audit-confirm-full", { "ai/guide/MODULE_MAP.md": mapWithAnchor, "src/app.ts": "export {};\n" });
+      await audit(d, {}, scriptedIo({
+        confirms: [true, true],
+        chooses: ["frozen"],
+      }));
+      const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      ok(/\| frozen \| \[verified\]/.test(after), `full confirm flips Stability=frozen, Status=[verified]: ${after.split("\n").find(l => l.includes("src/"))}`);
+      ok(/Last verified: 2026-01-01 @ commit abc1234/.test(after), `no --git → the anchor line is left for the human to update themselves`);
+      const files = await fs.readdir(path.join(d, "ai", "guide"));
+      ok(files.some(f => /^MODULE_MAP_bkp_\d{8}_\d{6}\.md$/.test(f)), `full confirm takes a timestamped backup`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // e — --dry-run: edits are computed but never written.
+    {
+      const d = await makeBareFixture("audit-dry-run", { "ai/guide/MODULE_MAP.md": oneRowMap, "src/app.ts": "export {};\n" });
+      const before = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      await audit(d, { dryRun: true }, scriptedIo({
+        confirms: [true, true],
+        chooses: ["ours"],
+      }));
+      const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+      ok(after === before, `--dry-run computes the edit but writes nothing`);
+      const files = await fs.readdir(path.join(d, "ai", "guide"));
+      ok(!files.some(f => /_bkp_/.test(f)), `--dry-run takes no backup`);
+      await fs.rm(d, { recursive: true, force: true });
+    }
+
+    // f — --git: after a confirmed edit, accepting the anchor-move offer rewrites
+    // the "Last verified" line to today @ HEAD's short sha (real, local git only).
+    {
+      const gitOk = run("git", ["--version"]).code === 0;
+      if (!gitOk) {
+        console.log("  — SKIPPED --git anchor-move (no git on PATH)");
+      } else {
+        const mapWithAnchor =
+          "# map\n> Last verified: 2020-01-01 @ commit 0000000\n\n" +
+          "| Directory | Responsibility | Entry point | Stability | Status |\n" +
+          "|---|---|---|---|---|\n" +
+          "| `src/` | core | `src/app.ts` | ours | [inferred] |\n";
+        const d = await makeBareFixture("audit-git-anchor", { "ai/guide/MODULE_MAP.md": mapWithAnchor, "src/app.ts": "export {};\n" });
+        const g = (...a) => run("git", ["-C", d, ...a]);
+        g("init", "-q"); g("config", "user.email", "t@t.t"); g("config", "user.name", "t");
+        g("config", "commit.gpgsign", "false");
+        g("add", "-A"); g("commit", "--no-gpg-sign", "-qm", "init");
+        const sha = run("git", ["-C", d, "rev-parse", "--short", "HEAD"]).out.trim();
+
+        await audit(d, { git: true }, scriptedIo({
+          confirms: [true, true, true], // audit row, sign the flip, move the anchor
+          chooses: ["stable"],
+        }));
+        const after = await fs.readFile(path.join(d, "ai", "guide", "MODULE_MAP.md"), "utf8");
+        ok(after.includes(`@ commit ${sha}`) && !after.includes("@ commit 0000000"),
+          `--git + accepted anchor move rewrites "Last verified" to HEAD's short sha (${sha})`);
+        await fs.rm(d, { recursive: true, force: true });
+      }
+    }
   }
 
   // ---- formatAuditTimestamp ----
@@ -2550,12 +2869,14 @@ console.log("\n— audit R3 regressions —");
       `isSafeManifestPath rejects absolute/../NUL/backslash/empty-segment paths, keeps clean posix-relative ones`);
   }
 
-  // Unit: the rename registry (empty today, but the lookup must be safe).
+  // Unit: the rename registry lookup, both branches.
   {
     const { renameTargetFor, RENAMES } =
       await import(pathToFileURL(path.join(kitRoot, "lib", "migrations.mjs")).href);
     ok(Array.isArray(RENAMES) && renameTargetFor("ai/never-existed.md") === null,
       `renameTargetFor returns null for unmapped paths (registry has ${RENAMES.length} entries)`);
+    ok(RENAMES.length > 0 && renameTargetFor(RENAMES[0].from) === RENAMES[0].to,
+      `renameTargetFor resolves a registered rename to its "to" path: ${RENAMES[0].from} -> ${RENAMES[0].to}`);
   }
 
   // E2E: fresh install seeds manifest v2; a version jump switches shazam to
